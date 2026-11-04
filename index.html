@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>นทีดารา : สายน้ำแห่งดวงดาว</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  :root{--blue:#0B1E4B;--purple:#4B2E83;--gold:#D4AF37}
+  html,body{font-family:'Kanit',sans-serif}
+  body{background:linear-gradient(135deg,#0B1E4B 0%,#130a33 50%,#4B2E83 100%);min-height:100vh;color:#fff}
+  .starfield{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 3s infinite}
+  @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+  .glass{background:rgba(11,30,75,.55);backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.25)}
+  .gold{color:var(--gold)} .gold-bg{background:linear-gradient(135deg,#D4AF37,#f5de93)}
+  .btn-gold{background:linear-gradient(135deg,#D4AF37,#f5de93);color:#0B1E4B;font-weight:600;transition:.2s}
+  .btn-gold:hover{box-shadow:0 0 22px rgba(212,175,55,.55);transform:translateY(-1px)}
+  .btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-ghost{border:1px solid rgba(212,175,55,.5);color:var(--gold);transition:.2s}
+  .btn-ghost:hover{background:rgba(212,175,55,.12)}
+  .loader{width:38px;height:38px;border:3px solid rgba(212,175,55,.25);border-top-color:#D4AF37;border-radius:50%;animation:spin 1s linear infinite;margin:auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .fade-in{animation:fadeIn .5s ease-out}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  input,select,textarea{color:#fff!important}
+  input::placeholder,textarea::placeholder{color:rgba(255,255,255,.45)}
+  input[type="number"]{color:#fff!important}
+  .tab-active{background:rgba(212,175,55,.18);color:#D4AF37;border-color:#D4AF37!important}
+  .badge{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600}
+  .badge-draft{background:#475569;color:#fff}
+  .badge-submitted{background:#f59e0b;color:#0B1E4B}
+  .badge-approved{background:#10b981;color:#fff}
+  .badge-pending{background:#f59e0b;color:#0B1E4B}
+  .badge-rejected{background:#ef4444;color:#fff}
+  .badge-admin{background:#D4AF37;color:#0B1E4B}
+  .badge-super_admin{background:#ef4444;color:#fff}
+  .badge-judge{background:#8b5cf6;color:#fff}
+  .lock-overlay{opacity:.55;pointer-events:none}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(212,175,55,.4);border-radius:8px}
+
+  /* PRINT CSS */
+  #printArea{display:none}
+  @media print {
+    body{background:#fff!important;color:#000!important}
+    header,main,#toast,#modal,.starfield,#printFab{display:none!important}
+    #printArea{display:block!important;background:#fff;color:#000;font-family:'Sarabun','Kanit',sans-serif;padding:0}
+    #printArea *{color:#000!important}
+    #printArea table{width:100%;border-collapse:collapse;margin-top:8px}
+    #printArea th,#printArea td{border:1px solid #333;padding:6px 8px;font-size:11px}
+    #printArea th{background:#f0f0f0!important;font-weight:700}
+    #printArea .hdr{text-align:center;margin-bottom:12px;border-bottom:2px solid #333;padding-bottom:8px}
+    #printArea .hdr h1{font-size:20px;margin:0}
+    #printArea .hdr h2{font-size:14px;margin:4px 0;font-weight:500}
+    #printArea .hdr p{font-size:11px;margin:2px 0}
+    #printArea .sign{margin-top:24px;text-align:right;font-size:11px}
+    #printArea .sign div{margin-top:32px}
+    .page-break{page-break-after:always}
+    .no-print{display:none!important}
+  }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="starfield" id="starfield"></div>
+
+<header class="sticky top-0 z-30 glass">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <a href="#home" class="flex items-center gap-3 shrink-0">
+      <div class="w-10 h-10 rounded-full gold-bg flex items-center justify-center">
+        <i data-lucide="sparkles" class="w-5 h-5" style="color:#0B1E4B"></i>
+      </div>
+      <div>
+        <h1 class="text-base font-bold gold leading-tight">นทีดารา</h1>
+        <p class="text-[11px] text-blue-200/70">River of Stars</p>
+      </div>
+    </a>
+    <nav id="desktopNav" class="hidden lg:flex gap-1 text-sm"></nav>
+    <div class="flex items-center gap-2">
+      <div id="authArea"></div>
+      <button id="menuBtn" class="lg:hidden p-2 rounded-lg hover:bg-white/10"><i data-lucide="menu" class="w-6 h-6"></i></button>
+    </div>
+  </div>
+  <div id="mobileMenu" class="hidden lg:hidden px-4 pb-3 space-y-1 text-sm"></div>
+</header>
+
+<main class="relative z-10 max-w-7xl mx-auto px-4 py-6 pb-24">
+  <section id="view-home" class="view hidden"></section>
+  <section id="view-criteria" class="view hidden"></section>
+  <section id="view-contestants" class="view hidden"></section>
+  <section id="view-results" class="view hidden"></section>
+  <section id="view-apply-noppamas" class="view hidden"></section>
+  <section id="view-apply-krathong" class="view hidden"></section>
+  <section id="view-login" class="view hidden"></section>
+  <section id="view-judge" class="view hidden"></section>
+  <section id="view-admin" class="view hidden"></section>
+</main>
+
+<div id="toast" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+<div id="modal" class="fixed inset-0 bg-black/80 hidden z-40 items-center justify-center p-4 overflow-y-auto">
+  <div id="modalContent" class="max-w-4xl w-full"></div>
+</div>
+<div id="printArea"></div>
+
+<script>
+/* =====================================================================
+   INIT SUPABASE & STATE
+===================================================================== */
+const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const S = {
+  auth: null, judgeProfile: null,
+  categories: [], contestants: [], judges: [], criteria: [],
+  applications: [], news: [],
+  currentCat: 'all'
+};
+const SK = 'nateedara_auth_v3';
+
+/* =====================================================================
+   HELPERS
+===================================================================== */
+function starfield(){
+  const sf = document.getElementById('starfield');
+  let h = '';
+  for (let i=0;i<130;i++){
+    const s=(Math.random()*2+0.8).toFixed(1);
+    h += `<div class="star" style="left:${(Math.random()*100).toFixed(2)}%;top:${(Math.random()*100).toFixed(2)}%;width:${s}px;height:${s}px;animation-delay:${(Math.random()*3).toFixed(2)}s"></div>`;
+  }
+  sf.innerHTML = h;
+}
+
+function toast(msg, type='info'){
+  const c = { info:'border-blue-400 bg-blue-500/20', success:'border-emerald-400 bg-emerald-500/20',
+              error:'border-red-400 bg-red-500/20', warn:'border-yellow-400 bg-yellow-500/20' };
+  const el = document.createElement('div');
+  el.className = `px-4 py-3 rounded-lg glass border-l-4 ${c[type]||c.info} text-sm max-w-xs fade-in`;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>{ el.style.transition='.4s'; el.style.opacity='0'; setTimeout(()=>el.remove(),400); }, 3000);
+}
+
+function loader0(m='กำลังโหลด...'){
+  return `<div class="py-10 text-center"><div class="loader"></div><p class="text-xs text-blue-200 mt-3">${m}</p></div>`;
+}
+
+function imgTag(url, alt, cls='w-full h-56 object-cover'){
+  if (!url) return `<div class="${cls} bg-slate-800/60 flex flex-col items-center justify-center text-slate-500">
+      <i data-lucide="image-off" class="w-8 h-8"></i><span class="text-[11px] mt-1">ไม่มีรูป</span></div>`;
+  return `<img src="${url}" alt="${alt}" class="${cls}" loading="lazy"
+    onerror="this.onerror=null;this.outerHTML='&lt;div class=&quot;${cls} bg-slate-800/60 flex items-center justify-center text-slate-500 text-xs&quot;&gt;โหลดรูปไม่ได้&lt;/div&gt;'"/>`;
+}
+
+async function compress(file, maxW=1200, q=0.72){
+  return new Promise((res, rej) => {
+    const img = new Image(), rd = new FileReader();
+    rd.onload = e => img.src = e.target.result;
+    img.onload = () => {
+      let w=img.width, h=img.height;
+      if (w>maxW){ h=Math.round(h*maxW/w); w=maxW; }
+      const c = document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(b => b?res(b):rej(new Error('compress failed')), 'image/jpeg', q);
+    };
+    img.onerror = () => rej(new Error('invalid image'));
+    rd.readAsDataURL(file);
+  });
+}
+
+async function uploadImage(file, prefix='img'){
+  const blob = await compress(file);
+  const name = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+  const { error } = await dbClient.storage.from('contestant-images').upload(name, blob, { contentType:'image/jpeg' });
+  if (error) throw error;
+  return dbClient.storage.from('contestant-images').getPublicUrl(name).data.publicUrl;
+}
+
+const isAdmin = () => S.auth && ['admin','super_admin'].includes(S.auth.role);
+const isJudge = () => S.auth?.role === 'judge';
+const isStaff = () => isAdmin() || isJudge();
+const roleLabel = r => ({admin:'ADMIN', super_admin:'SUPER ADMIN', judge:'JUDGE'}[r] || r);
+const fmtDate = t => t ? new Date(t).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : '—';
+const esc = s => (s??'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* =====================================================================
+   AUTH
+===================================================================== */
+function loadSession(){
+  const raw = sessionStorage.getItem(SK);
+  if (!raw) return null;
+  try { const s = JSON.parse(raw); return Date.now() > s.expires ? (sessionStorage.removeItem(SK), null) : s.user; }
+  catch { return null; }
+}
+function saveSession(u){ sessionStorage.setItem(SK, JSON.stringify({ user:u, expires: Date.now() + 8*3600*1000 })); }
+
+async function doLogin(username, password){
+  const { data, error } = await dbClient.rpc('login_user', { p_username:username, p_password:password });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
+  return data.user;
+}
+
+async function refreshJudgeProfile(){
+  if (S.auth?.role === 'judge' && S.auth.judge_id){
+    const { data } = await dbClient.from('judges').select('*').eq('id', S.auth.judge_id).single();
+    S.judgeProfile = data;
+  } else S.judgeProfile = null;
+}
+
+function doLogout(){
+  sessionStorage.removeItem(SK);
+  S.auth = null; S.judgeProfile = null;
+  renderNav(); toast('ออกจากระบบแล้ว', 'success'); nav('home');
+}
+
+/* =====================================================================
+   NAV
+===================================================================== */
+function renderNav(){
+  const base = [
+    {h:'#home', l:'หน้าแรก'},
+    {h:'#criteria', l:'เกณฑ์การประกวด'},
+    {h:'#contestants', l:'ผู้เข้าประกวด'},
+    {h:'#results', l:'ผลการตัดสิน'},
+    {h:'#apply-noppamas', l:'สมัครนางนพมาศ'},
+    {h:'#apply-krathong', l:'สมัครกระทง (ทีม)'}
+  ];
+  const links = [...base];
+  if (isJudge()) links.push({h:'#judge', l:'กรอกคะแนน'});
+  if (isAdmin()) links.push({h:'#admin', l:'แอดมิน'});
+
+  document.getElementById('desktopNav').innerHTML = links.map(x =>
+    `<a href="${x.h}" class="nav-btn px-2.5 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap text-[13px]">${x.l}</a>`).join('');
+
+  const mm = document.getElementById('mobileMenu');
+  mm.innerHTML = links.map(x =>
+    `<a href="${x.h}" class="mobile-link block px-3 py-2 rounded-lg hover:bg-white/10">${x.l}</a>`).join('');
+  mm.querySelectorAll('.mobile-link').forEach(a => a.onclick = () => mm.classList.add('hidden'));
+
+  const aa = document.getElementById('authArea');
+  if (S.auth){
+    aa.innerHTML = `<div class="flex items-center gap-2">
+      <div class="hidden sm:block text-right">
+        <p class="text-xs text-blue-100 leading-tight max-w-[140px] truncate">${esc(S.auth.full_name)}</p>
+        <span class="badge badge-${S.auth.role}">${roleLabel(S.auth.role)}</span>
+      </div>
+      <button onclick="doLogout()" class="p-2 rounded-lg hover:bg-red-500/20 text-red-300" title="ออก">
+        <i data-lucide="log-out" class="w-4 h-4"></i></button>
+    </div>`;
+  } else {
+    aa.innerHTML = `<a href="#login" class="btn-gold px-4 py-2 rounded-full text-xs inline-flex items-center gap-1.5">
+      <i data-lucide="log-in" class="w-3.5 h-3.5"></i> เข้าสู่ระบบ</a>`;
+  }
+  if (window.lucide) lucide.createIcons();
+
+  const cur = '#' + (location.hash.replace('#','') || 'home');
+  document.querySelectorAll('.nav-btn').forEach(a => a.classList.toggle('tab-active', a.getAttribute('href') === cur));
+}
+
+/* =====================================================================
+   ROUTER
+===================================================================== */
+function nav(view){ if (location.hash === '#'+view) showView(view); else location.hash = '#'+view; }
+
+function showView(name){
+  if (name === 'admin' && !isAdmin()){ toast('ต้องเข้าสู่ระบบเป็นแอดมิน','error'); return nav(!S.auth?'login':'home'); }
+  if (name === 'judge' && !isStaff()){ toast('ต้องเข้าสู่ระบบเป็นกรรมการ','error'); return nav(!S.auth?'login':'home'); }
+  if (name === 'login' && S.auth){ return nav(isAdmin()?'admin':isJudge()?'judge':'home'); }
+
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  const el = document.getElementById('view-'+name);
+  if (el){ el.classList.remove('hidden'); el.classList.add('fade-in'); }
+  renderNav();
+  if (window.lucide) lucide.createIcons();
+
+  const loaders = {
+    home: loadHomeView, criteria: loadCriteriaView, contestants: loadContestantsView,
+    results: loadResultsView, 'apply-noppamas': loadApplyNoppamas, 'apply-krathong': loadApplyKrathong,
+    login: loadLoginView, judge: loadJudgeView, admin: loadAdminView
+  };
+  loaders[name]?.();
+}
+
+/* =====================================================================
+   DATA LOADERS
+===================================================================== */
+async function loadBaseData(){
+  const [cats, cons, judges, crit, news, apps] = await Promise.all([
+    dbClient.from('categories').select('*').order('order_index'),
+    dbClient.from('contestants').select('*').order('order_index'),
+    dbClient.from('judges').select('*').eq('is_active', true),
+    dbClient.from('criteria').select('*').order('order_index'),
+    dbClient.from('news').select('*').order('created_at', { ascending:false }),
+    dbClient.from('applications').select('*').order('created_at', { ascending:false })
+  ]);
+  S.categories = cats.data || [];
+  S.contestants = cons.data || [];
+  S.judges = judges.data || [];
+  S.criteria = crit.data || [];
+  S.news = news.data || [];
+  S.applications = apps.data || [];
+}
+
+function critByCat(){
+  const m = {};
+  S.criteria.forEach(c => (m[c.category_id] ||= []).push(c));
+  return m;
+}
+
+/* =====================================================================
+   HOME VIEW (ข่าวสารประชาสัมพันธ์)
+===================================================================== */
+async function loadHomeView(){
+  const el = document.getElementById('view-home');
+  el.innerHTML = loader0();
+  try {
+    if (!S.news.length) await loadBaseData();
+    el.innerHTML = `
+      <div class="glass rounded-3xl p-8 md:p-14 text-center mb-8 fade-in">
+        <p class="text-xs tracking-[0.4em] gold mb-3">✦ การประกวดกระทงและนางนพมาศ ✦</p>
+        <h2 class="text-4xl md:text-6xl font-bold gold mb-3" style="text-shadow:0 0 30px rgba(212,175,55,.5)">นทีดารา</h2>
+        <p class="text-lg md:text-2xl text-blue-100 mb-2">River of Stars · สายน้ำแห่งดวงดาว</p>
+        <p class="text-sm text-blue-200/70 max-w-2xl mx-auto mb-6">ขอเชิญร่วมส่งผลงานประกวดกระทงและนางนพมาศ</p>
+        <div class="flex flex-wrap justify-center gap-3">
+          <a href="#apply-noppamas" class="btn-gold px-6 py-3 rounded-full inline-flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> สมัครนางนพมาศ</a>
+          <a href="#apply-krathong" class="btn-ghost px-6 py-3 rounded-full inline-flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> สมัครกระทง (ทีม 5 คน)</a>
+        </div>
+      </div>
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold gold flex items-center gap-2 mb-4"><i data-lucide="megaphone" class="w-5 h-5"></i> ข่าวสารและประกาศประชาสัมพันธ์</h3>
+        <div class="grid md:grid-cols-3 gap-4">
+          ${S.news.filter(n=>n.published).map(n => `
+            <div class="glass rounded-xl overflow-hidden flex flex-col">
+              ${imgTag(n.image_url, n.title, 'w-full h-40 object-cover')}
+              <div class="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  ${n.is_pinned?'<span class="text-[10px] bg-yellow-500 text-blue-900 px-2 py-0.5 rounded-full font-semibold mb-2 inline-block">ปักหมุด</span>':''}
+                  <h4 class="font-semibold text-sm text-gold">${esc(n.title)}</h4>
+                  <p class="text-xs text-blue-200/80 mt-2 line-clamp-4 leading-relaxed">${esc(n.content||'')}</p>
+                </div>
+                <p class="text-[10px] text-blue-200/50 mt-4">${fmtDate(n.created_at)}</p>
+              </div>
+            </div>`).join('') || `<p class="col-span-3 text-center text-blue-200/60 py-8 text-sm glass rounded-xl">ยังไม่มีข่าวสารในขณะนี้</p>`}
+        </div>
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+/* =====================================================================
+   CRITERIA ( public )
+===================================================================== */
+async function loadCriteriaView(){
+  const el = document.getElementById('view-criteria');
+  el.innerHTML = loader0();
+  try {
+    if (!S.criteria.length) await loadBaseData();
+    const map = critByCat();
+    el.innerHTML = `
+      <h2 class="text-2xl font-bold gold mb-4 flex items-center gap-2"><i data-lucide="list-checks" class="w-6 h-6"></i> เกณฑ์การประกวด</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        ${S.categories.map(cat => {
+          const list = map[cat.id] || [];
+          return `
+            <div class="glass rounded-2xl p-5 fade-in">
+              <h3 class="gold font-semibold mb-3 flex items-center gap-2 text-lg"><i data-lucide="award" class="w-5 h-5"></i> ${esc(cat.name)}</h3>
+              ${list.length ? `
+              <table class="w-full text-sm">
+                <thead><tr class="text-blue-200/70 text-left border-b border-white/10">
+                  <th class="py-2">รายการเกณฑ์</th><th class="py-2 text-center w-20">สัดส่วน</th><th class="py-2 text-center w-20">คะแนนเต็ม</th>
+                </tr></thead>
+                <tbody>
+                  ${list.map(cr => `<tr class="border-b border-white/5">
+                    <td class="py-2">${esc(cr.name)}</td>
+                    <td class="text-center gold font-medium">${cr.weight}%</td>
+                    <td class="text-center text-blue-200/70">${cr.max_score}</td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>` : '<p class="text-xs text-blue-200/60 py-3">ยังไม่มีข้อมูลเกณฑ์</p>'}
+            </div>`;
+        }).join('') || `<p class="text-blue-200/60 col-span-2 text-center py-6">ยังไม่มีเกณฑ์การประกวด</p>`}
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+/* =====================================================================
+   CONTESTANTS ( public )
+===================================================================== */
+async function loadContestantsView(){
+  const el = document.getElementById('view-contestants');
+  el.innerHTML = loader0();
+  try {
+    if (!S.contestants.length) await loadBaseData();
+    const filter = `
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button data-c="all" class="cfilter px-3.5 py-1.5 rounded-full text-xs border ${S.currentCat==='all'?'tab-active':'border-white/20'}">ทั้งหมด</button>
+        ${S.categories.map(c=>`<button data-c="${c.id}" class="cfilter px-3.5 py-1.5 rounded-full text-xs border ${S.currentCat===c.id?'tab-active':'border-white/20'}">${esc(c.name)}</button>`).join('')}
+      </div>`;
+    const list = S.currentCat==='all' ? S.contestants : S.contestants.filter(c=>c.category_id===S.currentCat);
+    el.innerHTML = `<h2 class="text-2xl font-bold gold mb-4 flex items-center gap-2"><i data-lucide="users" class="w-6 h-6"></i> รายชื่อผู้เข้าประกวด</h2>${filter}
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${list.map(c => {
+          const cat = S.categories.find(x=>x.id===c.category_id);
+          const mem = Array.isArray(c.members) ? c.members : [];
+          return `<div class="glass rounded-2xl overflow-hidden">
+            <div class="relative">${imgTag(c.image_url, c.name, 'w-full h-52 object-cover')}
+              <div class="absolute top-2 left-2 gold-bg text-blue-900 font-bold rounded-full w-9 h-9 flex items-center justify-center text-sm shadow">${c.contestant_no}</div>
+            </div>
+            <div class="p-4">
+              <p class="text-[10px] gold font-semibold uppercase">${esc(cat?.name||'')}</p>
+              <h4 class="font-semibold text-base mt-0.5">${esc(c.name)}</h4>
+              <p class="text-xs text-blue-200/70 mt-1">${esc(c.affiliation||'')}</p>
+              ${mem.length ? `<details class="mt-2 text-xs"><summary class="text-gold cursor-pointer font-medium">สมาชิกในทีม (${mem.length} คน)</summary>
+                <ol class="mt-1.5 ml-4 list-decimal text-blue-200/80 space-y-0.5">${mem.map(m=>`<li>${esc(m.name||m)} ${m.student_id?`(${esc(m.student_id)})`:''}</li>`).join('')}</ol></details>` : ''}
+            </div>
+          </div>`;
+        }).join('') || `<p class="col-span-3 text-center text-blue-200/60 py-10 glass rounded-xl text-sm">ยังไม่มีข้อมูลผู้เข้าประกวด</p>`}
+      </div>`;
+    el.querySelectorAll('.cfilter').forEach(b => b.onclick = () => { S.currentCat = b.dataset.c; loadContestantsView(); });
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+/* =====================================================================
+   RESULTS ( public / Admin preview )
+===================================================================== */
+async function computeResults(onlyApproved=true){
+  if (!S.contestants.length) await loadBaseData();
+  const { data: scores } = await dbClient.from('scores').select('*');
+  const map = critByCat();
+  const useScores = (scores||[]).filter(s => onlyApproved ? s.is_approved : true);
+  return S.contestants.map(c => {
+    const crit = map[c.category_id] || [];
+    let total = 0, wsum = 0;
+    crit.forEach(cr => {
+      const vals = useScores.filter(s=>s.contestant_id===c.id && s.criteria_id===cr.id).map(s=>Number(s.score)||0);
+      if (vals.length){
+        const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+        total += (avg / Number(cr.max_score)) * Number(cr.weight);
+        wsum += Number(cr.weight);
+      }
+    });
+    return { ...c, total: wsum>0 ? (total / wsum) * 100 : 0, catName: S.categories.find(x=>x.id===c.category_id)?.name };
+  });
+}
+
+async function loadResultsView(){
+  const el = document.getElementById('view-results');
+  el.innerHTML = loader0();
+  try {
+    const { data: setting } = await dbClient.from('settings').select('value').eq('key','results_published').maybeSingle();
+    const published = setting?.value === true || setting?.value === 'true';
+    if (!published && !isStaff()){
+      el.innerHTML = `<h2 class="text-2xl font-bold gold mb-4 flex items-center gap-2"><i data-lucide="trophy" class="w-6 h-6"></i> ผลการตัดสิน</h2>
+        <div class="glass rounded-2xl p-12 text-center">
+          <i data-lucide="lock" class="w-16 h-16 mx-auto mb-4 text-yellow-400/80"></i>
+          <p class="text-xl font-semibold gold">ยังไม่ประกาศผลการตัดสิน</p>
+          <p class="text-sm text-blue-200/70 mt-2">กรุณารอการประกาศผลอย่างเป็นทางการจากคณะกรรมการ</p>
+        </div>`;
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+    const results = await computeResults(true);
+    const byCat = {};
+    results.forEach(r => (byCat[r.catName] ||= []).push(r));
+
+    el.innerHTML = `<h2 class="text-2xl font-bold gold mb-4 flex items-center gap-2"><i data-lucide="trophy" class="w-6 h-6"></i> ผลการตัดสินการประกวด</h2>
+      ${!published ? '<div class="glass border-red-500/50 p-3 rounded-xl mb-4 text-xs text-red-300 flex items-center gap-2"><span>🔴</span> <b>PREVIEW (โหมดผู้ดูแลระบบ)</b> ผลการตัดสินยังไม่ถูกเผยแพร่สู่สาธารณะ</div>' : ''}
+      ${Object.entries(byCat).map(([cat, items]) => {
+        const sorted = items.sort((a,b)=>b.total-a.total);
+        return `<div class="glass rounded-2xl p-5 mb-4 fade-in">
+          <h3 class="gold font-semibold mb-3 flex items-center gap-2 text-lg"><i data-lucide="award" class="w-5 h-5"></i> ${esc(cat)}</h3>
+          <div class="space-y-2">
+            ${sorted.map((r,i)=>`<div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-yellow-500/30">
+              <div class="flex items-center gap-3">
+                <span class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-base ${i===0?'gold-bg text-blue-950':i===1?'bg-slate-300 text-slate-900':i===2?'bg-amber-700 text-white':'text-blue-200/50'}">${i<3?['🥇','🥈','🥉'][i]:(i+1)}</span>
+                <div>
+                  <p class="font-medium text-sm">หมายเลข ${r.contestant_no} : ${esc(r.name)}</p>
+                  <p class="text-xs text-blue-200/60">${esc(r.affiliation||'')}</p>
+                </div>
+              </div>
+              <span class="gold font-bold text-lg">${r.total.toFixed(2)} <span class="text-xs text-blue-200/60 font-normal">คะแนน</span></span>
+            </div>`).join('') || '<p class="text-blue-200/60 text-center py-4 text-sm">ไม่มีข้อมูลคะแนน</p>'}
+          </div>
+        </div>`;
+      }).join('')}`;
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+/* =====================================================================
+   APPLY · NOPPAMAS (ใบสมัครนางนพมาศ)
+===================================================================== */
+async function loadApplyNoppamas(){
+  const el = document.getElementById('view-apply-noppamas');
+  el.innerHTML = loader0();
+  try {
+    const branchesHTML = `
+      <option value="" disabled selected>-- เลือกสาขาวิชา --</option>
+      <option value="สาขาการบัญชี">สาขาการบัญชี</option>
+      <option value="สาขาการตลาด">สาขาการตลาด</option>
+      <option value="สาขาเทคโนโลยีสารสนเทศ">สาขาเทคโนโลยีสารสนเทศ</option>
+      <option value="สาขาดิจิทัลกราฟิก">สาขาดิจิทัลกราฟิก</option>
+      <option value="สาขาการท่องเที่ยว">สาขาการท่องเที่ยว</option>
+      <option value="สาขาอาหารและโภชนาการ">สาขาอาหารและโภชนาการ</option>
+      <option value="สาขาเทคโนโลยีธุรกิจดิจิทัล">สาขาเทคโนโลยีธุรกิจดิจิทัล</option>
+    `;
+    el.innerHTML = `<div class="max-w-2xl mx-auto fade-in">
+      <div class="glass rounded-2xl p-6 md:p-8">
+        <h2 class="text-2xl font-bold gold mb-2 flex items-center gap-2"><i data-lucide="user-plus" class="w-6 h-6"></i> กรอกใบสมัครนางนพมาศ</h2>
+        <p class="text-xs text-blue-200/70 mb-6">กรุณากรอกข้อมูลส่วนตัวให้ครบถ้วนก่อนกดส่งใบสมัคร</p>
+        <form id="applyForm" class="space-y-4">
+          <div><label class="text-xs text-blue-200 block mb-1">ชื่อ-นามสกุล *</label>
+            <input name="full_name" required class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="เช่น นางสาวสมหญิง รักดี"/></div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div><label class="text-xs text-blue-200 block mb-1">รหัสนักศึกษา</label>
+              <input name="student_id" class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="เช่น 6630001001"/></div>
+            <div><label class="text-xs text-blue-200 block mb-1">สาขาวิชา *</label>
+              <select name="branch" required class="w-full bg-slate-900 text-white rounded-lg px-3.5 py-2.5 border border-white/20 text-sm">
+                ${branchesHTML}
+              </select></div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div><label class="text-xs text-blue-200 block mb-1">เบอร์โทรศัพท์ติดต่อ *</label>
+              <input name="phone" required class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="08X-XXX-XXXX"/></div>
+            <div><label class="text-xs text-blue-200 block mb-1">อีเมล</label>
+              <input name="email" type="email" class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="example@email.com"/></div>
+          </div>
+          <div><label class="text-xs text-blue-200 block mb-1">คำแนะนำตัว / สโลแกน</label>
+            <textarea name="description" rows="3" class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="ข้อความแนะนำตัวสั้นๆ..."></textarea></div>
+          <div><label class="text-xs text-blue-200 block mb-1">แนบรูปถ่ายผู้สมัคร</label>
+            <input id="applyImg" type="file" accept="image/*" class="block w-full text-xs text-blue-100 file:bg-yellow-500 file:text-blue-950 file:border-0 file:rounded-lg file:px-3 file:py-2 file:mr-3 file:font-semibold cursor-pointer"/>
+            <p id="applyImgStatus" class="text-xs mt-1 text-blue-200/70"></p></div>
+          <button type="submit" class="btn-gold w-full rounded-lg py-3 text-sm mt-2 flex items-center justify-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i> ส่งใบสมัครนางนพมาศ
+          </button>
+        </form>
+      </div>
+    </div>`;
+    document.getElementById('applyForm').onsubmit = (ev) => handleApply(ev, 'noppamas');
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+/* =====================================================================
+   APPLY · KRATHONG (ใบสมัครกระทง - ทีม 5 คน)
+===================================================================== */
+async function loadApplyKrathong(){
+  const el = document.getElementById('view-apply-krathong');
+  el.innerHTML = loader0();
+  try {
+    const branchesHTML = `
+      <option value="" disabled selected>-- เลือกสาขาวิชา --</option>
+      <option value="สาขาการบัญชี">สาขาการบัญชี</option>
+      <option value="สาขาการตลาด">สาขาการตลาด</option>
+      <option value="สาขาเทคโนโลยีสารสนเทศ">สาขาเทคโนโลยีสารสนเทศ</option>
+      <option value="สาขาดิจิทัลกราฟิก">สาขาดิจิทัลกราฟิก</option>
+      <option value="สาขาการท่องเที่ยว">สาขาการท่องเที่ยว</option>
+      <option value="สาขาอาหารและโภชนาการ">สาขาอาหารและโภชนาการ</option>
+      <option value="สาขาเทคโนโลยีธุรกิจดิจิทัล">สาขาเทคโนโลยีธุรกิจดิจิทัล</option>
+    `;
+    const memberRow = i => `
+      <div class="grid sm:grid-cols-2 gap-2" data-member="${i}">
+        <input name="member_name_${i}" placeholder="ชื่อ-นามสกุล สมาชิกคนที่ ${i+1} ${i===0?'*':''}" ${i===0?'required':''}
+          class="bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/>
+        <input name="member_sid_${i}" placeholder="รหัสนักศึกษา (ถ้ามี)"
+          class="bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/>
+      </div>`;
+    el.innerHTML = `<div class="max-w-2xl mx-auto fade-in">
+      <div class="glass rounded-2xl p-6 md:p-8">
+        <h2 class="text-2xl font-bold gold mb-2 flex items-center gap-2"><i data-lucide="users" class="w-6 h-6"></i> กรอกใบสมัครประกวดกระทง (ประเภททีม 5 คน)</h2>
+        <p class="text-xs text-blue-200/70 mb-6">ระบุข้อมูลทีม ระดับชั้น ห้อง และรายชื่อสมาชิกในทีมให้ครบถ้วน</p>
+        <form id="applyForm" class="space-y-4">
+          <div><label class="text-xs text-blue-200 block mb-1">ชื่อทีม / ชื่อผลงานกระทง *</label>
+            <input name="team_name" required class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="เช่น ทีมสืบสานสายน้ำ"/></div>
+          <div class="grid sm:grid-cols-3 gap-3">
+            <div><label class="text-xs text-blue-200 block mb-1">สาขาวิชา *</label>
+              <select name="branch" required class="w-full bg-slate-900 text-white rounded-lg px-3 py-2.5 border border-white/20 text-xs">
+                ${branchesHTML}
+              </select></div>
+            <div><label class="text-xs text-blue-200 block mb-1">ระดับชั้น *</label>
+              <select name="level" required class="w-full bg-slate-900 text-white rounded-lg px-3 py-2.5 border border-white/20 text-xs">
+                <option value="" disabled selected>-- เลือกระดับชั้น --</option>
+                <option value="ปวช.1">ปวช.1</option>
+                <option value="ปวช.2">ปวช.2</option>
+                <option value="ปวช.3">ปวช.3</option>
+                <option value="ปวส.1">ปวส.1</option>
+                <option value="ปวส.2">ปวส.2</option>
+              </select></div>
+            <div><label class="text-xs text-blue-200 block mb-1">ห้อง *</label>
+              <input name="room" required placeholder="เช่น 1, 2, 1/1" class="w-full bg-white/10 rounded-lg px-3 py-2.5 border border-white/20 text-xs"/></div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div><label class="text-xs text-blue-200 block mb-1">เบอร์โทรศัพท์ผู้ติดต่อนัดหมาย *</label>
+              <input name="phone" required class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="08X-XXX-XXXX"/></div>
+            <div><label class="text-xs text-blue-200 block mb-1">อีเมลติดต่อ</label>
+              <input name="email" type="email" class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="example@email.com"/></div>
+          </div>
+          <div><label class="text-xs text-blue-200 block mb-2 font-medium gold">รายชื่อสมาชิกในทีม (ทีมละ 5 คน)</label>
+            <div class="space-y-2 glass p-3 rounded-xl">${[0,1,2,3,4].map(memberRow).join('')}</div></div>
+          <div><label class="text-xs text-blue-200 block mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง</label>
+            <textarea name="description" rows="3" class="w-full bg-white/10 rounded-lg px-3.5 py-2.5 border border-white/20 text-sm" placeholder="อธิบายแนวคิด วัสดุที่ใช้..."></textarea></div>
+          <div><label class="text-xs text-blue-200 block mb-1">แนบรูปถ่ายผลงานกระทง (ถ้ามี)</label>
+            <input id="applyImg" type="file" accept="image/*" class="block w-full text-xs text-blue-100 file:bg-yellow-500 file:text-blue-950 file:border-0 file:rounded-lg file:px-3 file:py-2 file:mr-3 file:font-semibold cursor-pointer"/>
+            <p id="applyImgStatus" class="text-xs mt-1 text-blue-200/70"></p></div>
+          <button type="submit" class="btn-gold w-full rounded-lg py-3 text-sm mt-2 flex items-center justify-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i> ส่งใบสมัครประกวดกระทง
+          </button>
+        </form>
+      </div>
+    </div>`;
+    document.getElementById('applyForm').onsubmit = (ev) => handleApply(ev, 'krathong');
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+async function handleApply(ev, type){
+  ev.preventDefault();
+  const form = ev.target;
+  const fd = new FormData(form);
+  const btn = form.querySelector('button[type="submit"]');
+  const status = document.getElementById('applyImgStatus');
+  btn.disabled = true; btn.textContent = 'กำลังส่งข้อมูล...';
+  try {
+    let image_url = null;
+    const file = document.getElementById('applyImg').files[0];
+    if (file){
+      status.textContent = '⏳ กำลังอัปโหลด รูปภาพ...';
+      image_url = await uploadImage(file, 'app');
+      status.textContent = '✅ อัปโหลดสำเร็จ';
+    }
+    let payload = {
+      type, phone: fd.get('phone'), email: fd.get('email'),
+      branch: fd.get('branch'), image_url, description: fd.get('description')
+    };
+    if (type === 'noppamas'){
+      payload.full_name = fd.get('full_name');
+      payload.student_id = fd.get('student_id');
+    } else {
+      payload.team_name = fd.get('team_name');
+      payload.level = fd.get('level');
+      payload.room = fd.get('room');
+      const members = [];
+      for (let i=0;i<5;i++){
+        const nm = fd.get(`member_name_${i}`);
+        if (nm) members.push({ name:nm, student_id: fd.get(`member_sid_${i}`) || null });
+      }
+      payload.members = members;
+    }
+    const { error } = await dbClient.from('applications').insert(payload);
+    if (error) throw error;
+    
+    // เปลี่ยนเป้นข้อความสำเร็จพร้อมปุ่ม ปริ้นใบสมัคร
+    form.parentNode.innerHTML = `
+      <div class="text-center py-8 fade-in">
+        <i data-lucide="check-circle-2" class="w-16 h-16 mx-auto text-emerald-400 mb-4"></i>
+        <h3 class="text-2xl font-bold gold mb-2">ส่งใบสมัครเรียบร้อยแล้ว!</h3>
+        <p class="text-sm text-blue-200/80 mb-6 max-w-md mx-auto">ระบบบันทึกใบสมัครของท่านเรียบร้อยแล้ว ท่านสามารถกดพิมพ์ใบสมัครเพื่อเก็บไว้เป็นหลักฐานได้</p>
+        <div class="flex justify-center gap-3 flex-wrap">
+          <button type="button" id="printUserReceiptBtn" class="btn-gold px-6 py-2.5 rounded-lg flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i> ปริ้นใบสมัคร
+          </button>
+          <button type="button" onclick="nav('home')" class="btn-ghost px-6 py-2.5 rounded-lg">กลับสู่หน้าแรก</button>
+        </div>
+      </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+    
+    document.getElementById('printUserReceiptBtn').onclick = () => printApplicantReceipt(payload);
+    toast('ส่งใบสมัครสำเร็จ!', 'success');
+  } catch (e){
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+    btn.disabled = false; btn.textContent = 'ส่งใบสมัคร';
+  }
+}
+
+/* =====================================================================
+   LOGIN VIEW
+===================================================================== */
+function loadLoginView(){
+  const el = document.getElementById('view-login');
+  el.innerHTML = `<div class="max-w-md mx-auto fade-in">
+    <div class="glass rounded-2xl p-6 md:p-8">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto mb-3 rounded-full gold-bg flex items-center justify-center shadow">
+          <i data-lucide="shield-check" class="w-8 h-8" style="color:#0B1E4B"></i>
+        </div>
+        <h2 class="text-xl font-bold gold">เข้าสู่ระบบจัดการ</h2>
+        <p class="text-xs text-blue-200/70 mt-1">สำหรับกรรมการตัดสินและผู้ดูแลระบบ</p>
+      </div>
+      <form id="loginForm" class="space-y-3">
+        <div><label class="text-xs text-blue-200 block mb-1">ชื่อผู้ใช้งาน (Username)</label>
+          <input name="username" required class="w-full bg-white/10 rounded-lg px-3 py-2.5 border border-white/20 text-sm" placeholder="username"/></div>
+        <div><label class="text-xs text-blue-200 block mb-1">รหัสผ่าน (Password)</label>
+          <input name="password" type="password" required class="w-full bg-white/10 rounded-lg px-3 py-2.5 border border-white/20 text-sm" placeholder="••••••••"/></div>
+        <button type="submit" class="btn-gold w-full rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 mt-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i> เข้าสู่ระบบ</button>
+      </form>
+      <div id="loginError" class="hidden mt-3 text-xs text-red-300 text-center"></div>
+      <div class="mt-6 pt-4 border-t border-white/10">
+        <p class="text-[11px] text-blue-200/60 text-center mb-2">🔑 ข้อมูลทดสอบระบบ (คลิกเพื่อกรอกอัตโนมัติ)</p>
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <button type="button" onclick="fillLogin('admin','Admin@2568')" class="glass rounded-lg p-2 text-left hover:border-yellow-400">
+            <p class="gold font-semibold">👑 Admin</p><p class="text-blue-200/70">admin / Admin@2568</p></button>
+          <button type="button" onclick="fillLogin('judge1','Judge@2568')" class="glass rounded-lg p-2 text-left hover:border-yellow-400">
+            <p class="gold font-semibold">⚖️ กรรมการ</p><p class="text-blue-200/70">judge1 / Judge@2568</p></button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('loginForm').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const form = ev.target;
+    const btn = form.querySelector('button[type="submit"]');
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    btn.disabled = true; btn.innerHTML = '<div class="loader" style="width:18px;height:18px;border-width:2px"></div>';
+    try {
+      const user = await doLogin(form.username.value.trim(), form.password.value);
+      S.auth = user; saveSession(user);
+      await refreshJudgeProfile();
+      toast(`ยินดีต้อนรับ ${user.full_name}`, 'success');
+      nav(user.role === 'judge' ? 'judge' : 'admin');
+    } catch (e){
+      errEl.textContent = '❌ ' + e.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4"></i> เข้าสู่ระบบ';
+      if (window.lucide) lucide.createIcons();
+    }
+  };
+  if (window.lucide) lucide.createIcons();
+}
+function fillLogin(u,p){ const f=document.getElementById('loginForm'); f.username.value=u; f.password.value=p; }
+
+/* =====================================================================
+   JUDGE VIEW (ระบบกรรมการ)
+===================================================================== */
+async function loadJudgeView(){
+  const el = document.getElementById('view-judge');
+  el.innerHTML = loader0();
+  try {
+    await loadBaseData();
+    if (!S.judgeProfile){
+      el.innerHTML = `<div class="glass rounded-2xl p-8 text-center">
+        <i data-lucide="alert-triangle" class="w-12 h-12 mx-auto mb-3 text-yellow-400"></i>
+        <p>ไม่พบโปรไฟล์กรรมการผู้ใช้งาน</p></div>`;
+      return;
+    }
+    const { data: assigns } = await dbClient.from('judge_assignments').select('category_id').eq('judge_id', S.judgeProfile.id);
+    const assignedIds = (assigns||[]).map(a => a.category_id);
+    const myCats = S.categories.filter(c => assignedIds.length===0 || assignedIds.includes(c.id));
+
+    if (!myCats.length){
+      el.innerHTML = `<div class="glass rounded-2xl p-8 text-center">
+        <i data-lucide="alert-circle" class="w-12 h-12 mx-auto mb-3 text-yellow-400"></i>
+        <p>ท่านยังไม่ได้รับมอบหมายหมวดการประกวด</p></div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="flex flex-wrap gap-2 mb-4 items-center justify-between">
+        <h2 class="text-2xl font-bold gold flex items-center gap-2"><i data-lucide="gavel" class="w-6 h-6"></i> ระบบกรรมการให้คะแนน</h2>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-blue-200/90">${esc(S.judgeProfile.name)}</span>
+          <span class="badge badge-judge">JUDGE</span>
+        </div>
+      </div>
+      <div class="glass rounded-xl p-3 mb-4 flex items-center gap-3">
+        <label class="text-xs text-blue-200 whitespace-nowrap">เลือกหมวดหมู่:</label>
+        <select id="jCatSel" class="bg-slate-900 text-white rounded-lg px-3 py-1.5 border border-white/20 text-sm w-full max-w-xs">
+          ${myCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="flex gap-2 mb-3 flex-wrap">
+        <button data-tab="score" class="jtab tab-active px-4 py-2 rounded-lg border border-white/20 text-xs">📝 กรอกคะแนน</button>
+        <button data-tab="criteria" class="jtab px-4 py-2 rounded-lg border border-white/20 text-xs">📋 เกณฑ์การแข่งขัน</button>
+        <button data-tab="list" class="jtab px-4 py-2 rounded-lg border border-white/20 text-xs">👥 รายชื่อผู้ลงแข่งขัน</button>
+      </div>
+      <div id="jContent" class="glass rounded-2xl p-4"></div>`;
+
+    const render = async () => {
+      const cid = document.getElementById('jCatSel').value;
+      const activeTab = document.querySelector('.jtab.tab-active').dataset.tab;
+      const box = document.getElementById('jContent');
+      box.innerHTML = loader0();
+      if (activeTab === 'score') await renderScoreTable(cid, box);
+      if (activeTab === 'criteria') await renderJudgeCriteria(cid, box);
+      if (activeTab === 'list') await renderJudgeList(cid, box);
+    };
+    document.getElementById('jCatSel').onchange = render;
+    document.querySelectorAll('.jtab').forEach(t => t.onclick = () => {
+      document.querySelectorAll('.jtab').forEach(x => x.classList.remove('tab-active'));
+      t.classList.add('tab-active');
+      render();
+    });
+    await render();
+    if (window.lucide) lucide.createIcons();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+async function renderScoreTable(catId, box){
+  const judgeId = S.judgeProfile.id;
+  const crit = S.criteria.filter(c => c.category_id === catId);
+  const cons = S.contestants.filter(c => c.category_id === catId);
+  const { data: subs } = await dbClient.from('judge_submissions').select('*').eq('judge_id', judgeId).eq('category_id', catId).maybeSingle();
+  const status = subs?.status || 'draft';
+  const locked = status !== 'draft';
+  const { data: scores } = await dbClient.from('scores').select('*').eq('judge_id', judgeId);
+  const mapScores = {};
+  (scores||[]).forEach(s => mapScores[`${s.contestant_id}|${s.criteria_id}`] = Number(s.score));
+
+  if (!crit.length || !cons.length){
+    box.innerHTML = `<p class="text-center text-blue-200/60 py-8 text-sm">ยังไม่มีข้อมูลเกณฑ์หรือผู้เข้าประกวดในหมวดนี้</p>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-blue-200">สถานะการส่งคะแนน:</span>
+        <span class="badge badge-${status}">${status.toUpperCase()}</span>
+      </div>
+      <div class="flex gap-2">
+        ${!locked ? `<button id="jSubmitBtn" class="btn-gold px-4 py-1.5 rounded-lg text-xs flex items-center gap-1.5"><i data-lucide="send" class="w-3.5 h-3.5"></i> ยืนยันส่งคะแนน</button>` : ''}
+        <button id="jRefreshBtn" class="btn-ghost px-3 py-1.5 rounded-lg text-xs">🔄 รีเฟรช</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto ${locked?'lock-overlay':''}">
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-blue-200/70 border-b border-white/10">
+          <th class="py-2 pr-3 min-w-[150px]">ผู้เข้าประกวด</th>
+          ${crit.map(c=>`<th class="py-2 px-1 text-center whitespace-nowrap text-[11px]">
+            ${esc(c.name)}<br><span class="text-[10px] gold">ถ่วง ${c.weight}% (เต็ม ${c.max_score})</span>
+          </th>`).join('')}
+          <th class="py-2 px-1 text-center font-bold text-gold">รวม % (เรียลไทม์)</th>
+        </tr></thead>
+        <tbody>
+          ${cons.map(ct=>`
+            <tr class="border-b border-white/5">
+              <td class="py-2.5 pr-3">
+                <span class="text-gold font-bold">#${ct.contestant_no}</span> ${esc(ct.name)}
+                <div class="text-[10px] text-blue-200/60">${esc(ct.affiliation||'')}</div>
+              </td>
+              ${crit.map(cr => {
+                const v = mapScores[`${ct.id}|${cr.id}`];
+                return `<td class="py-1 px-1 text-center">
+                  <input type="number" min="0" max="${cr.max_score}" step="0.5" value="${v??''}"
+                    data-ct="${ct.id}" data-cr="${cr.id}" data-max="${cr.max_score}"
+                    oninput="onJudgeInput(this)"
+                    class="w-16 text-center bg-white/10 rounded px-1.5 py-1 border border-white/20 text-sm font-semibold" ${locked?'disabled':''}/>
+                </td>`;
+              }).join('')}
+              <td class="py-1 px-1 text-center gold font-bold text-base" id="row-total-${ct.id}">—</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-blue-200/60 mt-3">💡 ระบบบันทึกคะแนนอัตโนมัติ และสรุปผลคำนวณคะแนนรวมเป็นเปอร์เซ็นต์ให้อัตโนมัติแบบเรียลไทม์</p>`;
+
+  cons.forEach(ct => recalcRowTotal(ct.id, crit));
+
+  const timers = {};
+  window.onJudgeInput = (input) => {
+    const key = `${input.dataset.ct}|${input.dataset.cr}`;
+    clearTimeout(timers[key]);
+    timers[key] = setTimeout(async () => {
+      const val = Number(input.value) || 0;
+      try {
+        await dbClient.from('scores').upsert({
+          judge_id: judgeId, contestant_id: input.dataset.ct, criteria_id: input.dataset.cr, score: val
+        }, { onConflict: 'judge_id,contestant_id,criteria_id' });
+        mapScores[key] = val;
+        recalcRowTotal(input.dataset.ct, crit);
+      } catch(e){ toast('บันทึกคะแนนไม่สำเร็จ','error'); }
+    }, 400);
+  };
+
+  const submitBtn = document.getElementById('jSubmitBtn');
+  if (submitBtn) submitBtn.onclick = async () => {
+    if (!confirm('ยืนยันส่งคะแนน? เมื่อส่งแล้วจะไม่สามารถแก้ไขคะแนนได้อีกจนกว่าแอดมินจะปลดล็อก')) return;
+    submitBtn.disabled = true; submitBtn.textContent = 'กำลังส่งคะแนน...';
+    try {
+      const { data, error } = await dbClient.rpc('submit_judge_scores', { p_judge_id: judgeId, p_category_id: catId });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.message);
+      toast('ส่งคะแนนเรียบร้อยแล้ว!', 'success');
+      renderScoreTable(catId, box);
+    } catch(e){ toast(e.message, 'error'); submitBtn.disabled = false; submitBtn.textContent = 'ส่งคะแนน'; }
+  };
+  document.getElementById('jRefreshBtn').onclick = () => renderScoreTable(catId, box);
+  if (window.lucide) lucide.createIcons();
+}
+
+function recalcRowTotal(contestantId, crit){
+  const el = document.getElementById('row-total-'+contestantId);
+  if (!el) return;
+  let total = 0, wsum = 0;
+  crit.forEach(cr => {
+    const inp = document.querySelector(`input[data-ct="${contestantId}"][data-cr="${cr.id}"]`);
+    if (inp && inp.value !== ''){
+      total += (Number(inp.value)/Number(cr.max_score)) * Number(cr.weight);
+      wsum += Number(cr.weight);
+    }
+  });
+  el.textContent = wsum > 0 ? ((total/wsum)*100).toFixed(2) : '—';
+}
+
+async function renderJudgeCriteria(catId, box){
+  const crit = S.criteria.filter(c => c.category_id === catId);
+  const cat = S.categories.find(c=>c.id===catId);
+  box.innerHTML = `<h3 class="gold font-semibold mb-3">เกณฑ์การตัดสิน · ${esc(cat?.name||'')}</h3>
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-blue-200/70 border-b border-white/10">
+        <th class="py-2">รายการเกณฑ์</th><th class="py-2 text-center">สัดส่วน %</th><th class="py-2 text-center">คะแนนเต็ม</th>
+      </tr></thead>
+      <tbody>${crit.map(c=>`<tr class="border-b border-white/5">
+        <td class="py-2">${esc(c.name)}</td>
+        <td class="py-2 text-center gold font-semibold">${c.weight}%</td>
+        <td class="py-2 text-center text-blue-200/70">${c.max_score}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+async function renderJudgeList(catId, box){
+  const cons = S.contestants.filter(c => c.category_id === catId);
+  box.innerHTML = `<h3 class="gold font-semibold mb-3">รายชื่อผู้ลงแข่งขัน</h3>
+    <div class="grid sm:grid-cols-2 gap-3">
+      ${cons.map(c => `<div class="glass rounded-xl p-3 flex items-center gap-3">
+        ${imgTag(c.image_url, c.name, 'w-14 h-14 rounded-lg object-cover')}
+        <div><p class="text-xs gold font-bold">#${c.contestant_no}</p><p class="font-medium text-sm">${esc(c.name)}</p>
+        <p class="text-[11px] text-blue-200/60">${esc(c.affiliation||'')}</p></div>
+      </div>`).join('') || `<p class="text-blue-200/60 col-span-2 text-center py-4">ไม่มีผู้เข้าประกวด</p>`}
+    </div>`;
+  if (window.lucide) lucide.createIcons();
+}
+
+/* =====================================================================
+   ADMIN VIEW (ผู้ดูแลระบบ)
+===================================================================== */
+async function loadAdminView(){
+  const el = document.getElementById('view-admin');
+  el.innerHTML = loader0();
+  try {
+    await loadBaseData();
+    const tabs = [
+      { id:'scores', label:'📊 ผลคะแนน' },
+      { id:'approve', label:'✅ อนุมัติคะแนน' },
+      { id:'publish', label:'📢 ประกาศผล' },
+      { id:'print', label:'🖨️ ระบบพิมพ์' },
+      { id:'judges', label:'👥 เพิ่มกรรมการ' },
+      { id:'news', label:'📰 ข่าวประชาสัมพันธ์' },
+      { id:'apps', label:'📋 ดูใบสมัคร' }
+    ];
+    el.innerHTML = `
+      <h2 class="text-2xl font-bold gold mb-4 flex items-center gap-2"><i data-lucide="settings" class="w-6 h-6"></i> ผู้ดูแลระบบ (Admin Control Center)</h2>
+      <div class="flex flex-wrap gap-1.5 mb-4" id="adminTabs">
+        ${tabs.map((t,i)=>`<button data-tab="${t.id}" class="atab px-3 py-2 rounded-lg border border-white/20 text-xs font-medium ${i===0?'tab-active':''}">${t.label}</button>`).join('')}
+      </div>
+      <div id="aContent"></div>`;
+
+    const render = async () => {
+      const tab = document.querySelector('.atab.tab-active').dataset.tab;
+      const box = document.getElementById('aContent');
+      box.innerHTML = loader0();
+      if (tab==='scores') await adminScores(box);
+      if (tab==='approve') await adminApprove(box);
+      if (tab==='publish') await adminPublish(box);
+      if (tab==='print') await adminPrint(box);
+      if (tab==='judges') await adminJudges(box);
+      if (tab==='news') await adminNews(box);
+      if (tab==='apps') await adminApplications(box);
+    };
+    document.querySelectorAll('.atab').forEach(t => t.onclick = () => {
+      document.querySelectorAll('.atab').forEach(x => x.classList.remove('tab-active'));
+      t.classList.add('tab-active'); render();
+    });
+    await render();
+  } catch(e){ el.innerHTML = `<p class="text-red-300">${esc(e.message)}</p>`; }
+}
+
+/* ADMIN · scores */
+async function adminScores(box){
+  const results = await computeResults(false);
+  const byCat = {};
+  results.forEach(r => (byCat[r.catName] ||= []).push(r));
+
+  box.innerHTML = `
+    <div class="glass rounded-xl p-3 mb-3 text-xs text-blue-200/70">
+      ℹ️ สรุปคะแนนรวมจากกรรมการทั้งหมด (คะแนนที่อนุมัติแล้วเท่านั้นที่จะนำไปจัดลำดับผลการแข่งขันจริง)
+    </div>
+    ${Object.entries(byCat).map(([cat, items]) => {
+      const sorted = [...items].sort((a,b)=>b.total-a.total);
+      return `<div class="glass rounded-2xl p-4 mb-3">
+        <h3 class="gold font-semibold mb-3">🏆 ${esc(cat)}</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm">
+          <thead><tr class="text-blue-200/70 text-left border-b border-white/10">
+            <th class="py-1">อันดับ</th><th class="py-1">หมายเลข</th><th class="py-1">ชื่อผู้ประกวด/สังกัด</th>
+            <th class="py-1 text-right">คะแนนรวม %</th>
+          </tr></thead>
+          <tbody>${sorted.map((r,i)=>`<tr class="border-b border-white/5">
+            <td class="py-2 font-bold">${i+1}</td><td class="py-2 gold font-bold">#${r.contestant_no}</td>
+            <td class="py-2">${esc(r.name)} <span class="text-xs text-blue-200/60">(${esc(r.affiliation||'')})</span></td>
+            <td class="py-2 text-right gold font-bold">${r.total.toFixed(2)}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </div>`;
+    }).join('')}
+    <button id="aRefresh" class="btn-ghost px-4 py-2 rounded-lg text-xs mt-2">🔄 รีเฟรชข้อมูล</button>`;
+  document.getElementById('aRefresh').onclick = () => adminScores(box);
+}
+
+/* ADMIN · approve */
+async function adminApprove(box){
+  const { data: subs } = await dbClient.from('judge_submissions').select('*');
+  const list = (subs||[]).filter(s => s.status === 'submitted');
+  box.innerHTML = `
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <h3 class="gold font-semibold">รายการคะแนนรออนุมัติ (${list.length})</h3>
+      <button id="aRefresh" class="btn-ghost px-3 py-1.5 rounded-lg text-xs">🔄 รีเฟรช</button>
+    </div>
+    ${list.length ? list.map(s => {
+      const j = S.judges.find(x=>x.id===s.judge_id);
+      const c = S.categories.find(x=>x.id===s.category_id);
+      return `<div class="glass rounded-xl p-3 mb-2 flex items-center gap-3 flex-wrap">
+        <div class="flex-1 min-w-[200px]">
+          <p class="font-medium text-sm">${esc(j?.name || 'กรรมการ')}</p>
+          <p class="text-xs text-blue-200/70">${esc(c?.name || '—')} · ส่งเมื่อ ${fmtDate(s.submitted_at)}</p>
+        </div>
+        <span class="badge badge-submitted">SUBMITTED</span>
+        <div class="flex gap-2">
+          <button onclick="approveSub('${s.judge_id}','${s.category_id}',this)" class="btn-gold px-3 py-1.5 rounded-lg text-xs">✓ อนุมัติคะแนน</button>
+          <button onclick="returnSub('${s.judge_id}','${s.category_id}',this)" class="btn-ghost px-3 py-1.5 rounded-lg text-xs">↩ ส่งคืนกรรมการ</button>
+        </div>
+      </div>`;
+    }).join('') : `<div class="glass rounded-2xl p-8 text-center text-blue-200/60 text-sm">ไม่มีรายการคะแนนที่รอการอนุมัติ</div>`}
+    <div class="mt-6">
+      <h3 class="gold font-semibold mb-2 text-sm">ประวัติคะแนนที่อนุมัติแล้ว</h3>
+      ${(subs||[]).filter(s=>s.status==='approved').map(s => {
+        const j = S.judges.find(x=>x.id===s.judge_id);
+        const c = S.categories.find(x=>x.id===s.category_id);
+        return `<div class="glass rounded-xl p-2.5 mb-1.5 flex items-center gap-2 text-xs">
+          <span class="badge badge-approved">APPROVED</span>
+          <span>${esc(j?.name||'—')} · ${esc(c?.name||'—')}</span>
+          <span class="text-blue-200/60 ml-auto">อนุมัติเมื่อ ${fmtDate(s.approved_at)}</span>
+        </div>`;
+      }).join('') || `<p class="text-blue-200/60 text-xs">—</p>`}
+    </div>`;
+  document.getElementById('aRefresh').onclick = () => adminApprove(box);
+  if (window.lucide) lucide.createIcons();
+}
+
+async function approveSub(judgeId, catId, btn){
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const { data, error } = await dbClient.rpc('approve_judge_scores', {
+      p_judge_id: judgeId, p_category_id: catId, p_admin: S.auth.username
+    });
+    if (error) throw error;
+    toast('อนุมัติคะแนนสำเร็จ', 'success');
+    adminApprove(document.getElementById('aContent'));
+  } catch(e){ toast(e.message, 'error'); btn.disabled = false; btn.textContent = '✓ อนุมัติ'; }
+}
+
+async function returnSub(judgeId, catId, btn){
+  if (!confirm('ยืนยันส่งคืนคะแนนให้กรรมการแก้ไข?')) return;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const { error } = await dbClient.rpc('return_judge_scores', { p_judge_id: judgeId, p_category_id: catId });
+    if (error) throw error;
+    toast('ส่งคืนสำเร็จ', 'success');
+    adminApprove(document.getElementById('aContent'));
+  } catch(e){ toast(e.message, 'error'); btn.disabled = false; btn.textContent = '↩ ส่งคืน'; }
+}
+
+/* ADMIN · publish */
+async function adminPublish(box){
+  const { data } = await dbClient.from('settings').select('value').eq('key','results_published').maybeSingle();
+  const pub = data?.value === true || data?.value === 'true';
+  box.innerHTML = `
+    <div class="glass rounded-2xl p-8 text-center max-w-xl mx-auto fade-in">
+      <i data-lucide="megaphone" class="w-12 h-12 mx-auto mb-3 text-gold"></i>
+      <h3 class="text-lg font-bold gold mb-2">ประกาศผลการแข่งขันสู่สาธารณะ</h3>
+      <p class="text-xs text-blue-200/70 mb-6">สถานะปัจจุบัน: <span class="font-bold text-sm ${pub?'text-emerald-400':'text-yellow-400'}">${pub?'✅ ประกาศผลแล้ว (เปิดสาธารณะ)':'🔒 ยังไม่เปิดประกาศผล'}</span></p>
+      <div class="flex gap-3 justify-center flex-wrap">
+        <button id="pubBtn" class="btn-gold px-6 py-2.5 rounded-lg text-sm flex items-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> ประกาศผลคะแนน</button>
+        <button id="unpubBtn" class="btn-ghost px-6 py-2.5 rounded-lg text-sm flex items-center gap-2"><i data-lucide="eye-off" class="w-4 h-4"></i> ซ่อนผลการแข่งขัน</button>
+      </div>
+    </div>`;
+  document.getElementById('pubBtn').onclick = async () => {
+    try {
+      await dbClient.from('settings').upsert({ key:'results_published', value:true, updated_at:new Date().toISOString() });
+      toast('เปิดประกาศผลการแข่งขันแล้ว!', 'success'); adminPublish(box);
+    } catch(e){ toast(e.message, 'error'); }
+  };
+  document.getElementById('unpubBtn').onclick = async () => {
+    try {
+      await dbClient.from('settings').upsert({ key:'results_published', value:false, updated_at:new Date().toISOString() });
+      toast('ซ่อนผลการตัดสินแล้ว', 'success'); adminPublish(box);
+    } catch(e){ toast(e.message, 'error'); }
+  };
+  if (window.lucide) lucide.createIcons();
+}
+
+/* ADMIN · print */
+async function adminPrint(box){
+  box.innerHTML = `
+    <div class="glass rounded-2xl p-4 mb-4">
+      <label class="text-xs text-blue-200 block mb-2 font-medium">เลือกหมวดหมู่ที่ต้องการพิมพ์เอกสาร:</label>
+      <select id="printCat" class="bg-slate-900 text-white rounded-lg px-3 py-2 border border-white/20 text-sm w-full max-w-sm">
+        ${S.categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <button onclick="printBlankSheet()" class="glass rounded-xl p-4 text-left hover:border-yellow-400 transition">
+        <p class="gold font-semibold mb-1 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> ใบคะแนนสำหรับเขียนด้วยมือ (แนวนอน)</p>
+        <p class="text-xs text-blue-200/70">ตารางเปล่าสำหรับพิมพ์ให้กรรมการเขียนให้คะแนนด้วยปากกา</p>
+      </button>
+      <button onclick="printJudgeScores()" class="glass rounded-xl p-4 text-left hover:border-yellow-400 transition">
+        <p class="gold font-semibold mb-1 flex items-center gap-2"><i data-lucide="user-check" class="w-4 h-4"></i> พิมพ์คะแนนแยกตามกรรมการ</p>
+        <p class="text-xs text-blue-200/70">เลือกกรรมการ 1 คน เพื่อพิมพ์สรุปใบคะแนนรายบุคคล</p>
+      </button>
+      <button onclick="printCrossTab()" class="glass rounded-xl p-4 text-left hover:border-yellow-400 transition">
+        <p class="gold font-semibold mb-1 flex items-center gap-2"><i data-lucide="table" class="w-4 h-4"></i> พิมพ์คะแนนรวมกรรมการ (Cross-Tab)</p>
+        <p class="text-xs text-blue-200/70">ตารางเปรียบเทียบคะแนน ผู้เข้าประกวด × กรรมการทุกคน</p>
+      </button>
+      <button onclick="printRankings()" class="glass rounded-xl p-4 text-left hover:border-yellow-400 transition">
+        <p class="gold font-semibold mb-1 flex items-center gap-2"><i data-lucide="trophy" class="w-4 h-4"></i> พิมพ์ผลการแข่งขันเรียงตามลำดับ</p>
+        <p class="text-xs text-blue-200/70">พิมพ์ผลคะแนนและอันดับการประกวดอย่างเป็นทางการ</p>
+      </button>
+    </div>
+    <div class="mt-4 glass rounded-2xl p-4">
+      <label class="text-xs text-blue-200 block mb-2 font-medium">เลือกกรรมการ (สำหรับพิมพ์คะแนนแยกรายบุคคล):</label>
+      <select id="printJudgeSel" class="bg-slate-900 text-white rounded-lg px-3 py-2 border border-white/20 text-sm w-full max-w-sm">
+        ${S.judges.map(j=>`<option value="${j.id}">${esc(j.name)} (${esc(j.title||'กรรมการ')})</option>`).join('')}
+      </select>
+    </div>`;
+  if (window.lucide) lucide.createIcons();
+}
+
+/* ADMIN · judges */
+async function adminJudges(box){
+  box.innerHTML = `
+    <div class="glass rounded-2xl p-5 mb-5">
+      <h3 class="gold font-semibold mb-3 flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> เพิ่มบัญชีกรรมการใหม่</h3>
+      <form id="addJudgeForm" class="grid md:grid-cols-2 gap-3">
+        <div><label class="text-xs text-blue-200 block mb-1">ชื่อ-นามสกุล กรรมการ *</label>
+          <input name="full_name" placeholder="เช่น ดร.สมชาย ใจดี" required class="w-full bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/></div>
+        <div><label class="text-xs text-blue-200 block mb-1">ตำแหน่ง / วุฒิการศึกษา</label>
+          <input name="title" placeholder="เช่น ผู้ทรงคุณวุฒิภายนอก" class="w-full bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/></div>
+        <div><label class="text-xs text-blue-200 block mb-1">ตั้งชื่อผู้ใช้ (Username) *</label>
+          <input name="username" placeholder="judge_name" required class="w-full bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/></div>
+        <div><label class="text-xs text-blue-200 block mb-1">ตั้งรหัสผ่าน (Password) *</label>
+          <input name="password" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6" class="w-full bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/></div>
+        <button type="submit" class="md:col-span-2 btn-gold rounded-lg py-2.5 text-xs font-semibold mt-1">สร้างบัญชีกรรมการ</button>
+      </form>
+    </div>
+    <h3 class="gold font-semibold mb-3">รายชื่อกรรมการในระบบ (${S.judges.length})</h3>
+    <div class="space-y-2">
+      ${S.judges.map(j => `<div class="glass rounded-xl p-3 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full gold-bg flex items-center justify-center shrink-0"><i data-lucide="user" class="w-5 h-5" style="color:#0B1E4B"></i></div>
+        <div class="flex-1 min-w-0"><p class="font-medium text-sm truncate">${esc(j.name)}</p>
+        <p class="text-xs text-blue-200/70 truncate">${esc(j.title||'กรรมการ')}</p></div>
+        <span class="badge badge-judge">JUDGE</span>
+      </div>`).join('') || `<p class="text-blue-200/60 text-xs">ยังไม่มีกรรมการในระบบ</p>`}
+    </div>`;
+  document.getElementById('addJudgeForm').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const btn = ev.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'กำลังสร้างบัญชี...';
+    try {
+      const { data, error } = await dbClient.rpc('create_judge_user', {
+        p_username: fd.get('username').trim(),
+        p_password: fd.get('password'),
+        p_full_name: fd.get('full_name').trim(),
+        p_title: fd.get('title')?.trim() || null
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.message);
+      toast('เพิ่มกรรมการเรียบร้อยแล้ว!', 'success');
+      await loadBaseData();
+      adminJudges(box);
+    } catch(e){ toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'สร้างบัญชีกรรมการ'; }
+  };
+  if (window.lucide) lucide.createIcons();
+}
+
+/* ADMIN · news */
+async function adminNews(box){
+  await loadBaseData();
+  box.innerHTML = `
+    <div class="glass rounded-2xl p-5 mb-5">
+      <h3 class="gold font-semibold mb-3 flex items-center gap-2"><i data-lucide="newspaper" class="w-4 h-4"></i> เพิ่ม / แก้ไข ข่าวประชาสัมพันธ์</h3>
+      <form id="newsForm" class="grid gap-3">
+        <input type="hidden" name="id"/>
+        <input name="title" placeholder="หัวข้อข่าวสาร *" required class="bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"/>
+        <textarea name="content" rows="3" placeholder="รายละเอียดข่าวสารประชาสัมพันธ์..." class="bg-white/10 rounded-lg px-3 py-2 border border-white/20 text-xs"></textarea>
+        <div class="flex flex-wrap gap-4 items-center text-xs">
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="is_pinned"/> ปักหมุดหน้าแรก</label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="published" checked/> เผยแพร่ทันที</label>
+        </div>
+        <button type="submit" class="btn-gold rounded-lg py-2.5 text-xs font-semibold">บันทึกข่าวสาร</button>
+      </form>
+    </div>
+    <div class="space-y-2">
+      ${S.news.map(n => `<div class="glass rounded-xl p-3">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1">
+            <div class="flex items-center gap-1.5 mb-1">
+              ${n.is_pinned?'<span class="text-[10px] bg-yellow-500 text-blue-900 px-2 py-0.5 rounded-full font-bold">ปักหมุด</span>':''}
+              ${!n.published?'<span class="text-[10px] bg-gray-600 text-white px-2 py-0.5 rounded-full">ซ่อน</span>':''}
+            </div>
+            <p class="font-medium text-sm">${esc(n.title)}</p>
+            <p class="text-xs text-blue-200/70 mt-1 line-clamp-2">${esc(n.content||'')}</p>
+          </div>
+          <div class="flex gap-1 shrink-0">
+            <button onclick="editNews('${n.id}')" class="p-2 rounded-lg hover:bg-yellow-500/20 text-yellow-300"><i data-lucide="edit" class="w-4 h-4"></i></button>
+            <button onclick="deleteNews('${n.id}')" class="p-2 rounded-lg hover:bg-red-500/20 text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </div>`).join('') || `<p class="text-blue-200/60 text-center py-4 text-xs">ยังไม่มีข่าวสาร</p>`}
+    </div>`;
+  document.getElementById('newsForm').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const payload = {
+      title: fd.get('title'), content: fd.get('content'),
+      is_pinned: fd.get('is_pinned') === 'on',
+      published: fd.get('published') === 'on'
+    };
+    try {
+      const id = fd.get('id');
+      if (id) await dbClient.from('news').update(payload).eq('id', id);
+      else await dbClient.from('news').insert(payload);
+      toast('บันทึกข่าวเรียบร้อย', 'success');
+      adminNews(box);
+    } catch(e){ toast(e.message, 'error'); }
+  };
+  if (window.lucide) lucide.createIcons();
+}
+
+async function editNews(id){
+  const n = S.news.find(x=>x.id===id);
+  if (!n) return;
+  const f = document.getElementById('newsForm');
+  f.id.value = n.id; f.title.value = n.title; f.content.value = n.content || '';
+  f.is_pinned.checked = !!n.is_pinned; f.published.checked = !!n.published;
+  f.title.focus(); window.scrollTo({top:0, behavior:'smooth'});
+}
+
+async function deleteNews(id){
+  if (!confirm('ยืนยันลบข่าวนี้?')) return;
+  try { await dbClient.from('news').delete().eq('id', id); toast('ลบเรียบร้อย','success'); adminNews(document.getElementById('aContent')); }
+  catch(e){ toast(e.message,'error'); }
+}
+
+/* ADMIN · applications */
+async function adminApplications(box){
+  const { data: apps } = await dbClient.from('applications').select('*').order('created_at', { ascending:false });
+  S.applications = apps || [];
+  const pending = S.applications.filter(a=>a.status==='pending');
+  box.innerHTML = `
+    <div class="flex items-center gap-3 mb-3 flex-wrap">
+      <h3 class="gold font-semibold">รายการใบสมัคร (รออนุมัติ ${pending.length} / ทั้งหมด ${S.applications.length})</h3>
+      <button id="aRefresh" class="btn-ghost px-3 py-1.5 rounded-lg text-xs ml-auto">🔄 รีเฟรช</button>
+    </div>
+    <div class="space-y-3">
+      ${S.applications.map(a => `
+        <div class="glass rounded-xl p-4">
+          <div class="flex items-start justify-between gap-3 flex-wrap">
+            <div class="flex-1 min-w-[220px]">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="badge ${a.type==='noppamas'?'badge-judge':'badge-admin'}">${a.type==='noppamas'?'นางนพมาศ':'กระทงทีม 5 คน'}</span>
+                <span class="badge badge-${a.status}">${a.status.toUpperCase()}</span>
+              </div>
+              <p class="font-bold text-base text-gold">${esc(a.type==='noppamas'?a.full_name:a.team_name)}</p>
+              <p class="text-xs text-blue-200/80 mt-1">
+                สาขา: <b>${esc(a.branch||'')}</b> ${a.level?`· ระดับชั้น: <b>${esc(a.level)}</b>`:''} ${a.room?`· ห้อง: <b>${esc(a.room)}</b>`:''} · โทร: ${esc(a.phone||'')}
+              </p>
+              ${a.type==='krathong' && Array.isArray(a.members) ? `<div class="text-xs text-blue-200/70 mt-2 bg-white/5 p-2 rounded-lg">
+                <span class="gold">สมาชิกทีม:</span> ${a.members.map(m=>esc(m.name)).join(', ')}
+              </div>` : ''}
+              ${a.description ? `<p class="text-xs text-blue-200/60 mt-1 italic">"${esc(a.description)}"</p>` : ''}
+            </div>
+            <div class="flex flex-wrap gap-1.5 shrink-0">
+              ${a.status==='pending' ? `
+                <button onclick="approveApp('${a.id}',this)" class="btn-gold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> อนุมัติใบสมัคร</button>
+                <button onclick="rejectApp('${a.id}',this)" class="btn-ghost px-3 py-1.5 rounded-lg text-xs text-red-300 border-red-500/50 flex items-center gap-1"><i data-lucide="x" class="w-3.5 h-3.5"></i> ปฏิเสธ</button>` : ''}
+              <button onclick="printApplication('${a.id}')" class="btn-ghost px-3 py-1.5 rounded-lg text-xs flex items-center gap-1"><i data-lucide="printer" class="w-3.5 h-3.5"></i> พิมพ์ใบสมัคร</button>
+            </div>
+          </div>
+        </div>`).join('') || `<p class="text-blue-200/60 text-center py-6 text-sm">ยังไม่มีใบสมัคร</p>`}
+    </div>`;
+  document.getElementById('aRefresh').onclick = () => adminApplications(box);
+  if (window.lucide) lucide.createIcons();
+}
+
+async function approveApp(id, btn){
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const { data, error } = await dbClient.rpc('approve_application', { p_id:id, p_admin: S.auth.username });
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.message);
+    toast(`อนุมัติใบสมัครเรียบร้อย! ได้รับหมายเลข #${data.contestant_no}`, 'success');
+    await loadBaseData();
+    adminApplications(document.getElementById('aContent'));
+  } catch(e){ toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'อนุมัติ'; }
+}
+
+async function rejectApp(id, btn){
+  const reason = prompt('ระบุเหตุผลในการปฏิเสธใบสมัคร:');
+  if (reason === null) return;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const { error } = await dbClient.rpc('reject_application', { p_id:id, p_admin:S.auth.username, p_reason:reason });
+    if (error) throw error;
+    toast('ปฏิเสธใบสมัครแล้ว', 'success');
+    adminApplications(document.getElementById('aContent'));
+  } catch(e){ toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'ปฏิเสธ'; }
+}
+
+/* =====================================================================
+   PRINT FUNCTIONS (พิมพ์เอกสารทั้งหมด)
+===================================================================== */
+function doPrint(html, landscape=false){
+  const pa = document.getElementById('printArea');
+  pa.innerHTML = html;
+  let style = document.getElementById('printPageStyle');
+  if (!style){ style = document.createElement('style'); style.id = 'printPageStyle'; document.head.appendChild(style); }
+  style.textContent = `@page { size: A4 ${landscape?'landscape':'portrait'}; margin: 12mm; }`;
+  setTimeout(() => window.print(), 200);
+}
+
+function printHeader(title, subtitle=''){
+  return `<div class="hdr">
+    <h1>🌟 นทีดารา · สายน้ำแห่งดวงดาว 🌟</h1>
+    <h2>${title}</h2>
+    ${subtitle ? `<p>${subtitle}</p>` : ''}
+    <p>พิมพ์เมื่อ: ${new Date().toLocaleString('th-TH')}</p>
+  </div>`;
+}
+
+/* ปริ้นใบสมัครของผู้สมัคร */
+function printApplicantReceipt(payload) {
+  const mem = Array.isArray(payload.members) ? payload.members : [];
+  const html = `${printHeader('แบบฟอร์มใบสมัครเข้าร่วมการประกวด', payload.type==='noppamas'?'นางนพมาศ':'กระทงประดิษฐ์ (ประเภททีม 5 คน)')}
+    <table>
+      ${payload.type==='noppamas' ? `
+        <tr><th style="width:200px">ชื่อ-นามสกุล ผู้สมัคร</th><td>${esc(payload.full_name||'')}</td></tr>
+        <tr><th>รหัสนักศึกษา</th><td>${esc(payload.student_id||'-')}</td></tr>
+        <tr><th>สาขาวิชา</th><td>${esc(payload.branch||'')}</td></tr>
+      ` : `
+        <tr><th style="width:200px">ชื่อทีม / ผลงาน</th><td>${esc(payload.team_name||'')}</td></tr>
+        <tr><th>สาขาวิชา</th><td>${esc(payload.branch||'')}</td></tr>
+        <tr><th>ระดับชั้น / ห้อง</th><td>${esc(payload.level||'')} ห้อง ${esc(payload.room||'')}</td></tr>
+      `}
+      <tr><th>เบอร์โทรศัพท์ติดต่อ</th><td>${esc(payload.phone||'')}</td></tr>
+      <tr><th>อีเมล</th><td>${esc(payload.email||'-')}</td></tr>
+      <tr><th>รายละเอียด / แนวคิด</th><td>${esc(payload.description||'-')}</td></tr>
+    </table>
+    ${mem.length ? `
+      <h3 style="margin-top:16px;font-size:13px font-bold">รายชื่อสมาชิกภายในทีม (5 คน)</h3>
+      <table>
+        <thead><tr><th style="width:60px">ลำดับ</th><th>ชื่อ-นามสกุล</th><th style="width:180px">รหัสนักศึกษา</th></tr></thead>
+        <tbody>${mem.map((m,i)=>`<tr>
+          <td style="text-align:center">${i+1}</td>
+          <td>${esc(m.name||'')}</td>
+          <td style="text-align:center">${esc(m.student_id||'-')}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : ''}
+    <div class="sign" style="text-align:left;margin-top:30px">
+      <div>ลายมือชื่อผู้สมัคร: ___________________________</div>
+      <div style="margin-top:16px">วันที่สมัคร: _____ / _____ / _____</div>
+    </div>`;
+  doPrint(html, false);
+}
+
+/* 1. ใบคะแนนเปล่าสำหรับเขียนมือ (แนวนอน) */
+async function printBlankSheet(){
+  const catId = document.getElementById('printCat').value;
+  const cat = S.categories.find(c=>c.id===catId);
+  const crit = S.criteria.filter(c=>c.category_id===catId).sort((a,b)=>a.order_index-b.order_index);
+  const cons = S.contestants.filter(c=>c.category_id===catId).sort((a,b)=>a.contestant_no-b.contestant_no);
+  if (!crit.length || !cons.length){ toast('ไม่มีข้อมูลผู้ประกวดหรือเกณฑ์การตัดสิน','warn'); return; }
+
+  const html = `${printHeader('ใบคะแนนการตัดสิน (สำหรับเขียนด้วยมือ)', `ประเภท: ${cat.name}`)}
+    <div style="display:flex;justify-content:space-between;margin:8px 0 16px;font-size:11px">
+      <span>ชื่อกรรมการผู้ให้คะแนน: ___________________________________</span>
+      <span>วันที่: _____ / _____ / _____</span>
+      <span>ลงชื่อ: ___________________________________</span>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:50px">หมายเลข</th><th style="width:180px">ชื่อผู้เข้าประกวด / สังกัด</th>
+        ${crit.map(c=>`<th style="text-align:center">${esc(c.name)}<br><small>(${c.weight}% / เต็ม ${c.max_score})</small></th>`).join('')}
+        <th style="width:70px;text-align:center">คะแนนรวม</th>
+      </tr></thead>
+      <tbody>
+        ${cons.map(ct=>`<tr style="height:38px">
+          <td style="text-align:center;font-weight:700">${ct.contestant_no}</td>
+          <td>${esc(ct.name)}<br><small>${esc(ct.affiliation||'')}</small></td>
+          ${crit.map(()=>'<td></td>').join('')}
+          <td></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:16px;font-size:10px">
+      <p><b>คำอธิบายสัดส่วนคะแนน:</b> ${crit.map(c=>`${esc(c.name)} (${c.weight}%)`).join(' · ')}</p>
+    </div>`;
+  doPrint(html, true);
+}
+
+/* 2. พิมพ์คะแนนแยกตามกรรมการ */
+async function printJudgeScores(){
+  const catId = document.getElementById('printCat').value;
+  const judgeId = document.getElementById('printJudgeSel').value;
+  const cat = S.categories.find(c=>c.id===catId);
+  const judge = S.judges.find(j=>j.id===judgeId);
+  const crit = S.criteria.filter(c=>c.category_id===catId).sort((a,b)=>a.order_index-b.order_index);
+  const cons = S.contestants.filter(c=>c.category_id===catId).sort((a,b)=>a.contestant_no-b.contestant_no);
+  if (!crit.length || !cons.length){ toast('ไม่มีข้อมูล','warn'); return; }
+  const { data: scores } = await dbClient.from('scores').select('*').eq('judge_id', judgeId);
+  const map = {};
+  (scores||[]).forEach(s => map[`${s.contestant_id}|${s.criteria_id}`] = Number(s.score));
+
+  const html = `${printHeader('สรุปใบคะแนนการตัดสิน (รายกรรมการ)', `ประเภท: ${cat.name} · กรรมการ: ${judge?.name}`)}
+    <table>
+      <thead><tr>
+        <th style="width:50px">หมายเลข</th><th style="width:160px">ชื่อผู้เข้าประกวด</th>
+        ${crit.map(c=>`<th style="text-align:center">${esc(c.name)}<br><small>${c.weight}% / ${c.max_score}</small></th>`).join('')}
+        <th style="text-align:center;width:70px">รวม %</th>
+      </tr></thead>
+      <tbody>
+        ${cons.map(ct=>{
+          let total=0, wsum=0;
+          const cells = crit.map(cr=>{
+            const v = map[`${ct.id}|${cr.id}`];
+            if (v != null){ total += (v/Number(cr.max_score))*Number(cr.weight); wsum += Number(cr.weight); }
+            return `<td style="text-align:center">${v ?? '-'}</td>`;
+          }).join('');
+          const pct = wsum>0 ? ((total/wsum)*100).toFixed(2) : '-';
+          return `<tr><td style="text-align:center;font-weight:700">${ct.contestant_no}</td>
+            <td>${esc(ct.name)}</td>${cells}<td style="text-align:center;font-weight:700">${pct}</td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="sign">
+      <div>ลงชื่อ ___________________________</div>
+      <div>(${esc(judge?.name||'')})</div>
+      <div>กรรมการผู้ให้คะแนน</div>
+    </div>`;
+  doPrint(html, false);
+}
+
+/* 3. พิมพ์คะแนนรวมกรรมการ (Cross-tab) */
+async function printCrossTab(){
+  const catId = document.getElementById('printCat').value;
+  const cat = S.categories.find(c=>c.id===catId);
+  const cons = S.contestants.filter(c=>c.category_id===catId).sort((a,b)=>a.contestant_no-b.contestant_no);
+  const crit = S.criteria.filter(c=>c.category_id===catId);
+  const { data: scores } = await dbClient.from('scores').select('*').eq('is_approved', true);
+  const useJudges = S.judges.filter(j => (scores||[]).some(s => s.judge_id === j.id));
+  if (!cons.length){ toast('ไม่มีข้อมูลผู้เข้าประกวด','warn'); return; }
+
+  const calc = (judgeId, ctId) => {
+    let total=0, wsum=0;
+    crit.forEach(cr=>{
+      const s = (scores||[]).find(x=>x.judge_id===judgeId && x.contestant_id===ctId && x.criteria_id===cr.id);
+      if (s){ total += (Number(s.score)/Number(cr.max_score))*Number(cr.weight); wsum += Number(cr.weight); }
+    });
+    return wsum>0 ? (total/wsum)*100 : null;
+  };
+
+  const html = `${printHeader('ตารางสรุปคะแนนรวมจากคณะกรรมการทั้งหมด (Cross-Tab)', `ประเภท: ${cat.name}`)}
+    <table>
+      <thead><tr>
+        <th style="width:50px">หมายเลข</th><th style="width:160px">ชื่อผู้เข้าประกวด</th>
+        ${useJudges.map(j=>`<th style="text-align:center">${esc(j.name.split(' ')[0])}</th>`).join('')}
+        <th style="text-align:center;width:80px">คะแนนเฉลี่ย</th>
+      </tr></thead>
+      <tbody>
+        ${cons.map(ct=>{
+          const vals = useJudges.map(j=>calc(j.id, ct.id));
+          const valid = vals.filter(v=>v!=null);
+          const avg = valid.length ? (valid.reduce((a,b)=>a+b,0)/valid.length) : 0;
+          return `<tr>
+            <td style="text-align:center;font-weight:700">${ct.contestant_no}</td>
+            <td>${esc(ct.name)}</td>
+            ${vals.map(v=>`<td style="text-align:center">${v!=null?v.toFixed(2):'-'}</td>`).join('')}
+            <td style="text-align:center;font-weight:700">${avg.toFixed(2)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="sign">
+      <div>ลงชื่อ ___________________________</div>
+      <div>ประธานกรรมการ / ผู้ตรวจสอบคะแนน</div>
+    </div>`;
+  doPrint(html, false);
+}
+
+/* 4. พิมพ์ผลการแข่งขันตามลำดับ */
+async function printRankings(){
+  const catId = document.getElementById('printCat').value;
+  const cat = S.categories.find(c=>c.id===catId);
+  const results = (await computeResults(true)).filter(r=>r.category_id===catId).sort((a,b)=>b.total-a.total);
+  if (!results.length){ toast('ไม่มีข้อมูลคะแนน','warn'); return; }
+  const html = `${printHeader('ประกาศผลการแข่งขัน (ตามลำดับคะแนน)', `ประเภท: ${cat.name}`)}
+    <table>
+      <thead><tr>
+        <th style="width:70px;text-align:center">อันดับ</th>
+        <th style="width:70px;text-align:center">หมายเลข</th>
+        <th>ชื่อผู้ประกวด / ทีม</th><th>สังกัด / สาขาวิชา</th>
+        <th style="text-align:center;width:90px">คะแนนรวม</th>
+      </tr></thead>
+      <tbody>
+        ${results.map((r,i)=>`<tr style="height:32px">
+          <td style="text-align:center;font-weight:700;font-size:13px">${['🥇 ชนะเลิศ','🥈 รองอันดับ 1','🥉 รองอันดับ 2'][i] || `อันดับ ${i+1}`}</td>
+          <td style="text-align:center;font-weight:700">${r.contestant_no}</td>
+          <td><b>${esc(r.name)}</b></td>
+          <td>${esc(r.affiliation||'')}</td>
+          <td style="text-align:center;font-weight:700">${r.total.toFixed(2)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="sign">
+      <div>ลงชื่อ ___________________________</div>
+      <div>ประธานคณะกรรมการการตัดสิน</div>
+    </div>`;
+  doPrint(html, false);
+}
+
+/* 5. พิมพ์ใบสมัครจากระบบแอดมิน */
+async function printApplication(appId){
+  const a = S.applications.find(x=>x.id===appId) || (await dbClient.from('applications').select('*').eq('id', appId).single()).data;
+  if (!a){ toast('ไม่พบใบสมัคร','error'); return; }
+  printApplicantReceipt(a);
+}
+
+/* =====================================================================
+   BOOTSTRAP
+===================================================================== */
+window.addEventListener('hashchange', () => showView(location.hash.replace('#','') || 'home'));
+window.addEventListener('DOMContentLoaded', async () => {
+  starfield();
+  S.auth = loadSession();
+  if (S.auth) await refreshJudgeProfile();
+  renderNav();
+  document.getElementById('menuBtn').onclick = () =>
+    document.getElementById('mobileMenu').classList.toggle('hidden');
+  try { await loadBaseData(); } catch(e){ console.warn(e); }
+  showView(location.hash.replace('#','') || 'home');
+  if (window.lucide) lucide.createIcons();
+});
+</script>
+</body>
+</html>
