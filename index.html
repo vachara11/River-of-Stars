@@ -17,6 +17,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Supabase JS v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Identity Services (OAuth สำหรับอัปโหลดรูปเข้า Google Drive โดยไม่ใช้ Apps Script) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- Config File -->
     <script src="config.js"></script>
 
@@ -362,10 +364,10 @@
                                     <textarea id="krathong-wish" required maxlength="140" rows="2" placeholder="พิมพ์คำอธิษฐานของคุณที่นี่..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-300 mb-1">รูปถ่ายผู้ลอยกระทง <span class="text-slate-400 font-normal">(แสดงบนกระทงเท่านั้น ไม่บันทึกลงฐานข้อมูล)</span></label>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">รูปถ่ายผู้ลอยกระทง <span class="text-slate-400 font-normal">(บันทึกลง Google Drive · แสดงบนสายน้ำให้ทุกคนเห็น)</span></label>
                                     <div class="flex items-center gap-3">
                                         <input type="file" id="krathong-avatar" accept="image/*" onchange="previewFloatAvatar(this)" class="input-night flex-1 px-3 py-1.5 rounded-xl text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
-                                        <img id="krathong-avatar-preview" class="w-9 h-9 rounded-full object-cover border border-amber-400 hidden shrink-0" alt="Preview Avatar">
+                                        <img id="krathong-avatar-preview" class="w-24 h-24 rounded-full object-cover border-2 border-amber-400 hidden shrink-0" alt="Preview Avatar">
                                     </div>
                                 </div>
                                 <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2">
@@ -469,7 +471,7 @@
                         </div>
                     </form>
 
-                    <!-- ฟอร์มกระทงทีม (ลบส่วนอัปโหลดรูปภาพออกแล้ว) -->
+                    <!-- ฟอร์มกระทงทีม -->
                     <form id="form-apply-team" onsubmit="submitTeamApplication(event)" class="mt-6 space-y-6 hidden">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="sm:col-span-2">
@@ -751,6 +753,10 @@
                     <label class="block text-xs text-slate-300 mb-1">SUPABASE_ANON_KEY</label>
                     <input type="password" id="modal-sb-key" placeholder="eyJhbGci..." class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
                 </div>
+                <div class="pt-2 border-t border-slate-700">
+                    <label class="block text-xs text-slate-300 mb-1">GOOGLE_CLIENT_ID <span class="text-slate-500">(สำหรับอัปโหลดรูปเข้า Google Drive)</span></label>
+                    <input type="text" id="modal-google-client-id" placeholder="xxxx.apps.googleusercontent.com" class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
+                </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeDbConfigModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-xs">ปิด</button>
@@ -762,6 +768,96 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         const OFFICIAL_AFT_LOGO = 'https://aftpsc.site/font_end/image/aft_logo.png';
+
+        // =====================================================================
+        //  GOOGLE DRIVE (เก็บเฉพาะรูปภาพ) — ใช้ Google Identity Services + Drive REST API
+        //  ไม่ใช้ Google Apps Script
+        // =====================================================================
+        const DRIVE_FOLDER_ID = '19cEbure1PEvDbPjDlJK758TP5TEwUQv8';   // โฟลเดอร์ปลายทางใน Google Drive
+        const GOOGLE_CLIENT_ID_CONST = '432224039974-v6itavu59718g0dq12veqg97joqumv61.apps.googleusercontent.com'; // ← ใส่ OAuth Client ID (หรือกรอกในหน้า "ตั้งค่า" ก็ได้)
+        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+        // true = ถ้าอัปโหลดเข้า Drive ไม่ได้ จะสำรองไปเก็บที่ Supabase Storage (ปิดเป็น false หากต้องการ Drive อย่างเดียว)
+        const ALLOW_FALLBACK_TO_SUPABASE = true;
+
+        function getGoogleClientId() {
+            return (localStorage.getItem('runtime_google_client_id') || (typeof window.GOOGLE_CLIENT_ID === 'string' ? window.GOOGLE_CLIENT_ID : '') || GOOGLE_CLIENT_ID_CONST || '').trim();
+        }
+        function isDriveConfigured() {
+            const id = getGoogleClientId();
+            return !!id && !id.includes('YOUR_GOOGLE_CLIENT_ID');
+        }
+
+        let _driveToken = null, _driveTokenExp = 0;
+        // ต้องถูกเรียกจากการกระทำของผู้ใช้ (เช่น กดส่งฟอร์ม) เพื่อให้เบราว์เซอร์ไม่บล็อกป๊อปอัปล็อกอิน Google
+        function getDriveToken() {
+            return new Promise((resolve, reject) => {
+                if (_driveToken && Date.now() < _driveTokenExp) return resolve(_driveToken);
+                if (!isDriveConfigured()) return reject(new Error('ยังไม่ได้ตั้งค่า Google Client ID'));
+                if (!(window.google && google.accounts && google.accounts.oauth2)) return reject(new Error('โหลด Google Sign-In ไม่สำเร็จ'));
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: getGoogleClientId(),
+                    scope: DRIVE_SCOPE,
+                    callback: (resp) => {
+                        if (!resp || resp.error) return reject(new Error((resp && (resp.error_description || resp.error)) || 'ล็อกอิน Google ไม่สำเร็จ'));
+                        _driveToken = resp.access_token;
+                        _driveTokenExp = Date.now() + ((Number(resp.expires_in) || 3600) - 60) * 1000;
+                        resolve(_driveToken);
+                    },
+                    error_callback: (err) => reject(new Error(err && err.type === 'popup_closed' ? 'ปิดหน้าต่างล็อกอิน Google ก่อนเสร็จ' : 'ล็อกอิน Google ไม่สำเร็จ'))
+                });
+                client.requestAccessToken({ prompt: _driveToken ? '' : 'select_account' });
+            });
+        }
+
+        // อัปโหลดรูป (Blob) เข้าโฟลเดอร์ Drive แล้วเปิดสิทธิ์ให้ "ทุกคนที่มีลิงก์ดูได้" เพื่อให้ทุกคนมองเห็นรูป
+        async function uploadBlobToDrive(blob, fileName) {
+            if (!blob) throw new Error('ไม่พบไฟล์รูป');
+            const token = await getDriveToken();
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify({ name: fileName, parents: [DRIVE_FOLDER_ID], mimeType: 'image/jpeg' })], { type: 'application/json' }));
+            form.append('file', blob);
+            const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id&supportsAllDrives=true', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + token },
+                body: form
+            });
+            if (!res.ok) {
+                if (res.status === 401) _driveToken = null;
+                const t = await res.text();
+                console.error('Drive upload failed:', res.status, t);
+                throw new Error(res.status === 404 ? 'ไม่มีสิทธิ์เขียนในโฟลเดอร์ Drive' : 'Drive ตอบกลับผิดพลาด (' + res.status + ')');
+            }
+            const { id } = await res.json();
+            try {
+                await fetch(`https://www.googleapis.com/drive/v3/files/${id}/permissions?supportsAllDrives=true`, {
+                    method: 'POST',
+                    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'reader', type: 'anyone' })
+                });
+            } catch (e) { console.warn('ตั้งสิทธิ์แชร์รูปไม่สำเร็จ', e); }
+            return `https://drive.google.com/uc?id=${id}`;
+        }
+
+        // ---------- แสดงรูปจาก Drive ให้ทุกคนเห็น ----------
+        function extractDriveId(url) {
+            if (!url || typeof url !== 'string' || url.startsWith('data:')) return null;
+            if (!/drive\.google\.com|googleusercontent\.com\/d\//.test(url)) return null;
+            const m = url.match(/[?&]id=([\w-]{20,})/) || url.match(/\/d\/([\w-]{20,})/);
+            return m ? m[1] : null;
+        }
+        // รายการ URL ที่ใช้ลองตามลำดับ (ตัวแรกที่โหลดได้จะถูกใช้)
+        function imageCandidates(url, width = 800) {
+            const id = extractDriveId(url);
+            if (!id) return [url];
+            return [
+                `https://lh3.googleusercontent.com/d/${id}=w${width}`,
+                `https://drive.google.com/thumbnail?id=${id}&sz=w${width}`,
+                `https://drive.google.com/uc?export=view&id=${id}`
+            ];
+        }
+        function imgSrc(url, width = 800) {
+            return url ? imageCandidates(url, width)[0] : '';
+        }
 
         const KRATHONG_STYLES = [
             { id: 'star_galaxy', name: 'ดาราจักรนพเก้า (Galaxy Star)', badge: 'แนวดวงดาว', color1: '#a855f7', color2: '#38bdf8', glow: '#f472b6' },
@@ -791,8 +887,7 @@
         let adminOverviewChart = null;
         let compressedFilesCache = {};
 
-        // Local Memory Store สำหรับรูปผู้ลอยกระทง (ไม่บันทึกลงฐานข้อมูล)
-        let localAvatarStore = {};
+        // สำหรับพรีวิวรูป
         let tempFloatAvatarUrl = '';
 
         function toThaiNum(input) {
@@ -845,6 +940,20 @@
         }
 
         function handleImgError(imgEl, label = 'ไม่สามารถโหลดรูปภาพได้') {
+            // ถ้าเป็นรูปจาก Drive ให้ลอง URL สำรองก่อน
+            const idMatch = imgEl && imgEl.src && (imgEl.src.match(/googleusercontent\.com\/d\/([\w-]{20,})/) || imgEl.src.match(/[?&]id=([\w-]{20,})/));
+            if (idMatch) {
+                const tries = Number(imgEl.dataset.tries || 0);
+                const alt = [
+                    `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w800`,
+                    `https://drive.google.com/uc?export=view&id=${idMatch[1]}`
+                ];
+                if (tries < alt.length) {
+                    imgEl.dataset.tries = tries + 1;
+                    imgEl.src = alt[tries];
+                    return;
+                }
+            }
             const wrapper = document.createElement('div');
             wrapper.className = 'w-full h-full min-h-[140px] bg-slate-900 border border-slate-700 rounded-xl flex flex-col items-center justify-center p-3 text-center text-slate-400 text-xs';
             wrapper.innerHTML = `<span class="text-amber-400 font-semibold mb-1">[ไม่มีรูปภาพ]</span><span>${label}</span>`;
@@ -905,24 +1014,33 @@
             }
         }
 
-        async function uploadCompressedImage(inputId, folder = 'applications') {
-            const cached = compressedFilesCache[inputId];
-            if (!cached) return '';
-            if (sbClient) {
+        // เก็บรูปเข้า Google Drive (หลัก) — สำรองไป Supabase Storage / DataURL เมื่อ Drive ใช้ไม่ได้ (ปรับได้ที่ ALLOW_FALLBACK_TO_SUPABASE)
+        async function storeImage(blob, dataUrl, nameBase, folder, allowDataUrl) {
+            try {
+                return await uploadBlobToDrive(blob, `${folder}_${nameBase}.jpg`);
+            } catch (e) {
+                console.warn('Google Drive upload failed:', e);
+                showToast('อัปโหลดรูปเข้า Google Drive ไม่สำเร็จ: ' + e.message, 'warning');
+            }
+            if (!ALLOW_FALLBACK_TO_SUPABASE) return '';
+            if (sbClient && blob) {
                 try {
-                    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.jpg`;
-                    const { error } = await sbClient.storage
-                        .from('contest-media')
-                        .upload(fileName, cached.blob, { contentType: 'image/jpeg', upsert: true });
+                    const fileName = `${folder}/${nameBase}.jpg`;
+                    const { error } = await sbClient.storage.from('contest-media').upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
                     if (!error) {
                         const { data: pubData } = sbClient.storage.from('contest-media').getPublicUrl(fileName);
                         if (pubData && pubData.publicUrl) return pubData.publicUrl;
                     }
-                } catch (e) {
-                    console.warn('Fallback to DataURL:', e);
-                }
+                } catch (e) { console.warn('Supabase storage fallback failed:', e); }
             }
-            return cached.dataUrl;
+            return allowDataUrl ? (dataUrl || '') : '';
+        }
+
+        async function uploadCompressedImage(inputId, folder = 'applications') {
+            const cached = compressedFilesCache[inputId];
+            if (!cached) return '';
+            const nameBase = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+            return storeImage(cached.blob, cached.dataUrl, nameBase, folder, true);
         }
 
         function initSupabaseConnection() {
@@ -1040,6 +1158,7 @@
         function openDbConfigModal() {
             document.getElementById('modal-sb-url').value = localStorage.getItem('runtime_sb_url') || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
             document.getElementById('modal-sb-key').value = localStorage.getItem('runtime_sb_key') || (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '');
+            document.getElementById('modal-google-client-id').value = isDriveConfigured() ? getGoogleClientId() : '';
             const m = document.getElementById('modal-db-config');
             m.classList.remove('hidden');
             m.classList.add('flex');
@@ -1058,6 +1177,9 @@
                 showToast('กรุณากรอก URL และ KEY ให้ครบถ้วน', 'error');
                 return;
             }
+            const gcid = document.getElementById('modal-google-client-id').value.trim();
+            if (gcid) localStorage.setItem('runtime_google_client_id', gcid); else localStorage.removeItem('runtime_google_client_id');
+            _driveToken = null;
             localStorage.setItem('runtime_sb_url', url);
             localStorage.setItem('runtime_sb_key', key);
             sbClient = window.supabase.createClient(url, key);
@@ -1067,26 +1189,68 @@
             showToast('เชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
         }
 
-        // CANVAS สายน้ำและกระทง (จัดระเบียบไม่ให้แออัด และรองรับ รูปภาพคนลอย local)
+        // CANVAS สายน้ำและกระทง (แก้ไขระบบรูปภาพใหญ่และบันทึกลง DB)
         let riverCanvas, riverCtx, floatingSprites = [], riverTick = 0;
 
-        function previewFloatAvatar(input) {
+        let tempFloatAvatarBlob = null;
+
+        // ครอปกลางภาพเป็นสี่เหลี่ยมจัตุรัส + ย่อให้พอดี เพื่อแสดงเป็นวงกลมคมชัดบน Canvas
+        function compressSquareImage(file, size = 480, quality = 0.86) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    const s = Math.min(img.naturalWidth, img.naturalHeight);
+                    const sx = (img.naturalWidth - s) / 2, sy = (img.naturalHeight - s) / 2;
+                    const out = Math.min(size, s);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = canvas.height = out;
+                    canvas.getContext('2d').drawImage(img, sx, sy, s, s, 0, 0, out, out);
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    canvas.toBlob(blob => { URL.revokeObjectURL(url); resolve({ blob, dataUrl }); }, 'image/jpeg', quality);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('อ่านไฟล์รูปไม่ได้')); };
+                img.src = url;
+            });
+        }
+
+        async function previewFloatAvatar(input) {
             const file = input.files && input.files[0];
             const prev = document.getElementById('krathong-avatar-preview');
+            tempFloatAvatarUrl = '';
+            tempFloatAvatarBlob = null;
             if (!file) {
-                tempFloatAvatarUrl = '';
                 if (prev) prev.classList.add('hidden');
                 return;
             }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                tempFloatAvatarUrl = e.target.result;
+            try {
+                const c = await compressSquareImage(file);
+                tempFloatAvatarUrl = c.dataUrl;
+                tempFloatAvatarBlob = c.blob;
                 if (prev) {
-                    prev.src = tempFloatAvatarUrl;
+                    prev.src = c.dataUrl;
                     prev.classList.remove('hidden');
                 }
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                showToast('เปิดไฟล์รูปไม่ได้ กรุณาเลือกไฟล์ภาพอื่น', 'error');
+                input.value = '';
+                if (prev) prev.classList.add('hidden');
+            }
+        }
+
+        // โหลดรูป avatar (มี cache + ลอง URL สำรอง) — ไม่ตั้ง crossOrigin เพราะเราแค่วาดลง Canvas ไม่อ่านพิกเซลกลับ
+        const avatarImageCache = {};
+        function loadAvatarImage(url) {
+            if (!url) return null;
+            if (avatarImageCache[url]) return avatarImageCache[url];
+            const cands = imageCandidates(url, 480);
+            const img = new Image();
+            img.referrerPolicy = 'no-referrer';
+            let i = 0;
+            img.onerror = () => { i++; if (i < cands.length) img.src = cands[i]; };
+            img.src = cands[0];
+            avatarImageCache[url] = img;
+            return img;
         }
 
         function initRiverCanvas() {
@@ -1100,6 +1264,19 @@
             };
             resize();
             window.addEventListener('resize', resize);
+
+            const hitTest = (ev) => {
+                const r = riverCanvas.getBoundingClientRect();
+                const px = (ev.clientX - r.left) * (riverCanvas.width / r.width);
+                const py = (ev.clientY - r.top) * (riverCanvas.height / r.height);
+                for (let i = floatingSprites.length - 1; i >= 0; i--) {
+                    const h = floatingSprites[i]._hit;
+                    if (h && px >= h.x && px <= h.x + h.w && py >= h.y && py <= h.y + h.h) return floatingSprites[i];
+                }
+                return null;
+            };
+            riverCanvas.addEventListener('click', ev => { const sp = hitTest(ev); if (sp) openKrathongLightbox(sp); });
+            riverCanvas.addEventListener('mousemove', ev => { riverCanvas.style.cursor = hitTest(ev) ? 'pointer' : 'default'; });
             syncCanvasKrathongs();
             requestAnimationFrame(animateRiverCanvas);
         }
@@ -1111,22 +1288,15 @@
             const h = riverCanvas ? riverCanvas.height : 460;
 
             const total = appState.krathongs.length;
-            // ขยายความกว้างเสมือน (Virtual Width) ให้กระจายตัวไม่กระจุกกัน
             const virtualWidth = Math.max(w * 2.8, total * 180);
 
             floatingSprites = appState.krathongs.map((item, idx) => {
-                // แบ่งเลนความลึกเป็น 6 ระดับแบบกระจาย
                 const lane = idx % 6;
                 const laneRatio = 0.44 + lane * 0.08;
                 const baseSpeed = 0.35 + (idx % 3) * 0.12;
 
-                const storeKey = item.sender_name + '_' + item.wish_text;
-                let avatarImg = localAvatarStore[storeKey + '_img'] || null;
-                if (!avatarImg && localAvatarStore[storeKey]) {
-                    avatarImg = new Image();
-                    avatarImg.src = localAvatarStore[storeKey];
-                    localAvatarStore[storeKey + '_img'] = avatarImg;
-                }
+                // ดึงรูปมาจาก URL ที่เก็บไว้ใน Supabase
+                const avatarImg = loadAvatarImage(item.avatar_url);
 
                 return {
                     ...item,
@@ -1140,7 +1310,7 @@
                 };
             });
 
-            // เรียงลำดับ Layer จากกระทงแถวหลังไปแถวหน้า (Y-axis Depth sorting)
+            // เรียงลำดับ Layer จากกระทงแถวหลังไปแถวหน้า
             floatingSprites.sort((a, b) => a.baseY - b.baseY);
         }
 
@@ -1191,44 +1361,56 @@
             ctx.quadraticCurveTo(-5, -28, flame * 0.4, -36);
             ctx.fill();
 
-            // --- วาดกล่องข้อความพร้อม AVATAR ---
-            ctx.font = '500 11px Kanit, sans-serif';
-            const senderTxt = sp.sender_name || 'ผู้ร่วมลอยกระทง';
-            const wishShort = (sp.wish_text || '').length > 24 ? sp.wish_text.substring(0, 24) + '...' : sp.wish_text;
+            // --- กล่องข้อความ + รูปโปรไฟล์ (ขยายใหญ่) ---
+            const senderTxt = (sp.sender_name || 'ผู้ร่วมลอยกระทง');
+            const nameShort = senderTxt.length > 26 ? senderTxt.substring(0, 26) + '…' : senderTxt;
+            const wishRaw = sp.wish_text || '';
+            const wishShort = wishRaw.length > 30 ? wishRaw.substring(0, 30) + '…' : wishRaw;
 
-            const avatarSize = 24;
+            const hasPhoto = !!sp.avatarImg;
+            const avatarSize = hasPhoto ? 120 : 64;
             const avatarRadius = avatarSize / 2;
-            const paddingX = 8;
-            const textStartX = avatarSize + paddingX + 4;
+            const paddingX = 12;
+            const boxHeight = avatarSize + 16;
+            const textStartX = paddingX + avatarSize + 14;
 
-            const nameWidth = ctx.measureText(senderTxt).width;
+            ctx.font = '600 16px Kanit, sans-serif';
+            const nameWidth = ctx.measureText(nameShort).width;
+            ctx.font = '400 13px Kanit, sans-serif';
             const wishWidth = ctx.measureText(wishShort).width;
-            const contentWidth = Math.max(nameWidth, wishWidth);
+            const contentWidth = Math.max(nameWidth, wishWidth, 90);
 
-            const boxWidth = textStartX + contentWidth + paddingX;
-            const boxHeight = 34;
+            const boxWidth = textStartX + contentWidth + 14;
             const bx = -boxWidth / 2;
-            const by = -74;
+            const by = -(boxHeight + 46);
+
+            // เก็บพื้นที่กล่อง (พิกัด Canvas) ไว้ใช้ตอนคลิกเพื่อขยายดู
+            sp._hit = {
+                x: sp.x + bx * sp.scale,
+                y: bobY + by * sp.scale,
+                w: boxWidth * sp.scale,
+                h: (boxHeight + 6) * sp.scale
+            };
 
             // พื้นหลังกล่องข้อความ
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
-            ctx.strokeStyle = 'rgba(251, 191, 36, 0.50)';
-            ctx.lineWidth = 1;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.60)';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.roundRect(bx, by, boxWidth, boxHeight, 8);
+            ctx.roundRect(bx, by, boxWidth, boxHeight, 12);
             ctx.fill();
             ctx.stroke();
 
             // เข็มชี้กล่องข้อความ
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
             ctx.beginPath();
-            ctx.moveTo(-4, by + boxHeight);
-            ctx.lineTo(0, by + boxHeight + 5);
-            ctx.lineTo(4, by + boxHeight);
+            ctx.moveTo(-6, by + boxHeight);
+            ctx.lineTo(0, by + boxHeight + 7);
+            ctx.lineTo(6, by + boxHeight);
             ctx.closePath();
             ctx.fill();
 
-            // --- วาดรูป AVATAR ---
+            // --- รูป AVATAR ---
             const avatarCenterX = bx + paddingX + avatarRadius;
             const avatarCenterY = by + boxHeight / 2;
 
@@ -1237,8 +1419,11 @@
             ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
             ctx.clip();
 
-            if (sp.avatarImg && sp.avatarImg.complete && sp.avatarImg.naturalWidth !== 0) {
-                ctx.drawImage(sp.avatarImg, avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
+            const im = sp.avatarImg;
+            if (im && im.complete && im.naturalWidth > 0) {
+                const s = Math.min(im.naturalWidth, im.naturalHeight);
+                const sx = (im.naturalWidth - s) / 2, sy = (im.naturalHeight - s) / 2;
+                ctx.drawImage(im, sx, sy, s, s, avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
             } else {
                 const avGrad = ctx.createLinearGradient(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarCenterX + avatarRadius, avatarCenterY + avatarRadius);
                 avGrad.addColorStop(0, styleObj.color1 || '#fbbf24');
@@ -1247,17 +1432,17 @@
                 ctx.fillRect(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px Kanit, sans-serif';
+                ctx.font = `bold ${Math.round(avatarSize * 0.38)}px Kanit, sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 const initial = (senderTxt.trim()[0] || 'ก').toUpperCase();
-                ctx.fillText(initial, avatarCenterX, avatarCenterY + 1);
+                ctx.fillText(initial, avatarCenterX, avatarCenterY + 2);
             }
             ctx.restore();
 
             // กรอบรูป Avatar
             ctx.strokeStyle = '#fbbf24';
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
             ctx.stroke();
@@ -1265,16 +1450,47 @@
             // --- ข้อความ ---
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-
             ctx.fillStyle = '#fbbf24';
-            ctx.font = '600 11px Kanit, sans-serif';
-            ctx.fillText(senderTxt, bx + textStartX, by + 14);
-
-            ctx.fillStyle = '#cbd5e1';
-            ctx.font = '400 10px Kanit, sans-serif';
-            ctx.fillText(wishShort, bx + textStartX, by + 27);
+            ctx.font = '600 16px Kanit, sans-serif';
+            ctx.fillText(nameShort, bx + textStartX, avatarCenterY - 4);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '400 13px Kanit, sans-serif';
+            ctx.fillText(wishShort, bx + textStartX, avatarCenterY + 20);
 
             ctx.restore();
+        }
+
+        // คลิกที่กล่องกระทงบน Canvas เพื่อดูรูป/คำอธิษฐานแบบเต็ม
+        function openKrathongLightbox(sp) {
+            const old = document.getElementById('krathong-lightbox');
+            if (old) old.remove();
+            const overlay = document.createElement('div');
+            overlay.id = 'krathong-lightbox';
+            overlay.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4 cursor-pointer';
+            overlay.onclick = () => overlay.remove();
+            const card = document.createElement('div');
+            card.className = 'glass-card rounded-3xl border border-amber-400/50 p-5 max-w-md w-full text-center space-y-3';
+            card.onclick = ev => ev.stopPropagation();
+            if (sp.avatar_url) {
+                const img = document.createElement('img');
+                img.src = imgSrc(sp.avatar_url, 1000);
+                img.referrerPolicy = 'no-referrer';
+                img.className = 'w-full max-h-[60vh] object-contain rounded-2xl bg-slate-900';
+                img.onerror = () => handleImgError(img);
+                card.appendChild(img);
+            }
+            const name = document.createElement('p');
+            name.className = 'text-lg font-bold text-amber-300';
+            name.textContent = sp.sender_name || 'ผู้ร่วมลอยกระทง';
+            const wish = document.createElement('p');
+            wish.className = 'text-sm text-slate-200 whitespace-pre-line';
+            wish.textContent = sp.wish_text || '';
+            const hint = document.createElement('p');
+            hint.className = 'text-[11px] text-slate-500';
+            hint.textContent = 'แตะพื้นที่ว่างเพื่อปิด';
+            card.append(name, wish, hint);
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
         }
 
         function animateRiverCanvas() {
@@ -1329,11 +1545,13 @@
                 sp.x += sp.speed;
                 const vW = sp.virtualWidth || (w * 2.8);
                 if (sp.x > vW) {
-                    sp.x = -160;
+                    sp.x = -320;
                 }
                 // เรนเดอร์เฉพาะกระทงที่อยู่ในพื้นที่มองเห็นเพื่อประสิทธิภาพสูงสุด
-                if (sp.x >= -180 && sp.x <= w + 180) {
+                if (sp.x >= -320 && sp.x <= w + 320) {
                     drawKrathongSprite(riverCtx, sp, riverTick);
+                } else {
+                    sp._hit = null;
                 }
             });
             requestAnimationFrame(animateRiverCanvas);
@@ -1366,47 +1584,53 @@
             const kType = document.getElementById('selected-krathong-type').value;
             if (!sender || !wish) return;
 
-            const newKrathong = {
-                sender_name: sender,
-                wish_text: wish,
-                krathong_type: kType
-            };
-
             if (!sbClient) {
                 showToast('ยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase กระทงจึงไม่ถูกบันทึก', 'error');
                 return;
             }
 
-            showLoader('กำลังปล่อยกระทงลงสู่สายน้ำ...');
+            showLoader('กำลังปล่อยกระทงและบันทึกข้อมูล...');
             try {
+                let driveImageUrl = '';
+
+                // ถ้าแนบรูปมา → อัปโหลดเข้า Google Drive (ทุกคนจะมองเห็นรูปเพราะเปิดสิทธิ์ดูแบบลิงก์)
+                if (tempFloatAvatarBlob) {
+                    const nameBase = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+                    driveImageUrl = await storeImage(tempFloatAvatarBlob, tempFloatAvatarUrl, nameBase, 'krathong', false);
+                    if (!driveImageUrl) showToast('ปล่อยกระทงต่อได้ แต่ไม่มีรูป เนื่องจากอัปโหลดรูปไม่สำเร็จ', 'warning');
+                }
+
+                // สร้าง Object บันทึกลง Supabase
+                // ⚠️ สำคัญมาก: ตาราง 'krathongs' ใน Supabase ของคุณ ต้องมีคอลัมน์ 'avatar_url' ชนิด Text ด้วย ⚠️
+                const newKrathong = {
+                    sender_name: sender,
+                    wish_text: wish,
+                    krathong_type: kType,
+                    avatar_url: driveImageUrl // เก็บลิงก์ที่ได้จาก Google Drive
+                };
+
                 const { error } = await sbClient.from('krathongs').insert([newKrathong]);
                 if (error) {
                     console.error('Supabase error [krathongs insert]:', error);
-                    showToast('บันทึกกระทงไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ INSERT)', 'error');
+                    showToast('บันทึกกระทงไม่สำเร็จ: ' + error.message, 'error');
                     return;
                 }
 
-                // เก็บรูปถ่ายไว้ในหน่วยความจำของเครื่องเท่านั้น (ไม่ส่งลงฐานข้อมูล)
-                if (tempFloatAvatarUrl) {
-                    const storeKey = sender + '_' + wish;
-                    localAvatarStore[storeKey] = tempFloatAvatarUrl;
-                    const imgObj = new Image();
-                    imgObj.src = tempFloatAvatarUrl;
-                    localAvatarStore[storeKey + '_img'] = imgObj;
-                }
-
+                // เคลียร์ฟอร์ม
                 document.getElementById('krathong-sender').value = '';
                 document.getElementById('krathong-wish').value = '';
                 document.getElementById('krathong-avatar').value = '';
                 tempFloatAvatarUrl = '';
+                tempFloatAvatarBlob = null;
                 const prev = document.getElementById('krathong-avatar-preview');
                 if (prev) prev.classList.add('hidden');
 
-                await loadKrathongsFromDB(true);
+                // รีโหลดกระทงทั้งหมดมาวาดใหม่
+                await loadKrathongsFromDB(false);
                 showToast('ปล่อยกระทงพร้อมคำอธิษฐานลงสู่สายน้ำแล้ว', 'success');
             } catch (err) {
                 console.error(err);
-                showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + (err.message || err), 'error');
+                showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
             } finally {
                 hideLoader();
             }
@@ -1679,7 +1903,7 @@
                         </div>
                         <div style="width:28%; display:flex; justify-content:flex-end;">
                             <div style="width:36mm; height:46mm; border:1px solid #000; display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; font-size:12pt; background:#f8fafc;">
-                                ${app.photo_url ? `<img src="${app.photo_url}" style="width:100%; height:100%; object-fit:contain; background:#ffffff;">` : 'ติดรูปถ่าย<br>ขนาด ๑ นิ้ว<br>หรือ ๒ นิ้ว'}
+                                ${app.photo_url ? `<img src="${imgSrc(app.photo_url)}" style="width:100%; height:100%; object-fit:contain; background:#ffffff;">` : 'ติดรูปถ่าย<br>ขนาด ๑ นิ้ว<br>หรือ ๒ นิ้ว'}
                             </div>
                         </div>
                     </div>
@@ -1712,7 +1936,6 @@
             setTimeout(() => window.print(), 150);
         }
 
-        // ค้นหาใบสมัคร
         function handleSearchApplication(e) {
             if (e && e.preventDefault) e.preventDefault();
             const sid = document.getElementById('search-student-id').value.trim();
@@ -1766,7 +1989,7 @@
             }
             grid.innerHTML = published.map(n => `
                 <article class="glass-card rounded-2xl overflow-hidden flex flex-col sm:flex-row border border-slate-700/80">
-                    ${n.image_url ? `<div class="sm:w-48 h-44 sm:h-auto shrink-0 bg-slate-900"><img src="${n.image_url}" alt="${n.title}" onerror="handleImgError(this)" class="w-full h-full object-cover"></div>` : ''}
+                    ${n.image_url ? `<div class="sm:w-48 h-44 sm:h-auto shrink-0 bg-slate-900"><img src="${imgSrc(n.image_url)}" alt="${n.title}" onerror="handleImgError(this)" class="w-full h-full object-cover"></div>` : ''}
                     <div class="p-5 flex flex-col justify-between flex-1">
                         <div>
                             ${n.is_pinned ? `<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-400/20 text-amber-300 mb-2 inline-block">📌 ปักหมุด</span>` : ''}
@@ -1804,7 +2027,7 @@
             grid.innerHTML = approved.map(c => `
                 <div class="glass-card rounded-3xl overflow-hidden flex flex-col border border-amber-400/25">
                     <div class="relative h-64 bg-slate-950 flex items-center justify-center p-2 border-b border-slate-800">
-                        ${c.photo_url ? `<img src="${c.photo_url}" alt="${c.full_name}" onerror="handleImgError(this)" class="w-full h-full object-contain">` : `<div class="text-xs text-slate-500">ไม่มีรูปถ่ายผู้สมัคร</div>`}
+                        ${c.photo_url ? `<img src="${imgSrc(c.photo_url)}" alt="${c.full_name}" onerror="handleImgError(this)" class="w-full h-full object-contain">` : `<div class="text-xs text-slate-500">ไม่มีรูปถ่ายผู้สมัคร</div>`}
                         <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-extrabold text-sm shadow">#${c.contestant_number || '-'}</div>
                         <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-slate-950/80 text-amber-200 text-xs border border-amber-400/30">
                             ${c.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์'}
@@ -1899,7 +2122,7 @@
                                 <div class="p-5 rounded-2xl bg-slate-900/90 border ${idx === 0 ? 'border-amber-400' : 'border-slate-700'} flex flex-col items-center text-center">
                                     <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 mb-3">${medals[idx]}</span>
                                     <div class="w-20 h-20 rounded-full bg-slate-950 overflow-hidden border-2 border-amber-400 mb-2 flex items-center justify-center">
-                                        <img src="${r.photo_url}" onerror="handleImgError(this)" class="w-full h-full object-contain">
+                                        <img src="${imgSrc(r.photo_url)}" onerror="handleImgError(this)" class="w-full h-full object-contain">
                                     </div>
                                     <span class="text-xs text-amber-300 font-bold">#${r.contestant_number || '-'}</span>
                                     <h4 class="font-bold text-base text-white">${r.displayName}</h4>
@@ -1914,7 +2137,6 @@
             wrap.innerHTML = renderCard('noppamas', '👑 ผลการประกวดนางนพมาศ') + renderCard('krathong_team', '🪷 ผลการประกวดกระทงประดิษฐ์');
         }
 
-        // ระบบกรรมการ
         function handleJudgeLogin(e) {
             e.preventDefault();
             const u = document.getElementById('judge-user').value.trim();
@@ -2016,7 +2238,7 @@
                                     <td class="p-3">
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center">
-                                                <img src="${con.photo_url}" onerror="handleImgError(this)" class="w-full h-full object-contain">
+                                                <img src="${imgSrc(con.photo_url)}" onerror="handleImgError(this)" class="w-full h-full object-contain">
                                             </div>
                                             <div>
                                                 <span class="text-xs font-bold text-amber-400">#${con.contestant_number || '-'}</span>
@@ -2082,7 +2304,6 @@
             showToast('ส่งคะแนนและล็อกตารางเรียบร้อยแล้ว', 'success');
         }
 
-        // แอดมิน (ADMIN DASHBOARD)
         function handleAdminLogin(e) {
             e.preventDefault();
             const u = document.getElementById('admin-user').value.trim();
@@ -2774,7 +2995,6 @@
             showToast('ปฏิเสธใบสมัครแล้ว', 'warning');
         }
 
-        // การนำทางหลัก
         function switchTab(tabId) {
             currentTab = tabId;
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
