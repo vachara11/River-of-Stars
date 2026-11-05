@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="th" class="dark">
+<html lang="th" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#080c18">
     <title>ระบบงานลอยกระทงออนไลน์และระบบตัดสินการประกวด (อวท.)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Kanit (UI) & Sarabun (Print fallback for TH Sarabun PSK) -->
+    <!-- Google Fonts: Kanit & Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
@@ -20,14 +21,18 @@
     <script src="config.js"></script>
 
     <style>
+        /* แก้ไขปัญหา Scroll ค้าง: ใช้ overflow-x: clip แทน hidden เพื่อไม่ให้บล็อก position: sticky */
+        html, body {
+            overflow-x: clip;
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Kanit', sans-serif;
-            background: radial-gradient(ellipse at top, #1e1b4b 0%, #090d16 70%, #05070c 100%);
+            background: radial-gradient(ellipse at top, #141836 0%, #080c18 65%, #03050a 100%);
             color: #f8fafc;
             min-height: 100vh;
-            overflow-x: hidden;
         }
-        /* Starfield Twinkle Background */
+        /* Starfield Background */
         .starfield {
             position: fixed;
             inset: 0;
@@ -38,27 +43,29 @@
                 radial-gradient(1px 1px at 35% 65%, rgba(251,191,36,0.8) 50%, transparent 100%),
                 radial-gradient(2px 2px at 70% 30%, rgba(255,255,255,0.85) 50%, transparent 100%),
                 radial-gradient(1.5px 1.5px at 85% 75%, rgba(167,139,250,0.9) 50%, transparent 100%),
-                radial-gradient(1px 1px at 50% 15%, rgba(251,191,36,0.9) 50%, transparent 100%),
-                radial-gradient(2px 2px at 25% 85%, rgba(255,255,255,0.75) 50%, transparent 100%);
+                radial-gradient(1px 1px at 50% 15%, rgba(251,191,36,0.9) 50%, transparent 100%);
             background-size: 320px 320px;
             animation: twinkleStars 8s ease-in-out infinite alternate;
         }
         @keyframes twinkleStars {
-            0% { opacity: 0.45; transform: scale(1); }
-            100% { opacity: 0.95; transform: scale(1.03); }
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.02); }
         }
-        /* Glassmorphism */
+        /* Glassmorphism Cards */
         .glass-card {
             background: rgba(15, 23, 42, 0.72);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(251, 191, 36, 0.22);
-            box-shadow: 0 8px 32px 0 rgba(2, 6, 23, 0.65);
-        }
-        .glass-header {
-            background: rgba(10, 15, 30, 0.88);
             backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(251, 191, 36, 0.22);
+            box-shadow: 0 12px 36px 0 rgba(2, 6, 23, 0.7);
+        }
+        /* Floating Sticky Navbar */
+        .floating-navbar {
+            background: rgba(10, 16, 35, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(251, 191, 36, 0.28);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
         }
         .gold-gradient-text {
             background: linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #d97706 100%);
@@ -75,10 +82,75 @@
             border-color: #fbbf24;
             box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
         }
-
-        /* Modern Admin Tab Navigation Buttons */
+        /* Navigation Pill Buttons */
+        .nav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.875rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        /* Mobile bottom tab bar */
+        .bottom-nav {
+            background: rgba(8, 12, 24, 0.94);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-top: 1px solid rgba(251, 191, 36, 0.28);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .bnav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 8px 2px 6px;
+            font-size: 10.5px;
+            color: #94a3b8;
+            transition: color .2s ease;
+            position: relative;
+        }
+        .bnav-btn.active { color: #fde68a; font-weight: 600; }
+        .bnav-btn.active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 30%; right: 30%;
+            height: 3px;
+            border-radius: 0 0 6px 6px;
+            background: linear-gradient(90deg, #fbbf24, #d97706);
+        }
+        .drawer-item { transition: all .2s ease; border: 1px solid transparent; }
+        .drawer-item.active {
+            background: linear-gradient(135deg, rgba(251,191,36,.2), rgba(217,119,6,.25));
+            border-color: rgba(251,191,36,.45);
+            color: #fde68a;
+        }
+        #mobile-drawer-panel { transform: translateX(100%); transition: transform .28s ease; }
+        #mobile-drawer.open #mobile-drawer-panel { transform: translateX(0); }
+        @media (max-width: 1023px) {
+            body { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
+            #toast-container { top: 5.5rem; }
+        }
+        .nav-pill:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .nav-pill.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.22) 0%, rgba(217, 119, 6, 0.28) 100%);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.45);
+            font-weight: 600;
+        }
+        /* Admin Submenu Buttons */
         .admin-tab-btn {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             border: 1px solid rgba(51, 65, 85, 0.7);
             background: rgba(15, 23, 42, 0.6);
             color: #94a3b8;
@@ -87,7 +159,6 @@
             background: rgba(30, 41, 59, 0.85);
             color: #f1f5f9;
             border-color: rgba(251, 191, 36, 0.4);
-            transform: translateY(-1px);
         }
         .admin-tab-btn.active {
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
@@ -96,21 +167,11 @@
             border-color: #fde68a;
             box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
         }
-
-        /* Print Stylesheet (@media print) */
-        #print-area {
-            display: none;
-        }
+        /* Print Stylesheet */
+        #print-area { display: none; }
         @media print {
-            body {
-                background: #ffffff !important;
-                color: #000000 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            #app-shell, #toast-container, #global-loader, .no-print {
-                display: none !important;
-            }
+            body { background: #ffffff !important; color: #000000 !important; margin: 0 !important; }
+            #app-shell, #toast-container, #global-loader, .no-print { display: none !important; }
             #print-area {
                 display: block !important;
                 width: 100% !important;
@@ -119,34 +180,12 @@
                 font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', serif !important;
                 font-size: 16pt !important;
                 line-height: 1.35 !important;
-                padding: 0 !important;
             }
-            .print-page {
-                width: 100%;
-                box-sizing: border-box;
-                padding: 8mm 12mm;
-                page-break-after: always;
-            }
-            .print-page:last-child {
-                page-break-after: auto;
-            }
-            .print-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 8pt;
-                font-size: 15pt;
-            }
-            .print-table th, .print-table td {
-                border: 1px solid #000000 !important;
-                padding: 5pt 7pt;
-                color: #000000 !important;
-            }
-            .print-table th {
-                background-color: #f3f4f6 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                font-weight: bold;
-            }
+            .print-page { width: 100%; box-sizing: border-box; padding: 8mm 12mm; page-break-after: always; }
+            .print-page:last-child { page-break-after: auto; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 8pt; font-size: 15pt; }
+            .print-table th, .print-table td { border: 1px solid #000000 !important; padding: 5pt 7pt; color: #000000 !important; }
+            .print-table th { background-color: #f3f4f6 !important; font-weight: bold; }
         }
     </style>
     <style id="dynamic-print-orientation"></style>
@@ -165,114 +204,125 @@
     </div>
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-20 right-4 z-[90] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-24 right-4 z-[90] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-    <!-- Official A4 Print Container (Visible only during @media print) -->
+    <!-- Official A4 Print Container -->
     <div id="print-area"></div>
 
-    <!-- Main Application Shell -->
+    <!-- Main Shell -->
     <div id="app-shell" class="relative z-10 min-h-screen flex flex-col">
 
-        <!-- Top Navbar -->
-        <header class="glass-header sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                <!-- Brand with Official Logo -->
-                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
-                    <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-11 h-11 object-contain drop-shadow" onerror="this.onerror=null; this.src='https://placehold.co/44x44?text=อวท.'">
-                    <div>
-                        <h1 class="font-bold text-base sm:text-lg leading-tight gold-gradient-text">ลอยกระทงออนไลน์ & ระบบประกวด</h1>
-                        <p class="text-[11px] text-indigo-200/80">องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</p>
+        <!-- ========================================================== -->
+        <!-- HEADER / NAVBAR (ไม่ค้าง เลื่อนตามเนื้อหาได้อย่างนุ่มนวล)     -->
+        <!-- ========================================================== -->
+        <header class="w-full px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 sticky top-0 z-40 no-print">
+            <div class="max-w-[1400px] mx-auto floating-navbar rounded-2xl px-3 sm:px-5 py-2 flex items-center justify-between gap-3">
+
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-2.5 cursor-pointer min-w-0 shrink-0" onclick="switchTab('home')">
+                    <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow shrink-0" onerror="this.onerror=null; this.src='https://placehold.co/44x44?text=อวท.'">
+                    <div class="min-w-0 leading-tight">
+                        <h1 class="font-bold text-[13px] sm:text-base gold-gradient-text whitespace-nowrap">ลอยกระทงออนไลน์ <span class="hidden sm:inline">& ระบบประกวด</span></h1>
+                        <p class="text-[10px] sm:text-[11px] text-indigo-200/80 whitespace-nowrap truncate max-w-[170px] sm:max-w-none">องค์การนักวิชาชีพในอนาคตฯ (อวท.)</p>
                     </div>
                 </div>
 
-                <!-- Desktop Navigation -->
-                <nav class="hidden xl:flex items-center gap-1">
-                    <button onclick="switchTab('home')" data-nav="home" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="waves" class="w-4 h-4"></i> หน้าแรก & ลอยกระทง
+                <!-- Navigation Pills (Desktop / Tablet landscape) -->
+                <nav class="hidden lg:flex items-center gap-0.5 xl:gap-1 flex-1 justify-center">
+                    <button onclick="switchTab('home')" data-nav="home" title="หน้าแรก & ลอยกระทง" class="nav-pill active">
+                        <i data-lucide="waves" class="w-4 h-4"></i> <span class="hidden xl:inline">หน้าแรก</span>
                     </button>
-                    <button onclick="switchTab('apply')" data-nav="apply" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="file-plus-2" class="w-4 h-4"></i> สมัครประกวด
+                    <button onclick="switchTab('apply')" data-nav="apply" title="สมัครประกวด" class="nav-pill">
+                        <i data-lucide="file-plus-2" class="w-4 h-4"></i> <span class="hidden xl:inline">สมัครประกวด</span>
                     </button>
-                    <button onclick="switchTab('search')" data-nav="search" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="search" class="w-4 h-4"></i> ค้นหาใบสมัคร
+                    <button onclick="switchTab('search')" data-nav="search" title="ค้นหาใบสมัคร" class="nav-pill">
+                        <i data-lucide="search" class="w-4 h-4"></i> <span class="hidden xl:inline">ค้นหาใบสมัคร</span>
                     </button>
-                    <button onclick="switchTab('contestants')" data-nav="contestants" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="users" class="w-4 h-4"></i> ผู้เข้าประกวด
+                    <button onclick="switchTab('contestants')" data-nav="contestants" title="ผู้เข้าประกวด" class="nav-pill">
+                        <i data-lucide="users" class="w-4 h-4"></i> <span class="hidden xl:inline">ผู้เข้าประกวด</span>
                     </button>
-                    <button onclick="switchTab('criteria')" data-nav="criteria" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="clipboard-list" class="w-4 h-4"></i> เกณฑ์การตัดสิน
+                    <button onclick="switchTab('criteria')" data-nav="criteria" title="เกณฑ์การตัดสิน" class="nav-pill">
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i> <span class="hidden xl:inline">เกณฑ์</span>
                     </button>
-                    <button onclick="switchTab('results')" data-nav="results" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="trophy" class="w-4 h-4"></i> ผลการตัดสิน
+                    <button onclick="switchTab('results')" data-nav="results" title="ผลการตัดสิน" class="nav-pill">
+                        <i data-lucide="trophy" class="w-4 h-4"></i> <span class="hidden xl:inline">ผลตัดสิน</span>
                     </button>
-                    <div class="h-5 w-[1px] bg-slate-700 mx-1"></div>
-                    <button onclick="switchTab('judge')" data-nav="judge" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 text-amber-300">
-                        <i data-lucide="scale" class="w-4 h-4"></i> กรรมการ
+
+                    <div class="h-5 w-px bg-slate-700/80 mx-1.5"></div>
+
+                    <button onclick="switchTab('judge')" data-nav="judge" title="กรรมการ" class="nav-pill text-amber-300 hover:text-amber-200">
+                        <i data-lucide="scale" class="w-4 h-4"></i> <span class="hidden xl:inline">กรรมการ</span>
                     </button>
-                    <button onclick="switchTab('admin')" data-nav="admin" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 text-purple-300">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i> แอดมิน
+                    <button onclick="switchTab('admin')" data-nav="admin" title="แอดมิน" class="nav-pill text-purple-300 hover:text-purple-200">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> <span class="hidden xl:inline">แอดมิน</span>
                     </button>
                 </nav>
 
-                <!-- Mobile Drawer Button -->
-                <div class="flex items-center gap-2 xl:hidden">
-                    <button onclick="toggleMobileDrawer(true)" class="p-2 rounded-lg bg-slate-800/80 border border-amber-400/30 text-amber-300">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
+                <!-- Supabase status & menu toggle -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <button id="sb-status-badge" onclick="openDbConfigModal()" title="สถานะฐานข้อมูล" class="text-[11px] px-2.5 py-1.5 rounded-full border flex items-center gap-1.5 bg-slate-900/90 text-slate-300 border-slate-700">
+                        <span id="sb-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span id="sb-text" class="hidden sm:inline whitespace-nowrap">ตรวจสอบ DB...</span>
+                    </button>
+                    <button onclick="toggleMobileDrawer(true)" aria-label="เปิดเมนู" class="p-2 rounded-xl bg-slate-800/80 border border-amber-400/30 text-amber-300 lg:hidden">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Mobile Navigation Drawer -->
-        <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+        <!-- Mobile Drawer -->
+        <div id="mobile-drawer" class="fixed inset-0 z-[60] hidden no-print">
             <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleMobileDrawer(false)"></div>
-            <div class="fixed top-0 right-0 bottom-0 w-72 glass-card border-l border-amber-400/30 p-5 flex flex-col justify-between z-10">
-                <div>
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-700">
-                        <div class="flex items-center gap-2">
-                            <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-7 h-7 object-contain">
-                            <span class="font-bold gold-gradient-text text-sm">เมนูนำทางระบบ</span>
-                        </div>
-                        <button onclick="toggleMobileDrawer(false)" class="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-                            <i data-lucide="x" class="w-5 h-5"></i>
-                        </button>
+            <div id="mobile-drawer-panel" class="fixed top-0 right-0 bottom-0 w-[82%] max-w-xs glass-card border-l border-amber-400/30 p-5 flex flex-col z-10 overflow-y-auto" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-700">
+                    <div class="flex items-center gap-2">
+                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-8 h-8 object-contain">
+                        <span class="font-bold gold-gradient-text text-sm">เมนูระบบ</span>
                     </div>
-                    <div class="mt-4 flex flex-col gap-1.5">
-                        <button onclick="switchTab('home'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 hover:bg-slate-800/80">
-                            <i data-lucide="waves" class="w-4 h-4 text-amber-400"></i> หน้าแรก & ลอยกระทง
-                        </button>
-                        <button onclick="switchTab('apply'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 hover:bg-slate-800/80">
-                            <i data-lucide="file-plus-2" class="w-4 h-4 text-amber-400"></i> สมัครเข้าประกวด
-                        </button>
-                        <button onclick="switchTab('search'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 hover:bg-slate-800/80">
-                            <i data-lucide="search" class="w-4 h-4 text-amber-400"></i> ค้นหา/พิมพ์ใบสมัคร
-                        </button>
-                        <button onclick="switchTab('contestants'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 hover:bg-slate-800/80">
-                            <i data-lucide="users" class="w-4 h-4 text-amber-400"></i> ทำเนียบผู้เข้าประกวด
-                        </button>
-                        <button onclick="switchTab('criteria'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 hover:bg-slate-800/80">
-                            <i data-lucide="clipboard-list" class="w-4 h-4 text-amber-400"></i> เกณฑ์การตัดสิน
-                        </button>
-                        <button onclick="switchTab('results'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 hover:bg-slate-800/80">
-                            <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i> ประกาศผลการตัดสิน
-                        </button>
-                        <hr class="border-slate-700/80 my-2">
-                        <button onclick="switchTab('judge'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 text-amber-300 hover:bg-slate-800/80">
-                            <i data-lucide="scale" class="w-4 h-4"></i> ระบบกรรมการให้คะแนน
-                        </button>
-                        <button onclick="switchTab('admin'); toggleMobileDrawer(false);" class="mobile-nav-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2.5 text-purple-300 hover:bg-slate-800/80">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i> ระบบผู้ดูแลระบบ (Admin)
-                        </button>
-                    </div>
+                    <button onclick="toggleMobileDrawer(false)" aria-label="ปิดเมนู" class="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="mt-4 flex flex-col gap-1.5">
+                    <button onclick="switchTab('home'); toggleMobileDrawer(false);" data-drawer="home" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                        <i data-lucide="waves" class="w-4 h-4 text-amber-400"></i> หน้าแรก & ลอยกระทง
+                    </button>
+                    <button onclick="switchTab('apply'); toggleMobileDrawer(false);" data-drawer="apply" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                        <i data-lucide="file-plus-2" class="w-4 h-4 text-amber-400"></i> สมัครเข้าประกวด
+                    </button>
+                    <button onclick="switchTab('search'); toggleMobileDrawer(false);" data-drawer="search" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                        <i data-lucide="search" class="w-4 h-4 text-amber-400"></i> ค้นหา/พิมพ์ใบสมัคร
+                    </button>
+                    <button onclick="switchTab('contestants'); toggleMobileDrawer(false);" data-drawer="contestants" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                        <i data-lucide="users" class="w-4 h-4 text-amber-400"></i> ทำเนียบผู้เข้าประกวด
+                    </button>
+                    <button onclick="switchTab('criteria'); toggleMobileDrawer(false);" data-drawer="criteria" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                        <i data-lucide="clipboard-list" class="w-4 h-4 text-amber-400"></i> เกณฑ์การตัดสิน
+                    </button>
+                    <button onclick="switchTab('results'); toggleMobileDrawer(false);" data-drawer="results" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                        <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i> ประกาศผลการตัดสิน
+                    </button>
+                    <hr class="border-slate-700/80 my-2">
+                    <button onclick="switchTab('judge'); toggleMobileDrawer(false);" data-drawer="judge" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-amber-300 hover:bg-slate-800/80">
+                        <i data-lucide="scale" class="w-4 h-4"></i> ระบบกรรมการให้คะแนน
+                    </button>
+                    <button onclick="switchTab('admin'); toggleMobileDrawer(false);" data-drawer="admin" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-purple-300 hover:bg-slate-800/80">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> ระบบผู้ดูแลระบบ (Admin)
+                    </button>
+                    <hr class="border-slate-700/80 my-2">
+                    <button onclick="toggleMobileDrawer(false); openDbConfigModal();" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-slate-300 hover:bg-slate-800/80">
+                        <i data-lucide="database" class="w-4 h-4"></i> ตั้งค่า / ตรวจสอบฐานข้อมูล
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Main View Content -->
-        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-8">
 
             <!-- ========================================================== -->
-            <!-- VIEW 1: หน้าแรก & ระบบลอยกระทงออนไลน์ (HOME)               -->
+            <!-- VIEW 1: หน้าแรก & ลอยกระทงออนไลน์ (HOME)                   -->
             <!-- ========================================================== -->
             <section id="view-home" class="view-section space-y-8">
                 <div class="glass-card rounded-3xl overflow-hidden border border-amber-400/30 shadow-2xl">
@@ -295,7 +345,7 @@
                     </div>
 
                     <!-- Canvas สายน้ำ -->
-                    <div class="relative w-full h-[420px] sm:h-[480px] bg-slate-950">
+                    <div class="relative w-full h-[400px] sm:h-[460px] bg-slate-950">
                         <canvas id="river-canvas" class="w-full h-full block"></canvas>
                         <div class="absolute top-3 left-4 flex items-center gap-2 bg-slate-950/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/30 text-xs text-amber-200">
                             <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
@@ -340,15 +390,13 @@
                 </div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 2: ระบบรับสมัครเข้าประกวด (APPLICATION SYSTEM)          -->
-            <!-- ========================================================== -->
+            <!-- VIEW 2: ระบบรับสมัคร -->
             <section id="view-apply" class="view-section hidden space-y-6">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
                         <div>
                             <h2 class="text-2xl font-bold gold-gradient-text">ระบบรับสมัครเข้าประกวดออนไลน์</h2>
-                            <p class="text-sm text-slate-300 mt-1">บีบอัดรูปถ่ายอัตโนมัติก่อนอัปโหลด และออกเอกสารใบสมัครทางการ (TH Sarabun PSK เลขไทย) ทันที</p>
+                            <p class="text-sm text-slate-300 mt-1">บีบอัดรูปถ่ายอัตโนมัติ และออกเอกสารใบสมัครทางการ (TH Sarabun PSK เลขไทย) ทันที</p>
                         </div>
                         <div class="inline-flex rounded-xl bg-slate-900 p-1.5 border border-slate-700">
                             <button type="button" onclick="switchApplyType('noppamas')" id="btn-apply-noppamas" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950">
@@ -360,7 +408,7 @@
                         </div>
                     </div>
 
-                    <!-- แบบฟอร์ม 1: นางนพมาศ -->
+                    <!-- ฟอร์มนางนพมาศ -->
                     <form id="form-apply-noppamas" onsubmit="submitNoppamasApplication(event)" class="mt-6 space-y-6">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
@@ -414,7 +462,7 @@
                                 <textarea id="nop-slogan" required rows="2" placeholder="ระบุคติประจำใจหรือคำแนะนำตัว..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                             </div>
                             <div class="sm:col-span-2 lg:col-span-3">
-                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผู้สมัคร (บีบอัดไฟล์อัตโนมัติ) <span class="text-rose-400">*</span></label>
+                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผู้สมัคร <span class="text-rose-400">*</span></label>
                                 <input type="file" id="nop-photo" accept="image/*" required onchange="previewCompressedImage(this, 'nop-photo-preview')" class="input-night w-full px-3.5 py-2 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
                                 <div id="nop-photo-preview" class="mt-2 hidden items-center gap-3"></div>
                             </div>
@@ -426,7 +474,7 @@
                         </div>
                     </form>
 
-                    <!-- แบบฟอร์ม 2: กระทงประดิษฐ์ ทีม 5 คน -->
+                    <!-- ฟอร์มกระทงทีม -->
                     <form id="form-apply-team" onsubmit="submitTeamApplication(event)" class="mt-6 space-y-6 hidden">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="sm:col-span-2">
@@ -449,19 +497,18 @@
                             </div>
                         </div>
 
-                        <!-- รายชื่อสมาชิกในทีม 5 คน -->
                         <div class="space-y-3">
-                            <label class="block text-xs font-semibold text-amber-300">รายชื่อสมาชิกในทีม (สูงสุด 5 คน - มีคำนำหน้านามและรหัสนักศึกษาเฉพาะตัวเลข)</label>
+                            <label class="block text-xs font-semibold text-amber-300">รายชื่อสมาชิกในทีม (สูงสุด 5 คน)</label>
                             <div id="team-members-inputs" class="space-y-2.5"></div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง (ไม่บังคับ)</label>
-                                <textarea id="team-concept" rows="3" placeholder="อธิบายวัสดุธรรมชาติและแนวคิดการออกแบบ..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                                <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง</label>
+                                <textarea id="team-concept" rows="3" placeholder="อธิบายวัสดุธรรมชาติและแนวคิด..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผลงาน/ทีมงาน (บีบอัดไฟล์อัตโนมัติ) <span class="text-rose-400">*</span></label>
+                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผลงาน/ทีมงาน <span class="text-rose-400">*</span></label>
                                 <input type="file" id="team-photo" accept="image/*" required onchange="previewCompressedImage(this, 'team-photo-preview')" class="input-night w-full px-3.5 py-2 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
                                 <div id="team-photo-preview" class="mt-2 hidden items-center gap-3"></div>
                             </div>
@@ -476,15 +523,13 @@
                 </div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 3: ค้นหาและดาวน์โหลดใบสมัครย้อนหลัง                    -->
-            <!-- ========================================================== -->
+            <!-- VIEW 3: ค้นหาใบสมัคร -->
             <section id="view-search" class="view-section hidden space-y-6">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
                     <h2 class="text-2xl font-bold gold-gradient-text flex items-center gap-2">
                         <i data-lucide="search" class="w-6 h-6 text-amber-400"></i> ค้นหาและพิมพ์ใบสมัครย้อนหลัง
                     </h2>
-                    <p class="text-sm text-slate-300 mt-1">กรอกรหัสนักศึกษา (ตัวเลขเท่านั้น) เพื่อตรวจสอบสถานะและสั่งพิมพ์ใบสมัคร A4 ทางการ</p>
+                    <p class="text-sm text-slate-300 mt-1">กรอกรหัสนักศึกษา (ตัวเลขเท่านั้น) เพื่อตรวจสอบสถานะและพิมพ์ใบสมัครทางการ</p>
                     <form onsubmit="handleSearchApplication(event)" class="mt-5 flex flex-col sm:flex-row gap-3 max-w-xl">
                         <input type="text" id="search-student-id" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="กรอกรหัสนักศึกษา เช่น 6730201001" class="input-night flex-1 px-4 py-3 rounded-xl text-sm">
                         <button type="submit" class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition flex items-center justify-center gap-2">
@@ -495,14 +540,12 @@
                 </div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 4: หน้าผู้เข้าประกวด (PUBLIC CONTESTANTS)              -->
-            <!-- ========================================================== -->
+            <!-- VIEW 4: ผู้เข้าประกวด -->
             <section id="view-contestants" class="view-section hidden space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-bold gold-gradient-text">ทำเนียบผู้เข้าประกวด (ที่ผ่านการอนุมัติแล้ว)</h2>
-                        <p class="text-sm text-slate-300">แสดงหมายเลขประจำตัว รูปถ่าย สาขาวิชา ระดับชั้น และสโลแกน</p>
+                        <p class="text-sm text-slate-300">แสดงหมายเลขประจำตัว รูปถ่าย สาขาวิชา และระดับชั้น/ห้อง</p>
                     </div>
                     <div class="inline-flex rounded-xl bg-slate-900 p-1.5 border border-slate-700">
                         <button onclick="filterPublicContestants('all')" id="filter-cont-all" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-400 text-slate-950">ทั้งหมด</button>
@@ -513,9 +556,7 @@
                 <div id="public-contestants-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 5: หน้าเกณฑ์การประกวด (PUBLIC CRITERIA)                -->
-            <!-- ========================================================== -->
+            <!-- VIEW 5: เกณฑ์การตัดสิน -->
             <section id="view-criteria" class="view-section hidden space-y-6">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
                     <h2 class="text-2xl font-bold gold-gradient-text mb-2">เกณฑ์การตัดสินการประกวดอย่างโปร่งใส</h2>
@@ -524,16 +565,12 @@
                 </div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 6: หน้าผลการตัดสิน (PUBLIC RESULTS)                    -->
-            <!-- ========================================================== -->
+            <!-- VIEW 6: ผลการตัดสิน -->
             <section id="view-results" class="view-section hidden space-y-6">
                 <div id="public-results-wrapper" class="space-y-6"></div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 7: ระบบกรรมการตัดสินและให้คะแนน (JUDGE SYSTEM)         -->
-            <!-- ========================================================== -->
+            <!-- VIEW 7: กรรมการ -->
             <section id="view-judge" class="view-section hidden space-y-6">
                 <div id="judge-login-box" class="max-w-md mx-auto glass-card rounded-3xl p-6 sm:p-8">
                     <div class="text-center mb-6">
@@ -544,11 +581,13 @@
                     <form onsubmit="handleJudgeLogin(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">ชื่อผู้ใช้ (Username)</label>
-                            <input type="text" id="judge-user" required value="judge1" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="text" id="judge-user" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <!-- <input type="text" id="judge-user" required value="judge1" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
-                            <input type="password" id="judge-pass" required value="1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="password" id="judge-pass" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <!-- <input type="password" id="judge-pass" required value="1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <button type="submit" class="w-full py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบกรรมการ
@@ -577,7 +616,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                             <div>
                                 <h4 class="text-lg font-bold gold-gradient-text">ตารางกรอกคะแนนเรียลไทม์ (Auto-save)</h4>
-                                <p class="text-xs text-slate-400">ระบบบันทึกคะแนนอัตโนมัติเมื่อพิมพ์ พร้อมคำนวณคะแนนดิบรวมทันที</p>
+                                <p class="text-xs text-slate-400">บันทึกคะแนนอัตโนมัติลง Supabase พร้อมคำนวณคะแนนดิบรวมทันที</p>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span id="autosave-indicator" class="text-xs text-emerald-400 flex items-center gap-1">
@@ -602,11 +641,8 @@
                 </div>
             </section>
 
-            <!-- ========================================================== -->
-            <!-- VIEW 8: ระบบผู้ดูแลระบบ (ADMIN CONTROL CENTER - 8 เมนู)     -->
-            <!-- ========================================================== -->
+            <!-- VIEW 8: แอดมิน (ADMIN CONTROL CENTER) -->
             <section id="view-admin" class="view-section hidden space-y-6">
-                <!-- Login แอดมิน -->
                 <div id="admin-login-box" class="max-w-md mx-auto glass-card rounded-3xl p-6 sm:p-8">
                     <div class="text-center mb-6">
                         <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-16 h-16 object-contain mx-auto mb-3 drop-shadow">
@@ -616,11 +652,13 @@
                     <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผู้ดูแลระบบ (Username)</label>
-                            <input type="text" id="admin-user" required value="admin" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="text" id="admin-user"  class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <!-- <input type="text" id="admin-user" required value="admin" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
-                            <input type="password" id="admin-pass" required value="admin1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="password" id="admin-pass"  class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <!-- <input type="password" id="admin-pass" required value="admin1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบแอดมิน
@@ -628,31 +666,29 @@
                     </form>
                 </div>
 
-                <!-- พื้นที่ทำงานแอดมิน (Admin Workspace) -->
                 <div id="admin-workspace" class="hidden space-y-6">
-                    <!-- เมนูแอดมิน 8 เมนู ปรับดีไซน์ใหม่ สวยงาม ทันสมัย ชัดเจน -->
                     <div class="glass-card rounded-3xl p-5 border border-amber-400/30">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
                             <div class="flex items-center gap-3">
                                 <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="Logo" class="w-7 h-7 object-contain">
                                 <span class="text-base font-bold gold-gradient-text">แผงควบคุมระบบการประกวด อวท.</span>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <button onclick="openDbConfigModal()" class="text-xs text-amber-300 hover:text-amber-200 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <button onclick="seedSampleDataDirectToSupabase()" class="text-xs text-amber-300 hover:text-amber-200 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-950/40 border border-amber-500/40 font-medium">
+                                    <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> ⚡ บันทึกข้อมูลตัวอย่างลง Supabase
+                                </button>
+                                <button onclick="openDbConfigModal()" class="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
                                     <i data-lucide="database" class="w-3.5 h-3.5"></i> ตั้งค่า Supabase
                                 </button>
-                                <button onclick="resetAndSeedDemoData()" class="text-xs text-emerald-300 hover:text-emerald-200 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
-                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> รีเซ็ตข้อมูล
-                                </button>
-                                <button onclick="handleAdminLogout()" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-950/40 border border-rose-900/60 ml-1">
+                                <button onclick="handleAdminLogout()" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-950/40 border border-rose-900/60 ml-1">
                                     <i data-lucide="log-out" class="w-3.5 h-3.5"></i> ออกจากระบบ
                                 </button>
                             </div>
                         </div>
 
-                        <!-- 8 Sub-menu Grid (ดีไซน์ใหม่ สวย ชัดเจน และเป็นสัดส่วน) -->
+                        <!-- 8 เมนูแอดมิน -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                            <button onclick="switchAdminMenu('overview')" data-admin-menu="overview" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('overview')" data-admin-menu="overview" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center active">
                                 <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">สรุปผลคะแนน</span>
                             </button>
@@ -687,7 +723,6 @@
                         </div>
                     </div>
 
-                    <!-- พื้นที่เนื้อหาย่อยของแอดมิน -->
                     <div id="admin-subview-container" class="glass-card rounded-3xl p-6 sm:p-8"></div>
                 </div>
             </section>
@@ -706,6 +741,15 @@
         </footer>
     </div>
 
+    <!-- Mobile Bottom Tab Bar -->
+    <nav class="bottom-nav fixed bottom-0 inset-x-0 z-40 flex lg:hidden no-print">
+        <button onclick="switchTab('home')" data-bnav="home" class="bnav-btn active"><i data-lucide="waves" class="w-5 h-5"></i><span>ลอยกระทง</span></button>
+        <button onclick="switchTab('apply')" data-bnav="apply" class="bnav-btn"><i data-lucide="file-plus-2" class="w-5 h-5"></i><span>สมัคร</span></button>
+        <button onclick="switchTab('contestants')" data-bnav="contestants" class="bnav-btn"><i data-lucide="users" class="w-5 h-5"></i><span>ผู้เข้าประกวด</span></button>
+        <button onclick="switchTab('results')" data-bnav="results" class="bnav-btn"><i data-lucide="trophy" class="w-5 h-5"></i><span>ผลตัดสิน</span></button>
+        <button onclick="toggleMobileDrawer(true)" class="bnav-btn"><i data-lucide="layout-grid" class="w-5 h-5"></i><span>เมนูอื่น</span></button>
+    </nav>
+
     <!-- Modal ตั้งค่าการเชื่อมต่อ Supabase -->
     <div id="modal-db-config" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
         <div class="glass-card max-w-lg w-full rounded-3xl p-6 space-y-4 border border-amber-400/40">
@@ -713,7 +757,7 @@
                 <h3 class="text-lg font-bold gold-gradient-text">ตั้งค่าการเชื่อมต่อ Supabase</h3>
                 <button onclick="closeDbConfigModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <p class="text-xs text-slate-300">กรอกค่า <code>SUPABASE_URL</code> และ <code>SUPABASE_ANON_KEY</code> เพื่อเชื่อมต่อไปยังระบบ Cloud</p>
+            <p class="text-xs text-slate-300">กรอกค่า <code>SUPABASE_URL</code> และ <code>SUPABASE_ANON_KEY</code> จาก Supabase Project Settings เพื่อเชื่อมต่อฐานข้อมูลจริง</p>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">SUPABASE_URL</label>
@@ -726,7 +770,7 @@
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeDbConfigModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-xs">ปิด</button>
-                <button onclick="saveRuntimeSupabaseConfig()" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">บันทึก</button>
+                <button onclick="saveRuntimeSupabaseConfig()" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">บันทึกและเชื่อมต่อทันที</button>
             </div>
         </div>
     </div>
@@ -746,135 +790,17 @@
             { id: 'royal_swan', name: 'หงส์ทองล่องนที (Royal Swan)', badge: 'กระทงโบราณ', color1: '#eab308', color2: '#dc2626', glow: '#fde047' }
         ];
 
-        const DEFAULT_STATE = {
-            settings: { publish_results: true },
-            krathongs: [
-                { id: 1, sender_name: 'กานต์พิชชา ปวส.1', wish_text: 'ขอให้ผลการเรียนเกรด 4.00 ทุกวิชา และมีความสุขสมหวังตลอดปี', krathong_type: 'star_galaxy' },
-                { id: 2, sender_name: 'ธนภัทร ช่างไฟฟ้า', wish_text: 'ขอขมาพระแม่คงคา ขอให้ครอบครัวสุขภาพแข็งแรง ประสบความสำเร็จ', krathong_type: 'lotus_gold' },
-                { id: 3, sender_name: 'ชมรมเทคโนโลยีสารสนเทศ', wish_text: 'ขอให้โปรเจกต์จบผ่านฉลุย ระบบรันลื่นไหลไร้บั๊ก', krathong_type: 'star_zodiac' },
-                { id: 4, sender_name: 'พิมพ์มาดา การบัญชี', wish_text: 'ขอให้ความรักสดใสเหมือนดวงดาวบนท้องฟ้าในคืนวันเพ็ญ', krathong_type: 'crystal_pearl' },
-                { id: 5, sender_name: 'อ.สุรศักดิ์ ที่ปรึกษาอวท.', wish_text: 'ขอให้ลูกศิษย์ทุกคนเป็นคนดี มีวิชาชีพติดตัวและก้าวหน้าในอนาคต', krathong_type: 'royal_swan' }
-            ],
-            applications: [
-                {
-                    id: 1, contest_type: 'noppamas', contestant_number: 1, status: 'APPROVED', reject_reason: '',
-                    prefix_name: 'นางสาว', full_name: 'นางสาวกัญญาพัชร รัตนโชติ', gender: 'หญิง',
-                    student_id: '6730201001', department: 'การบัญชี', edu_level: 'ปวส.1', room_number: '1',
-                    phone: '0812345678', slogan: 'สืบสานศิลป์ถิ่นสยาม งามอย่างไทย ใส่ใจสิ่งแวดล้อม',
-                    concept: '', team_members: [],
-                    photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 2, contest_type: 'noppamas', contestant_number: 2, status: 'APPROVED', reject_reason: '',
-                    prefix_name: 'นางสาว', full_name: 'นางสาวปุณยวีร์ จันทรากุล', gender: 'LGBTQ+',
-                    student_id: '6730204012', department: 'เทคโนโลยีธุรกิจดิจิทัล', edu_level: 'ปวส.2', room_number: '2',
-                    phone: '0898765432', slogan: 'ความงามที่เท่าเทียม ส่องประกายดั่งดวงดาวในคืนเพ็ญเดือนสิบสอง',
-                    concept: '', team_members: [],
-                    photo_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 3, contest_type: 'noppamas', contestant_number: null, status: 'PENDING', reject_reason: '',
-                    prefix_name: 'นางสาว', full_name: 'นางสาวชลธิชา สายชล', gender: 'หญิง',
-                    student_id: '6720101099', department: 'การตลาด', edu_level: 'ปวช.3', room_number: '1',
-                    phone: '0823456789', slogan: 'อนุรักษ์สายน้ำไทย ร่วมใจลอยกระทงปลอดโฟม',
-                    concept: '', team_members: [],
-                    photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 4, contest_type: 'krathong_team', contestant_number: 1, status: 'APPROVED', reject_reason: '',
-                    prefix_name: 'นาย', full_name: 'นายธนกฤต ยอดฝีมือ', gender: 'ชาย',
-                    student_id: '6720901001', department: 'คอมพิวเตอร์กราฟิก', edu_level: 'ปวช.3', room_number: '1',
-                    phone: '0851112222', slogan: '',
-                    concept: 'ประดิษฐ์จากใบตองตานี กลีบบัวหลวง และเมล็ดธัญพืช สื่อถึงจักรวาลและสายน้ำ',
-                    team_members: [
-                        { name: 'นายธนกฤต ยอดฝีมือ', student_id: '6720901001' },
-                        { name: 'นางสาวมณีรัตน์ ใจดี', student_id: '6720901002' },
-                        { name: 'นายศุภณัฐ ศิลป์ไทย', student_id: '6720901003' },
-                        { name: 'นางสาวอรปรียา งามตา', student_id: '6720901004' },
-                        { name: 'นายพีรพัฒน์ สร้างสรรค์', student_id: '6720901005' }
-                    ],
-                    photo_url: 'https://images.unsplash.com/photo-1508615039623-a25605d2b022?auto=format&fit=crop&w=600&q=80',
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 5, contest_type: 'krathong_team', contestant_number: 2, status: 'APPROVED', reject_reason: '',
-                    prefix_name: 'นางสาว', full_name: 'นางสาวพิชญา พฤกษาสวรรค์', gender: 'หญิง',
-                    student_id: '6730701011', department: 'การโรงแรม', edu_level: 'ปวส.1', room_number: '2',
-                    phone: '0863334444', slogan: '',
-                    concept: 'เน้นงานแกะสลักหยวกกล้วยและงานจีบใบตองโบราณ 9 ชั้น ถวายเป็นพุทธบูชา',
-                    team_members: [
-                        { name: 'นางสาวพิชญา พฤกษาสวรรค์', student_id: '6730701011' },
-                        { name: 'นางสาวลลิตา มาลัยทอง', student_id: '6730701012' },
-                        { name: 'นายวรเมธ ใบตองงาม', student_id: '6730701013' },
-                        { name: 'นางสาวนภัสสร หัตถศิลป์', student_id: '6730701014' },
-                        { name: 'นายธีรภัทร รักษ์ไทย', student_id: '6730701015' }
-                    ],
-                    photo_url: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
-                    created_at: new Date().toISOString()
-                }
-            ],
-            criteria: [
-                { id: 1, contest_type: 'noppamas', title: 'ความสวยงามของรูปร่าง หน้าตา และบุคลิกภาพ', max_score: 30, order_index: 1 },
-                { id: 2, contest_type: 'noppamas', title: 'การแต่งกายชุดไทยถูกต้องตามประเพณีและงดงาม', max_score: 25, order_index: 2 },
-                { id: 3, contest_type: 'noppamas', title: 'กิริยามารยาท การเดิน และการไหว้แบบไทย', max_score: 20, order_index: 3 },
-                { id: 4, contest_type: 'noppamas', title: 'ปฏิภาณไหวพริบ การตอบคำถาม และการแนะนำตัว', max_score: 25, order_index: 4 },
-                { id: 5, contest_type: 'krathong_team', title: 'ความคิดสร้างสรรค์และแนวคิดตามประเพณี', max_score: 25, order_index: 1 },
-                { id: 6, contest_type: 'krathong_team', title: 'ความประณีต สวยงาม และความละเอียดของฝีมือ', max_score: 35, order_index: 2 },
-                { id: 7, contest_type: 'krathong_team', title: 'การใช้วัสดุธรรมชาติและเป็นมิตรต่อสิ่งแวดล้อม', max_score: 20, order_index: 3 },
-                { id: 8, contest_type: 'krathong_team', title: 'ความสมบูรณ์ขององค์ประกอบและขนาดตามเกณฑ์', max_score: 20, order_index: 4 }
-            ],
-            judges: [
-                { id: 1, username: 'judge1', password: '1234', full_name: 'ดร.วิไลวรรณ วัฒนธรรม', position: 'ประธานกรรมการตัดสิน', assigned_type: 'all' },
-                { id: 2, username: 'judge2', password: '1234', full_name: 'อ.กิตติพงศ์ ศิลปกรรม', position: 'กรรมการผู้ทรงคุณวุฒิ', assigned_type: 'all' },
-                { id: 3, username: 'judge3', password: '1234', full_name: 'คุณรุจิรา นพมาศสยาม', position: 'ผู้เชี่ยวชาญด้านบุคลิกภาพ', assigned_type: 'noppamas' }
-            ],
-            scores: [
-                { judge_id: 1, application_id: 1, criteria_id: 1, score: 28 },
-                { judge_id: 1, application_id: 1, criteria_id: 2, score: 24 },
-                { judge_id: 1, application_id: 1, criteria_id: 3, score: 19 },
-                { judge_id: 1, application_id: 1, criteria_id: 4, score: 23 },
-                { judge_id: 1, application_id: 2, criteria_id: 1, score: 27 },
-                { judge_id: 1, application_id: 2, criteria_id: 2, score: 23 },
-                { judge_id: 1, application_id: 2, criteria_id: 3, score: 18 },
-                { judge_id: 1, application_id: 2, criteria_id: 4, score: 24 },
-                { judge_id: 2, application_id: 1, criteria_id: 1, score: 29 },
-                { judge_id: 2, application_id: 1, criteria_id: 2, score: 23 },
-                { judge_id: 2, application_id: 1, criteria_id: 3, score: 18 },
-                { judge_id: 2, application_id: 1, criteria_id: 4, score: 22 },
-                { judge_id: 2, application_id: 2, criteria_id: 1, score: 26 },
-                { judge_id: 2, application_id: 2, criteria_id: 2, score: 24 },
-                { judge_id: 2, application_id: 2, criteria_id: 3, score: 19 },
-                { judge_id: 2, application_id: 2, criteria_id: 4, score: 21 },
-                { judge_id: 1, application_id: 4, criteria_id: 5, score: 24 },
-                { judge_id: 1, application_id: 4, criteria_id: 6, score: 33 },
-                { judge_id: 1, application_id: 4, criteria_id: 7, score: 19 },
-                { judge_id: 1, application_id: 4, criteria_id: 8, score: 19 },
-                { judge_id: 1, application_id: 5, criteria_id: 5, score: 23 },
-                { judge_id: 1, application_id: 5, criteria_id: 6, score: 31 },
-                { judge_id: 1, application_id: 5, criteria_id: 7, score: 18 },
-                { judge_id: 1, application_id: 5, criteria_id: 8, score: 18 }
-            ],
-            judge_submissions: [
-                { judge_id: 1, contest_type: 'noppamas', status: 'APPROVED' },
-                { judge_id: 2, contest_type: 'noppamas', status: 'APPROVED' },
-                { judge_id: 1, contest_type: 'krathong_team', status: 'APPROVED' }
-            ],
-            news: [
-                {
-                    id: 1,
-                    title: 'ประกาศรับสมัครการประกวดนางนพมาศ และกระทงประดิษฐ์ ประจำปีการศึกษา ๒๕๖๙',
-                    content: 'องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ขอเชิญชวนนักเรียน นักศึกษา ทุกระดับชั้น ปวช. และ ปวส. ส่งผลงานเข้าประกวด ชิงถ้วยเกียรติยศและทุนการศึกษา',
-                    image_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
-                    is_pinned: true,
-                    is_published: true
-                }
-            ]
+        let appState = {
+            settings: { publish_results: false },
+            krathongs: [],
+            applications: [],
+            criteria: [],
+            judges: [],
+            scores: [],
+            judge_submissions: [],
+            news: []
         };
 
-        let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
         let currentTab = 'home';
         let currentAdminMenu = 'overview';
         let currentContestantFilter = 'all';
@@ -883,26 +809,19 @@
         let adminOverviewChart = null;
         let compressedFilesCache = {};
 
-        // Utility: ตัวเลขไทย
         function toThaiNum(input) {
             if (input === null || input === undefined) return '';
             const thaiDigits = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
             return String(input).replace(/[0-9]/g, d => thaiDigits[parseInt(d, 10)]);
         }
 
-        // คืนค่าชื่อแสดงผล: นางนพมาศเป็นชื่อบุคคล, กระทงทีมเปลี่ยนเป็น "สาขาและระดับชั้น/ห้อง"
         function getDisplayName(app) {
-            if (app.contest_type === 'noppamas') {
-                return app.full_name;
-            }
+            if (app.contest_type === 'noppamas') return app.full_name;
             return `สาขา${app.department} (${app.edu_level}/${app.room_number})`;
         }
 
-        // คืนค่าชื่อแสดงผลภาษาไทย (สำหรับพิมพ์เอกสาร A4 เลขไทย)
         function getDisplayNameThai(app) {
-            if (app.contest_type === 'noppamas') {
-                return toThaiNum(app.full_name);
-            }
+            if (app.contest_type === 'noppamas') return toThaiNum(app.full_name);
             return `สาขา${toThaiNum(app.department)} (${toThaiNum(app.edu_level)}/${toThaiNum(app.room_number)})`;
         }
 
@@ -943,12 +862,9 @@
             const wrapper = document.createElement('div');
             wrapper.className = 'w-full h-full min-h-[140px] bg-slate-900 border border-slate-700 rounded-xl flex flex-col items-center justify-center p-3 text-center text-slate-400 text-xs';
             wrapper.innerHTML = `<span class="text-amber-400 font-semibold mb-1">[ไม่มีรูปภาพ]</span><span>${label}</span>`;
-            if (imgEl && imgEl.parentNode) {
-                imgEl.parentNode.replaceChild(wrapper, imgEl);
-            }
+            if (imgEl && imgEl.parentNode) imgEl.parentNode.replaceChild(wrapper, imgEl);
         }
 
-        // ระบบบีบอัดรูปภาพอัตโนมัติ
         async function compressImageFile(file, maxWidth = 720, quality = 0.68) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1023,34 +939,60 @@
             return cached.dataUrl;
         }
 
-        // ซิงค์ฐานข้อมูล Supabase
+        // ==========================================================
+        // เชื่อมต่อ SUPABASE & ดึงข้อมูลสดจากตาราง
+        // ==========================================================
         function initSupabaseConnection() {
             const savedUrl = localStorage.getItem('runtime_sb_url');
             const savedKey = localStorage.getItem('runtime_sb_key');
+
             if (!sbClient && savedUrl && savedKey && window.supabase) {
                 try {
                     sbClient = window.supabase.createClient(savedUrl, savedKey);
                 } catch (e) {}
             }
-            const localCache = localStorage.getItem('loykrathong_app_state_v1');
-            if (localCache) {
-                try { appState = JSON.parse(localCache); } catch (e) {}
-            }
+
+            updateSupabaseStatusBadge();
             loadAllDataFromBackend();
         }
 
-        function persistLocalState() {
-            localStorage.setItem('loykrathong_app_state_v1', JSON.stringify(appState));
+        function updateSupabaseStatusBadge() {
+            const dot = document.getElementById('sb-dot');
+            const text = document.getElementById('sb-text');
+            if (sbClient) {
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                text.textContent = 'DB เชื่อมต่อแล้ว';
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                text.textContent = 'DB: ตั้งค่า';
+            }
+        }
+
+        // โหลดกระทงจากฐานข้อมูล (แสดง error จริง ไม่กลืนเงียบ)
+        async function loadKrathongsFromDB(showError = false) {
+            if (!sbClient) return;
+            const { data, error } = await sbClient.from('krathongs').select('*').order('id', { ascending: false }).limit(60);
+            if (error) {
+                console.error('Supabase error [krathongs select]:', error);
+                if (showError) showToast('อ่านข้อมูลกระทงไม่ได้: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ SELECT)', 'error');
+                return;
+            }
+            appState.krathongs = data || [];
+            syncCanvasKrathongs();
         }
 
         async function loadAllDataFromBackend() {
             if (!sbClient) {
-                refreshAllViews();
+                updateSupabaseStatusBadge();
                 return;
             }
+
             try {
-                const [krRes, appRes, criRes, judRes, scoRes, subRes, newsRes, setRes] = await Promise.all([
-                    sbClient.from('krathongs').select('*').order('id', { ascending: false }).limit(40),
+                // ดึงข้อมูลกระทงโดยตรงจากตาราง krathongs
+                await loadKrathongsFromDB(true);
+
+                // ดึงข้อมูลตารางอื่นๆ
+                const [appRes, criRes, judRes, scoRes, subRes, newsRes, setRes] = await Promise.all([
                     sbClient.from('applications').select('*').order('id', { ascending: true }),
                     sbClient.from('criteria').select('*').order('order_index', { ascending: true }),
                     sbClient.from('judges').select('*').order('id', { ascending: true }),
@@ -1060,22 +1002,58 @@
                     sbClient.from('system_settings').select('*')
                 ]);
 
-                if (!krRes.error && krRes.data) appState.krathongs = krRes.data;
-                if (!appRes.error && appRes.data) appState.applications = appRes.data;
-                if (!criRes.error && criRes.data) appState.criteria = criRes.data;
-                if (!judRes.error && judRes.data) appState.judges = judRes.data;
-                if (!scoRes.error && scoRes.data) appState.scores = scoRes.data;
-                if (!subRes.error && subRes.data) appState.judge_submissions = subRes.data;
-                if (!newsRes.error && newsRes.data) appState.news = newsRes.data;
-                if (!setRes.error && setRes.data) {
+                const failed = [['applications', appRes], ['criteria', criRes], ['judges', judRes], ['scores', scoRes], ['judge_submissions', subRes], ['news', newsRes], ['system_settings', setRes]]
+                    .filter(([, r]) => r.error);
+                if (failed.length) {
+                    failed.forEach(([name, r]) => console.error('Supabase error [' + name + ']:', r.error));
+                    showToast('อ่านตาราง ' + failed.map(f => f[0]).join(', ') + ' ไม่ได้: ' + failed[0][1].error.message + ' (ตรวจสอบ RLS Policy)', 'error');
+                }
+
+                if (appRes.data) appState.applications = appRes.data;
+                if (criRes.data) appState.criteria = criRes.data;
+                if (judRes.data) appState.judges = judRes.data;
+                if (scoRes.data) appState.scores = scoRes.data;
+                if (subRes.data) appState.judge_submissions = subRes.data;
+                if (newsRes.data) appState.news = newsRes.data;
+
+                if (setRes.data && setRes.data.length > 0) {
                     const pubRow = setRes.data.find(r => r.setting_key === 'publish_results');
                     if (pubRow) appState.settings.publish_results = pubRow.value_bool;
                 }
-                persistLocalState();
+
+                updateSupabaseStatusBadge();
             } catch (err) {
-                console.warn(err);
+                console.warn('โหลดข้อมูลจาก Supabase ไม่สำเร็จ:', err);
             } finally {
                 refreshAllViews();
+            }
+        }
+
+        // นำเข้าข้อมูลตัวอย่างลงตารางจริง
+        async function seedSampleDataDirectToSupabase() {
+            if (!sbClient) {
+                showToast('กรุณาตั้งค่าเชื่อมต่อ Supabase ก่อนนำเข้าข้อมูล', 'warning');
+                return;
+            }
+            showLoader('กำลังบันทึกข้อมูลตัวอย่างเข้าสู่ตาราง Supabase...');
+            try {
+                await sbClient.from('news').insert([
+                    {
+                        title: 'ประกาศรับสมัครการประกวดนางนพมาศ และกระทงประดิษฐ์ ประจำปีการศึกษา ๒๕๖๙',
+                        content: 'องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ขอเชิญชวนนักเรียน นักศึกษา ทุกระดับชั้น ปวช. และ ปวส. ส่งผลงานเข้าประกวด ชิงถ้วยเกียรติยศและทุนการศึกษา สามารถกรอกใบสมัครออนไลน์และสั่งพิมพ์ใบสมัครเพื่อยื่นได้ทันที',
+                        image_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+                        is_pinned: true,
+                        is_published: true
+                    }
+                ]);
+
+                await loadAllDataFromBackend();
+                showToast('บันทึกข้อมูลตัวอย่างลง Supabase สำเร็จแล้ว', 'success');
+            } catch (e) {
+                console.error(e);
+                showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลลง Supabase', 'error');
+            } finally {
+                hideLoader();
             }
         }
 
@@ -1104,21 +1082,14 @@
             localStorage.setItem('runtime_sb_key', key);
             sbClient = window.supabase.createClient(url, key);
             closeDbConfigModal();
+            updateSupabaseStatusBadge();
             loadAllDataFromBackend();
-            showToast('เชื่อมต่อ Supabase สำเร็จ', 'success');
+            showToast('เชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
         }
 
-        async function resetAndSeedDemoData() {
-            showLoader('กำลังรีเซ็ตข้อมูลตัวอย่าง...');
-            appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
-            persistLocalState();
-            syncCanvasKrathongs();
-            refreshAllViews();
-            hideLoader();
-            showToast('รีเซ็ตข้อมูลระบบเรียบร้อยแล้ว', 'success');
-        }
-
-        // River Canvas Engine
+        // ==========================================================
+        // CANVAS สายน้ำและกระทง (กระจายตัวให้เห็นทุกใบตาม DB)
+        // ==========================================================
         let riverCanvas, riverCtx, floatingSprites = [], riverTick = 0;
 
         function initRiverCanvas() {
@@ -1141,15 +1112,19 @@
             if (countEl) countEl.textContent = appState.krathongs.length;
             const w = riverCanvas ? riverCanvas.width : 1000;
             const h = riverCanvas ? riverCanvas.height : 460;
-            floatingSprites = appState.krathongs.slice(0, 20).map((item, idx) => {
-                const laneRatio = 0.44 + ((idx * 0.09) % 0.42);
+
+            const total = appState.krathongs.length;
+            floatingSprites = appState.krathongs.map((item, idx) => {
+                const laneRatio = 0.44 + ((idx * 0.12) % 0.44);
+                // กระจายตำแหน่ง x ให้ทั่วหน้าจอ ไม่ทับกัน
+                const spacing = total > 0 ? (w / total) : 200;
                 return {
                     ...item,
-                    x: (idx * 210) % Math.max(w, 800),
+                    x: (idx * spacing + 40) % w,
                     baseY: h * laneRatio,
-                    speed: 0.42 + (idx % 4) * 0.16,
-                    phase: idx * 1.3,
-                    scale: 0.78 + (laneRatio - 0.4) * 0.55
+                    speed: 0.35 + (idx % 3) * 0.15,
+                    phase: idx * 1.4,
+                    scale: 0.78 + (laneRatio - 0.4) * 0.5
                 };
             });
         }
@@ -1304,35 +1279,41 @@
             const kType = document.getElementById('selected-krathong-type').value;
             if (!sender || !wish) return;
 
-            showLoader('กำลังปล่อยกระทงลงสู่สายน้ำ...');
             const newKrathong = {
-                id: Date.now(),
                 sender_name: sender,
                 wish_text: wish,
-                krathong_type: kType,
-                created_at: new Date().toISOString()
+                krathong_type: kType
             };
 
-            if (sbClient) {
-                const { data } = await sbClient.from('krathongs').insert([{
-                    sender_name: sender,
-                    wish_text: wish,
-                    krathong_type: kType
-                }]).select();
-                if (data && data[0]) newKrathong.id = data[0].id;
+            if (!sbClient) {
+                showToast('ยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase กระทงจึงไม่ถูกบันทึก', 'error');
+                return;
             }
 
-            appState.krathongs.unshift(newKrathong);
-            persistLocalState();
-            syncCanvasKrathongs();
-
-            document.getElementById('krathong-sender').value = '';
-            document.getElementById('krathong-wish').value = '';
-            hideLoader();
-            showToast('ปล่อยกระทงพร้อมคำอธิษฐานลงสู่สายน้ำแล้ว', 'success');
+            showLoader('กำลังปล่อยกระทงลงสู่สายน้ำ...');
+            try {
+                // ไม่ใช้ .select() ต่อท้าย เพื่อไม่ให้ต้องพึ่ง SELECT policy ในขั้นบันทึก
+                const { error } = await sbClient.from('krathongs').insert([newKrathong]);
+                if (error) {
+                    console.error('Supabase error [krathongs insert]:', error);
+                    showToast('บันทึกกระทงไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ INSERT)', 'error');
+                    return;
+                }
+                document.getElementById('krathong-sender').value = '';
+                document.getElementById('krathong-wish').value = '';
+                await loadKrathongsFromDB(true);
+                showToast('ปล่อยกระทงพร้อมคำอธิษฐานลงสู่สายน้ำและบันทึกลงฐานข้อมูลแล้ว', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + (err.message || err), 'error');
+            } finally {
+                hideLoader();
+            }
         }
 
-        // สมัครประกวด & สร้างช่องกรอกสมาชิกทีม 5 คน
+        // ==========================================================
+        // สมัครประกวด / สมาชิกทีม
+        // ==========================================================
         function initTeamMemberInputs() {
             const container = document.getElementById('team-members-inputs');
             if (!container) return;
@@ -1403,7 +1384,6 @@
             const photoUrl = await uploadCompressedImage('nop-photo', 'noppamas');
 
             const newApp = {
-                id: Date.now(),
                 contest_type: 'noppamas',
                 contestant_number: null,
                 status: 'PENDING',
@@ -1424,15 +1404,13 @@
             };
 
             if (sbClient) {
-                const payload = { ...newApp };
-                delete payload.id;
-                const { data } = await sbClient.from('applications').insert([payload]).select();
+                const { data } = await sbClient.from('applications').insert([newApp]).select();
                 if (data && data[0]) newApp.id = data[0].id;
+            } else {
+                newApp.id = Date.now();
             }
 
             appState.applications.push(newApp);
-            persistLocalState();
-
             e.target.reset();
             document.getElementById('nop-photo-preview').classList.add('hidden');
             delete compressedFilesCache['nop-photo'];
@@ -1468,7 +1446,6 @@
             const photoUrl = await uploadCompressedImage('team-photo', 'krathong_team');
 
             const newApp = {
-                id: Date.now(),
                 contest_type: 'krathong_team',
                 contestant_number: null,
                 status: 'PENDING',
@@ -1489,15 +1466,13 @@
             };
 
             if (sbClient) {
-                const payload = { ...newApp };
-                delete payload.id;
-                const { data } = await sbClient.from('applications').insert([payload]).select();
+                const { data } = await sbClient.from('applications').insert([newApp]).select();
                 if (data && data[0]) newApp.id = data[0].id;
+            } else {
+                newApp.id = Date.now();
             }
 
             appState.applications.push(newApp);
-            persistLocalState();
-
             e.target.reset();
             document.getElementById('team-photo-preview').classList.add('hidden');
             delete compressedFilesCache['team-photo'];
@@ -1507,7 +1482,6 @@
             printOfficialApplicationForm(newApp.id);
         }
 
-        // หัวกระดาษโลโก้ทางการ อวท. สำหรับพิมพ์ A4
         function getAoVorThorLogoSvg() {
             return `
                 <div style="text-align: center; margin-bottom: 6pt;">
@@ -1521,7 +1495,6 @@
             styleEl.innerHTML = `@media print { @page { size: A4 ${mode}; margin: 8mm; } }`;
         }
 
-        // พิมพ์ใบสมัครราชการ A4 (TH Sarabun PSK + เลขไทย)
         function printOfficialApplicationForm(appId) {
             const app = appState.applications.find(a => Number(a.id) === Number(appId));
             if (!app) return;
@@ -1677,13 +1650,19 @@
             lucide.createIcons();
         }
 
-        // แสดงข่าวสาร
         function renderPublicNews() {
             const grid = document.getElementById('public-news-grid');
             if (!grid) return;
             const published = appState.news.filter(n => n.is_published);
             if (published.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-sm text-slate-400 p-6 glass-card rounded-2xl">ไม่มีข่าวสารในขณะนี้</div>`;
+                grid.innerHTML = `
+                    <div class="col-span-2 text-center text-sm text-slate-400 p-10 glass-card rounded-3xl border border-slate-800">
+                        <i data-lucide="newspaper" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
+                        <p class="font-medium text-slate-300">ยังไม่มีประกาศข่าวประชาสัมพันธ์ในขณะนี้</p>
+                        <p class="text-xs text-slate-500 mt-1">สามารถเพิ่มข่าวสารได้จากระบบผู้ดูแลระบบ (Admin) หรือกดปุ่มบันทึกข้อมูลตัวอย่าง</p>
+                    </div>
+                `;
+                lucide.createIcons();
                 return;
             }
             grid.innerHTML = published.map(n => `
@@ -1700,7 +1679,6 @@
             `).join('');
         }
 
-        // ทำเนียบผู้เข้าประกวด
         function filterPublicContestants(type) {
             currentContestantFilter = type;
             ['all', 'noppamas', 'team'].forEach(k => {
@@ -1770,7 +1748,6 @@
             container.innerHTML = renderBox('noppamas', '👑 เกณฑ์การประกวดนางนพมาศ (บุคคล)') + renderBox('krathong_team', '🪷 เกณฑ์การประกวดกระทงประดิษฐ์ (ทีม)');
         }
 
-        // จัดอันดับคะแนน
         function computeCategoryRankings(contestType) {
             const contestants = appState.applications
                 .filter(a => a.contest_type === contestType && a.status === 'APPROVED')
@@ -1836,7 +1813,9 @@
             wrap.innerHTML = renderCard('noppamas', '👑 ผลการประกวดนางนพมาศ') + renderCard('krathong_team', '🪷 ผลการประกวดกระทงประดิษฐ์');
         }
 
+        // ==========================================================
         // ระบบกรรมการ
+        // ==========================================================
         function handleJudgeLogin(e) {
             e.preventDefault();
             const u = document.getElementById('judge-user').value.trim();
@@ -1904,6 +1883,11 @@
             else lockOverlay.classList.add('hidden');
 
             const wrapper = document.getElementById('judge-table-wrapper');
+            if (contestants.length === 0) {
+                wrapper.innerHTML = `<div class="p-8 text-center text-sm text-slate-400">ยังไม่มีผู้เข้าประกวดที่ได้รับการอนุมัติในหมวดหมู่นี้</div>`;
+                return;
+            }
+
             wrapper.innerHTML = `
                 <table class="w-full text-left text-xs sm:text-sm border-collapse">
                     <thead>
@@ -1956,7 +1940,6 @@
             const ex = appState.scores.find(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(appId) && Number(s.criteria_id) === Number(criteriaId));
             if (ex) ex.score = num;
             else appState.scores.push({ judge_id: judgeId, application_id: appId, criteria_id: criteriaId, score: num });
-            persistLocalState();
 
             const cat = document.getElementById('judge-category-select').value;
             const catCriIds = appState.criteria.filter(c => c.contest_type === cat).map(c => Number(c.id));
@@ -1985,7 +1968,6 @@
             const ex = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j.id) && s.contest_type === cat);
             if (ex) ex.status = 'SUBMITTED';
             else appState.judge_submissions.push({ judge_id: j.id, contest_type: cat, status: 'SUBMITTED' });
-            persistLocalState();
 
             if (sbClient) {
                 await sbClient.from('judge_submissions').upsert([{
@@ -1999,7 +1981,9 @@
             showToast('ส่งคะแนนและล็อกตารางเรียบร้อยแล้ว', 'success');
         }
 
-        // ระบบแอดมิน
+        // ==========================================================
+        // แอดมิน (ADMIN DASHBOARD)
+        // ==========================================================
         function handleAdminLogin(e) {
             e.preventDefault();
             const u = document.getElementById('admin-user').value.trim();
@@ -2038,11 +2022,8 @@
         function switchAdminMenu(menuKey) {
             currentAdminMenu = menuKey;
             document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-                if (btn.getAttribute('data-admin-menu') === menuKey) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                if (btn.getAttribute('data-admin-menu') === menuKey) btn.classList.add('active');
+                else btn.classList.remove('active');
             });
 
             const container = document.getElementById('admin-subview-container');
@@ -2060,7 +2041,6 @@
             lucide.createIcons();
         }
 
-        // เมนู 1: สรุปคะแนน
         function renderAdminMenuOverview(container) {
             const nopRanks = computeCategoryRankings('noppamas');
             const teamRanks = computeCategoryRankings('krathong_team');
@@ -2077,7 +2057,7 @@
                             <table class="w-full text-xs sm:text-sm">
                                 <thead><tr class="text-slate-400 border-b border-slate-800"><th class="py-2 text-left">อันดับ</th><th class="py-2 text-left">ผู้เข้าประกวด</th><th class="py-2 text-right">คะแนนรวม</th></tr></thead>
                                 <tbody>
-                                    ${nopRanks.map(r => `<tr class="border-b border-slate-800/50"><td class="py-2 font-bold text-amber-300">#${r.rank}</td><td class="py-2">[#${r.contestant_number}] ${r.displayName}</td><td class="py-2 text-right font-bold text-emerald-400">${r.rawTotal}</td></tr>`).join('')}
+                                    ${nopRanks.length ? nopRanks.map(r => `<tr class="border-b border-slate-800/50"><td class="py-2 font-bold text-amber-300">#${r.rank}</td><td class="py-2">[#${r.contestant_number}] ${r.displayName}</td><td class="py-2 text-right font-bold text-emerald-400">${r.rawTotal}</td></tr>`).join('') : '<tr><td colspan="3" class="py-4 text-center text-slate-500">ยังไม่มีข้อมูลผู้เข้าประกวด</td></tr>'}
                                 </tbody>
                             </table>
                         </div>
@@ -2086,7 +2066,7 @@
                             <table class="w-full text-xs sm:text-sm">
                                 <thead><tr class="text-slate-400 border-b border-slate-800"><th class="py-2 text-left">อันดับ</th><th class="py-2 text-left">สาขาวิชาและชั้น</th><th class="py-2 text-right">คะแนนรวม</th></tr></thead>
                                 <tbody>
-                                    ${teamRanks.map(r => `<tr class="border-b border-slate-800/50"><td class="py-2 font-bold text-amber-300">#${r.rank}</td><td class="py-2">[#${r.contestant_number}] ${r.displayName}</td><td class="py-2 text-right font-bold text-emerald-400">${r.rawTotal}</td></tr>`).join('')}
+                                    ${teamRanks.length ? teamRanks.map(r => `<tr class="border-b border-slate-800/50"><td class="py-2 font-bold text-amber-300">#${r.rank}</td><td class="py-2">[#${r.contestant_number}] ${r.displayName}</td><td class="py-2 text-right font-bold text-emerald-400">${r.rawTotal}</td></tr>`).join('') : '<tr><td colspan="3" class="py-4 text-center text-slate-500">ยังไม่มีข้อมูลผู้เข้าประกวด</td></tr>'}
                                 </tbody>
                             </table>
                         </div>
@@ -2122,7 +2102,6 @@
             });
         }
 
-        // เมนู 2: อนุมัติคะแนน
         function renderAdminMenuApproveScores(container) {
             const cats = [{ key: 'noppamas', label: '👑 นางนพมาศ' }, { key: 'krathong_team', label: '🪷 กระทงประดิษฐ์' }];
             let rowsHtml = '';
@@ -2151,7 +2130,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead><tr class="border-b border-slate-700 text-amber-300 text-xs"><th class="py-2.5 px-3">กรรมการ</th><th class="py-2.5 px-3">หมวดหมู่</th><th class="py-2.5 px-3">สถานะ</th><th class="py-2.5 px-3 text-right">การจัดการ</th></tr></thead>
-                            <tbody>${rowsHtml}</tbody>
+                            <tbody>${rowsHtml || '<tr><td colspan="4" class="py-4 text-center text-slate-500">ยังไม่มีรายชื่อกรรมการ</td></tr>'}</tbody>
                         </table>
                     </div>
                 </div>
@@ -2162,7 +2141,6 @@
             const ex = appState.judge_submissions.find(s => Number(s.judge_id) === Number(judgeId) && s.contest_type === contestType);
             if (ex) ex.status = status;
             else appState.judge_submissions.push({ judge_id: judgeId, contest_type: contestType, status });
-            persistLocalState();
             if (sbClient) {
                 await sbClient.from('judge_submissions').upsert([{ judge_id: judgeId, contest_type: contestType, status, updated_at: new Date().toISOString() }], { onConflict: 'judge_id,contest_type' });
             }
@@ -2170,7 +2148,6 @@
             showToast(`ปรับสถานะเป็น ${status} เรียบร้อย`, 'success');
         }
 
-        // เมนู 3: ประกาศผล
         function renderAdminMenuPublish(container) {
             const isPub = appState.settings.publish_results;
             container.innerHTML = `
@@ -2190,7 +2167,6 @@
 
         async function togglePublishResults() {
             appState.settings.publish_results = !appState.settings.publish_results;
-            persistLocalState();
             if (sbClient) {
                 await sbClient.from('system_settings').upsert([{ setting_key: 'publish_results', value_bool: appState.settings.publish_results, updated_at: new Date().toISOString() }]);
             }
@@ -2199,7 +2175,6 @@
             showToast('อัปเดตการแสดงผลเรียบร้อย', 'success');
         }
 
-        // เมนู 4: จัดการเกณฑ์
         function renderAdminMenuCriteria(container) {
             container.innerHTML = `
                 <div class="space-y-6">
@@ -2225,14 +2200,14 @@
                         <table class="w-full text-left text-xs sm:text-sm">
                             <thead><tr class="border-b border-slate-700 text-amber-300"><th class="py-2 px-3">หมวดหมู่</th><th class="py-2 px-3">เกณฑ์</th><th class="py-2 px-3">คะแนนเต็ม</th><th class="py-2 px-3 text-right">ลบ</th></tr></thead>
                             <tbody>
-                                ${appState.criteria.map(c => `
+                                ${appState.criteria.length ? appState.criteria.map(c => `
                                     <tr class="border-b border-slate-800">
                                         <td class="py-2.5 px-3">${c.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์'}</td>
                                         <td class="py-2.5 px-3 text-white">${c.title}</td>
                                         <td class="py-2.5 px-3 font-bold text-amber-300">${c.max_score}</td>
                                         <td class="py-2.5 px-3 text-right"><button onclick="handleDeleteCriterion(${c.id})" class="text-rose-400 text-xs">ลบ</button></td>
                                     </tr>
-                                `).join('')}
+                                `).join('') : '<tr><td colspan="4" class="py-4 text-center text-slate-500">ยังไม่มีเกณฑ์การตัดสิน</td></tr>'}
                             </tbody>
                         </table>
                     </div>
@@ -2245,13 +2220,14 @@
             const cType = document.getElementById('cri-type').value;
             const title = document.getElementById('cri-title').value.trim();
             const max = parseFloat(document.getElementById('cri-max').value);
-            const newCri = { id: Date.now(), contest_type: cType, title, max_score: max, order_index: appState.criteria.length + 1 };
+            const newCri = { contest_type: cType, title, max_score: max, order_index: appState.criteria.length + 1 };
             if (sbClient) {
-                const { data } = await sbClient.from('criteria').insert([{ contest_type: cType, title, max_score: max, order_index: newCri.order_index }]).select();
+                const { data } = await sbClient.from('criteria').insert([newCri]).select();
                 if (data && data[0]) newCri.id = data[0].id;
+            } else {
+                newCri.id = Date.now();
             }
             appState.criteria.push(newCri);
-            persistLocalState();
             switchAdminMenu('criteria');
             renderPublicCriteria();
             showToast('เพิ่มเกณฑ์สำเร็จ', 'success');
@@ -2259,18 +2235,16 @@
 
         async function handleDeleteCriterion(id) {
             appState.criteria = appState.criteria.filter(c => Number(c.id) !== Number(id));
-            persistLocalState();
             if (sbClient) await sbClient.from('criteria').delete().eq('id', id);
             switchAdminMenu('criteria');
             renderPublicCriteria();
             showToast('ลบเกณฑ์แล้ว', 'warning');
         }
 
-        // เมนู 5: ศูนย์พิมพ์เอกสารราชการ A4 (TH Sarabun PSK + เลขไทย + Logo อวท. ทางการ)
         function renderAdminMenuPrintCenter(container) {
             container.innerHTML = `
                 <div class="space-y-6">
-                    <h3 class="text-xl font-bold gold-gradient-text">🖨️ ศูนย์พิมพ์เอกสารราชการ A4 (TH Sarabun PSK เลขไทยทั้งหมด)</h3>
+                    <h3 class="text-xl font-bold gold-gradient-text">🖨️ ศูนย์พิมพ์เอกสารราชการ A4 (TH Sarabun PSK เลขไทย)</h3>
                     <div class="flex flex-wrap items-center gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
                         <label class="text-xs text-slate-300">เลือกประเภท:</label>
                         <select id="print-center-cat" class="input-night px-3.5 py-2 rounded-xl text-xs font-semibold">
@@ -2294,7 +2268,7 @@
                         <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
                             <div>
                                 <h4 class="font-bold text-amber-300">๒. ใบคะแนนสรุปรายกรรมการ</h4>
-                                <p class="text-xs text-slate-400 mt-1">แสดงคะแนนที่กรรมการท่านที่เลือกบันทึกไว้ พร้อมช่องลงนาม</p>
+                                <p class="text-xs text-slate-400 mt-1">แสดงคะแนนที่กรรมการบันทึกไว้ พร้อมช่องลงนาม</p>
                             </div>
                             <button onclick="printAdminDocument('judge_individual')" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">🖨️ พิมพ์ใบสรุปคะแนนรายบุคคล</button>
                         </div>
@@ -2369,7 +2343,7 @@
                         <div style="text-align:center;">
                             ${getAoVorThorLogoSvg()}
                             <div style="font-size:18pt; font-weight:bold;">ใบสรุปผลคะแนนรายบุคคล — ${catTitle}</div>
-                            <div style="font-size:15pt;">กรรมการผู้ตัดสิน: <strong>${toThaiNum(j.full_name)}</strong></div>
+                            <div style="font-size:15pt;">กรรมการผู้ตัดสิน: <strong>${toThaiNum(j ? j.full_name : '')}</strong></div>
                         </div>
                         <table class="print-table">
                             <thead>
@@ -2384,7 +2358,7 @@
                                 ${contestants.map(con => {
                                     let sum = 0;
                                     const cols = criteriaList.map(cri => {
-                                        const sc = appState.scores.find(s => Number(s.judge_id) === Number(j.id) && Number(s.application_id) === Number(con.id) && Number(s.criteria_id) === Number(cri.id));
+                                        const sc = appState.scores.find(s => Number(s.judge_id) === Number(j ? j.id : 0) && Number(s.application_id) === Number(con.id) && Number(s.criteria_id) === Number(cri.id));
                                         const v = sc ? Number(sc.score) : 0;
                                         sum += v;
                                         return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
@@ -2400,10 +2374,6 @@
                                 }).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top:24pt; text-align:right;">
-                            ลงชื่อ..........................................................กรรมการผู้ตัดสิน<br>
-                            ( ${toThaiNum(j.full_name)} )
-                        </div>
                     </div>
                 `;
             } else if (docType === 'crosstab') {
@@ -2488,7 +2458,6 @@
             setTimeout(() => window.print(), 150);
         }
 
-        // เมนู 6: จัดการกรรมการ
         function renderAdminMenuJudges(container) {
             container.innerHTML = `
                 <div class="space-y-6">
@@ -2508,14 +2477,14 @@
                         <table class="w-full text-left text-xs sm:text-sm">
                             <thead><tr class="border-b border-slate-700 text-amber-300"><th class="py-2 px-3">Username</th><th class="py-2 px-3">ชื่อ-นามสกุล</th><th class="py-2 px-3">หมวดหมู่</th><th class="py-2 px-3 text-right">ลบ</th></tr></thead>
                             <tbody>
-                                ${appState.judges.map(j => `
+                                ${appState.judges.length ? appState.judges.map(j => `
                                     <tr class="border-b border-slate-800">
                                         <td class="py-2.5 px-3 font-mono text-amber-300">${j.username}</td>
                                         <td class="py-2.5 px-3 text-white">${j.full_name}</td>
                                         <td class="py-2.5 px-3">${j.assigned_type}</td>
                                         <td class="py-2.5 px-3 text-right"><button onclick="handleDeleteJudge(${j.id})" class="text-rose-400 text-xs">ลบ</button></td>
                                     </tr>
-                                `).join('')}
+                                `).join('') : '<tr><td colspan="4" class="py-4 text-center text-slate-500">ยังไม่มีรายชื่อกรรมการ</td></tr>'}
                             </tbody>
                         </table>
                     </div>
@@ -2530,26 +2499,25 @@
             const full_name = document.getElementById('jd-name').value.trim();
             const assigned_type = document.getElementById('jd-type').value;
 
-            const newJ = { id: Date.now(), username, password, full_name, position: 'กรรมการตัดสิน', assigned_type };
+            const newJ = { username, password, full_name, position: 'กรรมการตัดสิน', assigned_type };
             if (sbClient) {
-                const { data } = await sbClient.from('judges').insert([{ username, password, full_name, position: 'กรรมการตัดสิน', assigned_type }]).select();
+                const { data } = await sbClient.from('judges').insert([newJ]).select();
                 if (data && data[0]) newJ.id = data[0].id;
+            } else {
+                newJ.id = Date.now();
             }
             appState.judges.push(newJ);
-            persistLocalState();
             switchAdminMenu('judges');
             showToast('เพิ่มบัญชีกรรมการเรียบร้อย', 'success');
         }
 
         async function handleDeleteJudge(id) {
             appState.judges = appState.judges.filter(j => Number(j.id) !== Number(id));
-            persistLocalState();
             if (sbClient) await sbClient.from('judges').delete().eq('id', id);
             switchAdminMenu('judges');
             showToast('ลบบัญชีกรรมการแล้ว', 'warning');
         }
 
-        // เมนู 7: จัดการข่าวสาร
         function renderAdminMenuNews(container) {
             container.innerHTML = `
                 <div class="space-y-6">
@@ -2577,19 +2545,19 @@
             const is_pinned = document.getElementById('news-pin').checked;
             const image_url = await uploadCompressedImage('news-image', 'news');
 
-            const item = { id: Date.now(), title, content, image_url, is_pinned, is_published: true };
+            const item = { title, content, image_url, is_pinned, is_published: true };
             if (sbClient) {
-                const { data } = await sbClient.from('news').insert([{ title, content, image_url, is_pinned, is_published: true }]).select();
+                const { data } = await sbClient.from('news').insert([item]).select();
                 if (data && data[0]) item.id = data[0].id;
+            } else {
+                item.id = Date.now();
             }
             appState.news.unshift(item);
-            persistLocalState();
             renderPublicNews();
             switchAdminMenu('news');
             showToast('เผยแพร่ข่าวสารแล้ว', 'success');
         }
 
-        // เมนู 8: จัดการใบสมัคร (เปลี่ยนชื่อทีมเป็น สาขาและระดับชั้น/ห้อง)
         function renderAdminMenuApplications(container) {
             container.innerHTML = `
                 <div class="space-y-6">
@@ -2607,7 +2575,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
-                                ${appState.applications.map(app => `
+                                ${appState.applications.length ? appState.applications.map(app => `
                                     <tr>
                                         <td class="py-3 px-3 font-extrabold text-amber-300">${app.contestant_number ? `#${app.contestant_number}` : '-'}</td>
                                         <td class="py-3 px-3">${app.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงทีม'}</td>
@@ -2620,7 +2588,7 @@
                                             <button onclick="printOfficialApplicationForm(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 font-bold text-xs">🖨️ พิมพ์</button>
                                         </td>
                                     </tr>
-                                `).join('')}
+                                `).join('') : '<tr><td colspan="6" class="py-4 text-center text-slate-500">ยังไม่มีรายการใบสมัคร</td></tr>'}
                             </tbody>
                         </table>
                     </div>
@@ -2638,7 +2606,6 @@
                 app.contestant_number = maxNum + 1;
             }
             app.status = 'APPROVED';
-            persistLocalState();
             if (sbClient) {
                 await sbClient.from('applications').update({ status: 'APPROVED', contestant_number: app.contestant_number }).eq('id', id);
             }
@@ -2652,7 +2619,6 @@
             if (!app) return;
             app.status = 'REJECTED';
             app.contestant_number = null;
-            persistLocalState();
             if (sbClient) {
                 await sbClient.from('applications').update({ status: 'REJECTED', contestant_number: null }).eq('id', id);
             }
@@ -2661,31 +2627,45 @@
             showToast('ปฏิเสธใบสมัครแล้ว', 'warning');
         }
 
-        // นำทางหลัก
+        // ==========================================================
+        // การนำทางหลัก (ไม่เกิดการค้าง สกอร์ลได้อย่างอิสระ)
+        // ==========================================================
         function switchTab(tabId) {
             currentTab = tabId;
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
             const activeSec = document.getElementById(`view-${tabId}`);
             if (activeSec) activeSec.classList.remove('hidden');
 
-            document.querySelectorAll('.nav-btn').forEach(btn => {
+            document.querySelectorAll('.nav-pill').forEach(btn => {
                 const match = btn.getAttribute('data-nav') === tabId;
-                if (match) btn.classList.add('bg-amber-400/20', 'text-amber-300', 'border', 'border-amber-400/40');
-                else btn.classList.remove('bg-amber-400/20', 'text-amber-300', 'border', 'border-amber-400/40');
+                if (match) btn.classList.add('active');
+                else btn.classList.remove('active');
             });
+
+            document.querySelectorAll('[data-bnav]').forEach(b => b.classList.toggle('active', b.getAttribute('data-bnav') === tabId));
+            document.querySelectorAll('[data-drawer]').forEach(b => b.classList.toggle('active', b.getAttribute('data-drawer') === tabId));
 
             if (tabId === 'contestants') renderPublicContestants();
             if (tabId === 'criteria') renderPublicCriteria();
             if (tabId === 'results') renderPublicResults();
             if (tabId === 'judge') renderJudgeView();
             if (tabId === 'admin') renderAdminWorkspace();
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleMobileDrawer(open) {
             const dr = document.getElementById('mobile-drawer');
-            if (open) dr.classList.remove('hidden');
-            else dr.classList.add('hidden');
+            if (open) {
+                dr.classList.remove('hidden');
+                requestAnimationFrame(() => requestAnimationFrame(() => dr.classList.add('open')));
+                document.body.style.overflow = 'hidden';
+            } else {
+                dr.classList.remove('open');
+                document.body.style.overflow = '';
+                setTimeout(() => dr.classList.add('hidden'), 280);
+            }
+            lucide.createIcons();
         }
 
         function refreshAllViews() {
@@ -2705,6 +2685,7 @@
             renderKrathongStyleSelector();
             initRiverCanvas();
             initSupabaseConnection();
+            setInterval(() => { if (document.visibilityState === 'visible') loadKrathongsFromDB(false); }, 20000);
             switchTab('home');
             lucide.createIcons();
         });
