@@ -212,9 +212,7 @@
     <!-- Main Shell -->
     <div id="app-shell" class="relative z-10 min-h-screen flex flex-col">
 
-        <!-- ========================================================== -->
-        <!-- HEADER / NAVBAR (ไม่ค้าง เลื่อนตามเนื้อหาได้อย่างนุ่มนวล)     -->
-        <!-- ========================================================== -->
+        <!-- HEADER / NAVBAR -->
         <header class="w-full px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 sticky top-0 z-40 no-print">
             <div class="max-w-[1400px] mx-auto floating-navbar rounded-2xl px-3 sm:px-5 py-2 flex items-center justify-between gap-3">
 
@@ -313,9 +311,7 @@
         <!-- Main Content -->
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-8">
 
-            <!-- ========================================================== -->
-            <!-- VIEW 1: หน้าแรก & ลอยกระทงออนไลน์ (HOME)                   -->
-            <!-- ========================================================== -->
+            <!-- VIEW 1: หน้าแรก & ลอยกระทงออนไลน์ (HOME) -->
             <section id="view-home" class="view-section space-y-8">
                 <div class="glass-card rounded-3xl overflow-hidden border border-amber-400/30 shadow-2xl">
                     <div class="p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-gradient-to-r from-slate-900/90 via-indigo-950/80 to-slate-900/90">
@@ -466,7 +462,7 @@
                         </div>
                     </form>
 
-                    <!-- ฟอร์มกระทงทีม -->
+                    <!-- ฟอร์มกระทงทีม (ลบส่วนอัปโหลดรูปภาพออกแล้ว) -->
                     <form id="form-apply-team" onsubmit="submitTeamApplication(event)" class="mt-6 space-y-6 hidden">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="sm:col-span-2">
@@ -494,16 +490,9 @@
                             <div id="team-members-inputs" class="space-y-2.5"></div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง</label>
-                                <textarea id="team-concept" rows="3" placeholder="อธิบายวัสดุธรรมชาติและแนวคิด..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผลงาน/ทีมงาน <span class="text-rose-400">*</span></label>
-                                <input type="file" id="team-photo" accept="image/*" required onchange="previewCompressedImage(this, 'team-photo-preview')" class="input-night w-full px-3.5 py-2 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
-                                <div id="team-photo-preview" class="mt-2 hidden items-center gap-3"></div>
-                            </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง <span class="text-rose-400">*</span></label>
+                            <textarea id="team-concept" required rows="3" placeholder="อธิบายวัสดุธรรมชาติและแนวคิดการประดิษฐ์กระทง..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                         </div>
 
                         <div class="flex justify-end pt-2">
@@ -574,12 +563,10 @@
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">ชื่อผู้ใช้ (Username)</label>
                             <input type="text" id="judge-user" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="text" id="judge-user" required value="judge1" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
                             <input type="password" id="judge-pass" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="password" id="judge-pass" required value="1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <button type="submit" class="w-full py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบกรรมการ
@@ -645,12 +632,10 @@
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผู้ดูแลระบบ (Username)</label>
                             <input type="text" id="admin-user" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="text" id="admin-user" required value="admin" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
                             <input type="password" id="admin-pass" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="password" id="admin-pass" required value="admin1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
                         </div>
                         <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบแอดมิน
@@ -767,9 +752,7 @@
         </div>
     </div>
 
-    <!-- ============================================================================ -->
-    <!-- JAVASCRIPT LOGIC                                                             -->
-    <!-- ============================================================================ -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         const OFFICIAL_AFT_LOGO = 'https://aftpsc.site/font_end/image/aft_logo.png';
 
@@ -898,7 +881,7 @@
                 box.classList.remove('hidden');
                 box.classList.add('flex');
                 box.innerHTML = `
-                    <img src="${compressed.dataUrl}" class="w-14 h-14 rounded-xl object-cover border border-amber-400/50">
+                    <img src="${compressed.dataUrl}" class="w-14 h-14 rounded-xl object-contain bg-slate-950 border border-amber-400/50">
                     <div class="text-xs text-emerald-300">
                         <p class="font-semibold">บีบอัดสำเร็จ!</p>
                         <p class="text-slate-400">ขนาดคงเหลือ ${compressed.sizeKB} KB</p>
@@ -931,9 +914,6 @@
             return cached.dataUrl;
         }
 
-        // ==========================================================
-        // เชื่อมต่อ SUPABASE & ดึงข้อมูลสดจากตาราง
-        // ==========================================================
         function initSupabaseConnection() {
             const savedUrl = localStorage.getItem('runtime_sb_url');
             const savedKey = localStorage.getItem('runtime_sb_key');
@@ -961,7 +941,6 @@
             }
         }
 
-        // โหลดกระทงจากฐานข้อมูล (แสดง error จริง ไม่กลืนเงียบ)
         async function loadKrathongsFromDB(showError = false) {
             if (!sbClient) return;
             const { data, error } = await sbClient.from('krathongs').select('*').order('id', { ascending: false }).limit(60);
@@ -981,10 +960,8 @@
             }
 
             try {
-                // ดึงข้อมูลกระทงโดยตรงจากตาราง krathongs
                 await loadKrathongsFromDB(true);
 
-                // ดึงข้อมูลตารางอื่นๆ
                 const [appRes, criRes, judRes, scoRes, subRes, newsRes, setRes] = await Promise.all([
                     sbClient.from('applications').select('*').order('id', { ascending: true }),
                     sbClient.from('criteria').select('*').order('order_index', { ascending: true }),
@@ -1022,7 +999,6 @@
             }
         }
 
-        // นำเข้าข้อมูลตัวอย่างลงตารางจริง
         async function seedSampleDataDirectToSupabase() {
             if (!sbClient) {
                 showToast('กรุณาตั้งค่าเชื่อมต่อ Supabase ก่อนนำเข้าข้อมูล', 'warning');
@@ -1080,9 +1056,7 @@
             showToast('เชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
         }
 
-        // ==========================================================
-        // CANVAS สายน้ำและกระทง (กระจายตัวให้เห็นทุกใบตาม DB)
-        // ==========================================================
+        // CANVAS สายน้ำและกระทง
         let riverCanvas, riverCtx, floatingSprites = [], riverTick = 0;
 
         function initRiverCanvas() {
@@ -1109,7 +1083,6 @@
             const total = appState.krathongs.length;
             floatingSprites = appState.krathongs.map((item, idx) => {
                 const laneRatio = 0.44 + ((idx * 0.12) % 0.44);
-                // กระจายตำแหน่ง x ให้ทั่วหน้าจอ ไม่ทับกัน
                 const spacing = total > 0 ? (w / total) : 200;
                 return {
                     ...item,
@@ -1285,7 +1258,6 @@
 
             showLoader('กำลังปล่อยกระทงลงสู่สายน้ำ...');
             try {
-                // ไม่ใช้ .select() ต่อท้าย เพื่อไม่ให้ต้องพึ่ง SELECT policy ในขั้นบันทึก
                 const { error } = await sbClient.from('krathongs').insert([newKrathong]);
                 if (error) {
                     console.error('Supabase error [krathongs insert]:', error);
@@ -1304,9 +1276,7 @@
             }
         }
 
-        // ==========================================================
         // สมัครประกวด / สมาชิกทีม
-        // ==========================================================
         function initTeamMemberInputs() {
             const container = document.getElementById('team-members-inputs');
             if (!container) return;
@@ -1435,8 +1405,7 @@
                 return;
             }
 
-            showLoader('กำลังอัปโหลดรูปและบันทึกข้อมูลทีม...');
-            const photoUrl = await uploadCompressedImage('team-photo', 'krathong_team');
+            showLoader('กำลังบันทึกข้อมูลทีม...');
 
             const newApp = {
                 contest_type: 'krathong_team',
@@ -1454,7 +1423,7 @@
                 slogan: '',
                 concept,
                 team_members: members,
-                photo_url: photoUrl,
+                photo_url: '',
                 created_at: new Date().toISOString()
             };
 
@@ -1467,8 +1436,6 @@
 
             appState.applications.push(newApp);
             e.target.reset();
-            document.getElementById('team-photo-preview').classList.add('hidden');
-            delete compressedFilesCache['team-photo'];
 
             hideLoader();
             showToast('บันทึกใบสมัครทีมสำเร็จ! กำลังเปิดหน้าพิมพ์เอกสาร...', 'success');
@@ -1575,8 +1542,8 @@
                             <div style="font-size:15pt;">งานประเพณีลอยกระทง ประจำปีการศึกษา ๒๕๖๙</div>
                         </div>
                         <div style="width:28%; display:flex; justify-content:flex-end;">
-                            <div style="width:32mm; height:40mm; border:1px solid #000; display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; font-size:12pt;">
-                                ${app.photo_url ? `<img src="${app.photo_url}" style="width:100%; height:100%; object-fit:cover;">` : 'ติดรูปถ่าย<br>ขนาด ๑ นิ้ว<br>หรือ ๒ นิ้ว'}
+                            <div style="width:36mm; height:46mm; border:1px solid #000; display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; font-size:12pt; background:#f8fafc;">
+                                ${app.photo_url ? `<img src="${app.photo_url}" style="width:100%; height:100%; object-fit:contain; background:#ffffff;">` : 'ติดรูปถ่าย<br>ขนาด ๑ นิ้ว<br>หรือ ๒ นิ้ว'}
                             </div>
                         </div>
                     </div>
@@ -1591,14 +1558,17 @@
                         <strong>คำรับรองของผู้สมัคร:</strong> ข้าพเจ้าขอรับรองว่าข้อมูลข้างต้นเป็นความจริงทุกประการ และยินดีปฏิบัติตามระเบียบเกณฑ์การตัดสินของคณะกรรมการ อวท. ทุกประการ โดยถือว่าผลการตัดสินเป็นที่สิ้นสุด
                     </div>
 
-                    <div style="display:flex; justify-content:space-between; margin-top:26pt; text-align:center;">
-                        <div style="width:45%;">
+                    <div style="display:flex; justify-content:space-between; margin-top:30pt; page-break-inside:avoid;">
+                        <div style="width:45%; text-align:center;">
                             <div>ลงชื่อ..........................................................ผู้สมัคร</div>
-                            <div style="margin-top:4pt;">( ${app.full_name} )</div>
+                            <div style="margin-top:6pt;">( ${app.full_name} )</div>
+                            <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
                         </div>
-                        <div style="width:45%;">
+                        <div style="width:45%; text-align:center;">
                             <div>ลงชื่อ..........................................................เจ้าหน้าที่รับสมัคร</div>
-                            <div style="margin-top:4pt;">(..........................................................)</div>
+                            <div style="margin-top:6pt;">(..........................................................)</div>
+                            <div style="margin-top:6pt;">ตำแหน่ง..........................................................</div>
+                            <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
                         </div>
                     </div>
                 </div>
@@ -1697,8 +1667,8 @@
 
             grid.innerHTML = approved.map(c => `
                 <div class="glass-card rounded-3xl overflow-hidden flex flex-col border border-amber-400/25">
-                    <div class="relative h-60 bg-slate-900">
-                        <img src="${c.photo_url}" alt="${c.full_name}" onerror="handleImgError(this)" class="w-full h-full object-cover">
+                    <div class="relative h-64 bg-slate-950 flex items-center justify-center p-2 border-b border-slate-800">
+                        ${c.photo_url ? `<img src="${c.photo_url}" alt="${c.full_name}" onerror="handleImgError(this)" class="w-full h-full object-contain">` : `<div class="text-xs text-slate-500">ไม่มีรูปถ่ายผู้สมัคร</div>`}
                         <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-extrabold text-sm shadow">#${c.contestant_number || '-'}</div>
                         <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-slate-950/80 text-amber-200 text-xs border border-amber-400/30">
                             ${c.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์'}
@@ -1792,7 +1762,9 @@
                             ${ranked.slice(0, 3).map((r, idx) => `
                                 <div class="p-5 rounded-2xl bg-slate-900/90 border ${idx === 0 ? 'border-amber-400' : 'border-slate-700'} flex flex-col items-center text-center">
                                     <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 mb-3">${medals[idx]}</span>
-                                    <img src="${r.photo_url}" onerror="handleImgError(this)" class="w-20 h-20 rounded-full object-cover border-2 border-amber-400 mb-2">
+                                    <div class="w-20 h-20 rounded-full bg-slate-950 overflow-hidden border-2 border-amber-400 mb-2 flex items-center justify-center">
+                                        <img src="${r.photo_url}" onerror="handleImgError(this)" class="w-full h-full object-contain">
+                                    </div>
                                     <span class="text-xs text-amber-300 font-bold">#${r.contestant_number || '-'}</span>
                                     <h4 class="font-bold text-base text-white">${r.displayName}</h4>
                                     <p class="text-xs text-slate-400">${r.department} (${r.edu_level})</p>
@@ -1806,9 +1778,7 @@
             wrap.innerHTML = renderCard('noppamas', '👑 ผลการประกวดนางนพมาศ') + renderCard('krathong_team', '🪷 ผลการประกวดกระทงประดิษฐ์');
         }
 
-        // ==========================================================
         // ระบบกรรมการ
-        // ==========================================================
         function handleJudgeLogin(e) {
             e.preventDefault();
             const u = document.getElementById('judge-user').value.trim();
@@ -1909,7 +1879,9 @@
                                 <tr>
                                     <td class="p-3">
                                         <div class="flex items-center gap-3">
-                                            <img src="${con.photo_url}" onerror="handleImgError(this)" class="w-10 h-10 rounded-xl object-cover border border-amber-400/40">
+                                            <div class="w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center">
+                                                <img src="${con.photo_url}" onerror="handleImgError(this)" class="w-full h-full object-contain">
+                                            </div>
                                             <div>
                                                 <span class="text-xs font-bold text-amber-400">#${con.contestant_number || '-'}</span>
                                                 <p class="font-semibold text-white">${getDisplayName(con)}</p>
@@ -1974,9 +1946,7 @@
             showToast('ส่งคะแนนและล็อกตารางเรียบร้อยแล้ว', 'success');
         }
 
-        // ==========================================================
         // แอดมิน (ADMIN DASHBOARD)
-        // ==========================================================
         function handleAdminLogin(e) {
             e.preventDefault();
             const u = document.getElementById('admin-user').value.trim();
@@ -2239,7 +2209,7 @@
                 <div class="space-y-6">
                     <h3 class="text-xl font-bold gold-gradient-text">🖨️ ศูนย์พิมพ์เอกสารราชการ A4 (TH Sarabun PSK เลขไทย)</h3>
                     <div class="flex flex-wrap items-center gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
-                        <label class="text-xs text-slate-300">เลือกประเภท:</label>
+                        <label class="text-xs text-slate-300">เลือกประเภทการประกวด:</label>
                         <select id="print-center-cat" class="input-night px-3.5 py-2 rounded-xl text-xs font-semibold">
                             <option value="noppamas">👑 นางนพมาศ (บุคคล)</option>
                             <option value="krathong_team">🪷 กระทงประดิษฐ์ (ทีม)</option>
@@ -2254,21 +2224,21 @@
                         <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
                             <div>
                                 <h4 class="font-bold text-amber-300">๑. ใบคะแนนเปล่าสำหรับเขียนด้วยมือ (แนวนอน)</h4>
-                                <p class="text-xs text-slate-400 mt-1">แสดงรายชื่อผู้เข้าประกวด/สาขาและห้อง สำหรับแจกให้กรรมการเขียนบนเวที</p>
+                                <p class="text-xs text-slate-400 mt-1">แสดงรายการประกวดและชื่อกรรมการที่เลือก สำหรับแจกให้กรรมการลงคะแนนบนเวที</p>
                             </div>
                             <button onclick="printAdminDocument('blank_landscape')" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">🖨️ พิมพ์ใบคะแนนเปล่า (A4 แนวนอน)</button>
                         </div>
                         <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
                             <div>
                                 <h4 class="font-bold text-amber-300">๒. ใบคะแนนสรุปรายกรรมการ</h4>
-                                <p class="text-xs text-slate-400 mt-1">แสดงคะแนนที่กรรมการบันทึกไว้ พร้อมช่องลงนาม</p>
+                                <p class="text-xs text-slate-400 mt-1">แสดงรายการประกวดและคะแนนที่กรรมการบันทึกไว้ พร้อมช่องลงนามเป็นทางการ</p>
                             </div>
                             <button onclick="printAdminDocument('judge_individual')" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">🖨️ พิมพ์ใบสรุปคะแนนรายบุคคล</button>
                         </div>
                         <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
                             <div>
                                 <h4 class="font-bold text-amber-300">๓. ตารางสรุปคะแนนรวมทุกคน (Cross-Tab Table)</h4>
-                                <p class="text-xs text-slate-400 mt-1">ตารางไขว้รวมคะแนนจากกรรมการทุกคน</p>
+                                <p class="text-xs text-slate-400 mt-1">ตารางไขว้รวมคะแนนของรายการประกวดที่เลือกจากกรรมการทุกคน</p>
                             </div>
                             <button onclick="printAdminDocument('crosstab')" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">🖨️ พิมพ์ตารางรวม Cross-Tab</button>
                         </div>
@@ -2287,7 +2257,11 @@
         function printAdminDocument(docType) {
             const cat = document.getElementById('print-center-cat').value;
             const judgeId = Number(document.getElementById('print-center-judge').value);
+
             const catTitle = cat === 'noppamas' ? 'การประกวดนางนพมาศ (ประเภทบุคคล)' : 'การประกวดกระทงประดิษฐ์ (ประเภททีม ๕ คน)';
+            const selectedJudgeObj = appState.judges.find(x => Number(x.id) === judgeId);
+            const judgeName = selectedJudgeObj ? selectedJudgeObj.full_name : '..........................................................';
+
             const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b.order_index);
             const contestants = appState.applications.filter(a => a.contest_type === cat && a.status === 'APPROVED').sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
             const printArea = document.getElementById('print-area');
@@ -2298,10 +2272,12 @@
                     <div class="print-page">
                         <div style="text-align:center;">
                             ${getAoVorThorLogoSvg()}
-                            <div style="font-size:18pt; font-weight:bold;">ใบคะแนนการตัดสิน${catTitle} (สำหรับเขียนด้วยมือ)</div>
-                            <div style="font-size:15pt;">งานประเพณีลอยกระทง องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ประจำปีการศึกษา ๒๕๖๙</div>
+                            <div style="font-size:18pt; font-weight:bold;">ใบคะแนนการตัดสิน (สำหรับเขียนด้วยมือ)</div>
+                            <div style="font-size:15pt;">รายการประกวด: <strong>${catTitle}</strong></div>
+                            <div style="font-size:15pt;">กรรมการผู้ตัดสิน: <strong>${toThaiNum(judgeName)}</strong></div>
+                            <div style="font-size:14pt; margin-top:2pt;">งานประเพณีลอยกระทง องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ประจำปีการศึกษา ๒๕๖๙</div>
                         </div>
-                        <table class="print-table">
+                        <table class="print-table" style="margin-top:10pt;">
                             <thead>
                                 <tr>
                                     <th style="width:8%;">หมายเลข</th>
@@ -2313,7 +2289,7 @@
                             <tbody>
                                 ${contestants.map(con => `
                                     <tr>
-                                        <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
+                                        <td style="text-align:center; font-weight:bold;">#${toThaiNum(con.contestant_number)}</td>
                                         <td>${getDisplayNameThai(con)}</td>
                                         ${criteriaList.map(() => `<td style="height:24pt;"></td>`).join('')}
                                         <td></td>
@@ -2321,24 +2297,28 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="margin-top:24pt; text-align:right;">
-                            ลงชื่อ..........................................................กรรมการผู้ตัดสิน<br>
-                            (..........................................................)<br>
-                            วันที่ ........ / ......................... / ๒๕๖๙
+                        <div style="display:flex; justify-justify:flex-end; justify-content:flex-end; margin-top:24pt; page-break-inside:avoid;">
+                            <div style="width:42%; text-align:center;">
+                                <div>ลงชื่อ..........................................................กรรมการผู้ตัดสิน</div>
+                                <div style="margin-top:6pt;">( ${toThaiNum(judgeName)} )</div>
+                                <div style="margin-top:6pt;">ตำแหน่ง..........................................................</div>
+                                <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (docType === 'judge_individual') {
                 setPrintOrientation('landscape');
-                const j = appState.judges.find(x => Number(x.id) === judgeId) || appState.judges[0];
                 printArea.innerHTML = `
                     <div class="print-page">
                         <div style="text-align:center;">
                             ${getAoVorThorLogoSvg()}
-                            <div style="font-size:18pt; font-weight:bold;">ใบสรุปผลคะแนนรายบุคคล — ${catTitle}</div>
-                            <div style="font-size:15pt;">กรรมการผู้ตัดสิน: <strong>${toThaiNum(j ? j.full_name : '')}</strong></div>
+                            <div style="font-size:18pt; font-weight:bold;">ใบสรุปผลคะแนนรายบุคคล</div>
+                            <div style="font-size:15pt;">รายการประกวด: <strong>${catTitle}</strong></div>
+                            <div style="font-size:15pt;">กรรมการผู้ตัดสิน: <strong>${toThaiNum(judgeName)}</strong></div>
+                            <div style="font-size:14pt; margin-top:2pt;">งานประเพณีลอยกระทง องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ประจำปีการศึกษา ๒๕๖๙</div>
                         </div>
-                        <table class="print-table">
+                        <table class="print-table" style="margin-top:10pt;">
                             <thead>
                                 <tr>
                                     <th style="width:8%;">หมายเลข</th>
@@ -2351,14 +2331,14 @@
                                 ${contestants.map(con => {
                                     let sum = 0;
                                     const cols = criteriaList.map(cri => {
-                                        const sc = appState.scores.find(s => Number(s.judge_id) === Number(j ? j.id : 0) && Number(s.application_id) === Number(con.id) && Number(s.criteria_id) === Number(cri.id));
+                                        const sc = appState.scores.find(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(con.id) && Number(s.criteria_id) === Number(cri.id));
                                         const v = sc ? Number(sc.score) : 0;
                                         sum += v;
                                         return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
                                     }).join('');
                                     return `
                                         <tr>
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
+                                            <td style="text-align:center; font-weight:bold;">#${toThaiNum(con.contestant_number)}</td>
                                             <td>${getDisplayNameThai(con)}</td>
                                             ${cols}
                                             <td style="text-align:center; font-weight:bold;">${toThaiNum(sum.toFixed(1))}</td>
@@ -2367,6 +2347,14 @@
                                 }).join('')}
                             </tbody>
                         </table>
+                        <div style="display:flex; justify-content:flex-end; margin-top:24pt; page-break-inside:avoid;">
+                            <div style="width:42%; text-align:center;">
+                                <div>ลงชื่อ..........................................................กรรมการผู้ตัดสิน</div>
+                                <div style="margin-top:6pt;">( ${toThaiNum(judgeName)} )</div>
+                                <div style="margin-top:6pt;">ตำแหน่ง..........................................................</div>
+                                <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else if (docType === 'crosstab') {
@@ -2378,9 +2366,9 @@
                         <div style="text-align:center;">
                             ${getAoVorThorLogoSvg()}
                             <div style="font-size:18pt; font-weight:bold;">ตารางสรุปคะแนนรวมจากกรรมการทุกคน (Cross-Tab Table)</div>
-                            <div style="font-size:16pt;">${catTitle}</div>
+                            <div style="font-size:16pt;">รายการประกวด: <strong>${catTitle}</strong></div>
                         </div>
-                        <table class="print-table">
+                        <table class="print-table" style="margin-top:10pt;">
                             <thead>
                                 <tr>
                                     <th style="width:8%;">หมายเลข</th>
@@ -2401,7 +2389,7 @@
                                     }).join('');
                                     return `
                                         <tr>
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
+                                            <td style="text-align:center; font-weight:bold;">#${toThaiNum(con.contestant_number)}</td>
                                             <td>${getDisplayNameThai(con)}</td>
                                             ${jCols}
                                             <td style="text-align:center; font-weight:bold;">${toThaiNum(grandTotal.toFixed(1))}</td>
@@ -2410,6 +2398,20 @@
                                 }).join('')}
                             </tbody>
                         </table>
+                        <div style="display:flex; justify-content:space-between; margin-top:28pt; page-break-inside:avoid;">
+                            <div style="width:42%; text-align:center;">
+                                <div>ลงชื่อ..........................................................ผู้สรุปคะแนน</div>
+                                <div style="margin-top:6pt;">(..........................................................)</div>
+                                <div style="margin-top:6pt;">ตำแหน่ง..........................................................</div>
+                                <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
+                            </div>
+                            <div style="width:42%; text-align:center;">
+                                <div>ลงชื่อ..........................................................ประธานกรรมการผู้ตัดสิน</div>
+                                <div style="margin-top:6pt;">(..........................................................)</div>
+                                <div style="margin-top:6pt;">ตำแหน่ง..........................................................</div>
+                                <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else if (docType === 'winner_rank') {
@@ -2421,7 +2423,9 @@
                         <div style="text-align:center;">
                             ${getAoVorThorLogoSvg()}
                             <div style="font-size:20pt; font-weight:bold;">ประกาศองค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</div>
-                            <div style="font-size:17pt; font-weight:bold;">เรื่อง ประกาศผลการตัดสิน${catTitle} ประจำปีการศึกษา ๒๕๖๙</div>
+                            <div style="font-size:17pt; font-weight:bold;">เรื่อง ประกาศผลการตัดสิน${catTitle}</div>
+                            <div style="font-size:15pt; margin-top:2pt;">รายการประกวด: <strong>${catTitle}</strong></div>
+                            <div style="font-size:15pt;">ประจำปีการศึกษา ๒๕๖๙</div>
                         </div>
                         <table class="print-table" style="margin-top:16pt;">
                             <thead>
@@ -2445,6 +2449,20 @@
                                 `).join('')}
                             </tbody>
                         </table>
+                        <div style="display:flex; justify-content:space-between; margin-top:35pt; page-break-inside:avoid;">
+                            <div style="width:45%; text-align:center;">
+                                <div>ลงชื่อ..........................................................</div>
+                                <div style="margin-top:6pt;">(..........................................................)</div>
+                                <div style="margin-top:6pt;">ประธานกรรมการตัดสิน</div>
+                                <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
+                            </div>
+                            <div style="width:45%; text-align:center;">
+                                <div>ลงชื่อ..........................................................</div>
+                                <div style="margin-top:6pt;">(..........................................................)</div>
+                                <div style="margin-top:6pt;">นายกองค์การนักวิชาชีพในอนาคตแห่งประเทศไทย</div>
+                                <div style="margin-top:6pt;">วันที่ ....... เดือน ......................... พ.ศ. ๒๕๖๙</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             }
@@ -2620,9 +2638,7 @@
             showToast('ปฏิเสธใบสมัครแล้ว', 'warning');
         }
 
-        // ==========================================================
-        // การนำทางหลัก (ไม่เกิดการค้าง สกอร์ลได้อย่างอิสระ)
-        // ==========================================================
+        // การนำทางหลัก
         function switchTab(tabId) {
             currentTab = tabId;
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
