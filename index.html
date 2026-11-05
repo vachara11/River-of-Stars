@@ -352,14 +352,21 @@
                                 <div id="krathong-style-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                                 <input type="hidden" id="selected-krathong-type" value="star_galaxy">
                             </div>
-                            <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+                            <div class="lg:col-span-5 flex flex-col justify-between space-y-3">
                                 <div>
                                     <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อผู้ลอยกระทง / สังกัด <span class="text-rose-400">*</span></label>
                                     <input type="text" id="krathong-sender" required maxlength="50" placeholder="เช่น กานต์พิชชา ปวส.1 การบัญชี" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-slate-300 mb-1">คำอธิษฐานขอพร <span class="text-rose-400">*</span></label>
-                                    <textarea id="krathong-wish" required maxlength="140" rows="3" placeholder="พิมพ์คำอธิษฐานของคุณที่นี่..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                                    <textarea id="krathong-wish" required maxlength="140" rows="2" placeholder="พิมพ์คำอธิษฐานของคุณที่นี่..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">รูปถ่ายผู้ลอยกระทง <span class="text-slate-400 font-normal">(แสดงบนกระทงเท่านั้น ไม่บันทึกลงฐานข้อมูล)</span></label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="file" id="krathong-avatar" accept="image/*" onchange="previewFloatAvatar(this)" class="input-night flex-1 px-3 py-1.5 rounded-xl text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                                        <img id="krathong-avatar-preview" class="w-9 h-9 rounded-full object-cover border border-amber-400 hidden shrink-0" alt="Preview Avatar">
+                                    </div>
                                 </div>
                                 <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2">
                                     <i data-lucide="sparkles" class="w-5 h-5"></i> ปล่อยกระทงลงสู่สายน้ำ
@@ -784,6 +791,10 @@
         let adminOverviewChart = null;
         let compressedFilesCache = {};
 
+        // Local Memory Store สำหรับรูปผู้ลอยกระทง (ไม่บันทึกลงฐานข้อมูล)
+        let localAvatarStore = {};
+        let tempFloatAvatarUrl = '';
+
         function toThaiNum(input) {
             if (input === null || input === undefined) return '';
             const thaiDigits = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
@@ -1056,8 +1067,27 @@
             showToast('เชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
         }
 
-        // CANVAS สายน้ำและกระทง
+        // CANVAS สายน้ำและกระทง (จัดระเบียบไม่ให้แออัด และรองรับ รูปภาพคนลอย local)
         let riverCanvas, riverCtx, floatingSprites = [], riverTick = 0;
+
+        function previewFloatAvatar(input) {
+            const file = input.files && input.files[0];
+            const prev = document.getElementById('krathong-avatar-preview');
+            if (!file) {
+                tempFloatAvatarUrl = '';
+                if (prev) prev.classList.add('hidden');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempFloatAvatarUrl = e.target.result;
+                if (prev) {
+                    prev.src = tempFloatAvatarUrl;
+                    prev.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
 
         function initRiverCanvas() {
             riverCanvas = document.getElementById('river-canvas');
@@ -1081,84 +1111,169 @@
             const h = riverCanvas ? riverCanvas.height : 460;
 
             const total = appState.krathongs.length;
+            // ขยายความกว้างเสมือน (Virtual Width) ให้กระจายตัวไม่กระจุกกัน
+            const virtualWidth = Math.max(w * 2.8, total * 180);
+
             floatingSprites = appState.krathongs.map((item, idx) => {
-                const laneRatio = 0.44 + ((idx * 0.12) % 0.44);
-                const spacing = total > 0 ? (w / total) : 200;
+                // แบ่งเลนความลึกเป็น 6 ระดับแบบกระจาย
+                const lane = idx % 6;
+                const laneRatio = 0.44 + lane * 0.08;
+                const baseSpeed = 0.35 + (idx % 3) * 0.12;
+
+                const storeKey = item.sender_name + '_' + item.wish_text;
+                let avatarImg = localAvatarStore[storeKey + '_img'] || null;
+                if (!avatarImg && localAvatarStore[storeKey]) {
+                    avatarImg = new Image();
+                    avatarImg.src = localAvatarStore[storeKey];
+                    localAvatarStore[storeKey + '_img'] = avatarImg;
+                }
+
                 return {
                     ...item,
-                    x: (idx * spacing + 40) % w,
+                    x: (idx * 180 + 40) % virtualWidth,
+                    virtualWidth: virtualWidth,
                     baseY: h * laneRatio,
-                    speed: 0.35 + (idx % 3) * 0.15,
-                    phase: idx * 1.4,
-                    scale: 0.78 + (laneRatio - 0.4) * 0.5
+                    speed: baseSpeed,
+                    phase: idx * 1.3,
+                    scale: 0.65 + lane * 0.06,
+                    avatarImg: avatarImg
                 };
             });
+
+            // เรียงลำดับ Layer จากกระทงแถวหลังไปแถวหน้า (Y-axis Depth sorting)
+            floatingSprites.sort((a, b) => a.baseY - b.baseY);
         }
 
         function drawKrathongSprite(ctx, sp, tick) {
             const styleObj = KRATHONG_STYLES.find(s => s.id === sp.krathong_type) || KRATHONG_STYLES[0];
-            const bobY = sp.baseY + Math.sin(tick * 0.04 + sp.phase) * 6;
+            const bobY = sp.baseY + Math.sin(tick * 0.04 + sp.phase) * 5;
             ctx.save();
             ctx.translate(sp.x, bobY);
             ctx.scale(sp.scale, sp.scale);
 
-            const grad = ctx.createRadialGradient(0, 18, 4, 0, 18, 52);
+            // เงาแสงใต้กระทง
+            const grad = ctx.createRadialGradient(0, 16, 4, 0, 16, 48);
             grad.addColorStop(0, styleObj.glow + '66');
             grad.addColorStop(1, 'transparent');
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.ellipse(0, 18, 52, 14, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 16, 48, 12, 0, 0, Math.PI * 2);
             ctx.fill();
 
+            // ฐานกระทง
             ctx.fillStyle = styleObj.color2;
             ctx.beginPath();
-            ctx.ellipse(0, 10, 38, 12, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 9, 34, 10, 0, 0, Math.PI * 2);
             ctx.fill();
 
+            // กลีบดอกไม้
             for (let i = -3; i <= 3; i++) {
                 ctx.save();
-                ctx.translate(i * 9, 4);
+                ctx.translate(i * 8, 3);
                 ctx.fillStyle = i % 2 === 0 ? styleObj.color1 : styleObj.glow;
                 ctx.beginPath();
-                ctx.moveTo(0, -18);
-                ctx.quadraticCurveTo(9, -4, 7, 6);
-                ctx.quadraticCurveTo(0, 9, -7, 6);
-                ctx.quadraticCurveTo(-9, -4, 0, -18);
+                ctx.moveTo(0, -16);
+                ctx.quadraticCurveTo(8, -4, 6, 5);
+                ctx.quadraticCurveTo(0, 8, -6, 5);
+                ctx.quadraticCurveTo(-8, -4, 0, -16);
                 ctx.fill();
                 ctx.restore();
             }
 
+            // เทียนและเปลวไฟ
             ctx.fillStyle = '#fde047';
-            ctx.fillRect(-2, -26, 4, 15);
+            ctx.fillRect(-2, -24, 4, 14);
             const flame = Math.sin(tick * 0.2 + sp.phase) * 2;
             ctx.fillStyle = '#fb923c';
             ctx.beginPath();
-            ctx.moveTo(flame * 0.4, -39);
-            ctx.quadraticCurveTo(6, -30, 0, -26);
-            ctx.quadraticCurveTo(-6, -30, flame * 0.4, -39);
+            ctx.moveTo(flame * 0.4, -36);
+            ctx.quadraticCurveTo(5, -28, 0, -24);
+            ctx.quadraticCurveTo(-5, -28, flame * 0.4, -36);
             ctx.fill();
 
-            ctx.font = '600 12px Kanit, sans-serif';
+            // --- วาดกล่องข้อความพร้อม AVATAR ---
+            ctx.font = '500 11px Kanit, sans-serif';
             const senderTxt = sp.sender_name || 'ผู้ร่วมลอยกระทง';
-            const wishShort = (sp.wish_text || '').length > 34 ? sp.wish_text.substring(0, 34) + '...' : sp.wish_text;
-            const boxWidth = Math.max(ctx.measureText(senderTxt).width, ctx.measureText(wishShort).width) + 24;
+            const wishShort = (sp.wish_text || '').length > 24 ? sp.wish_text.substring(0, 24) + '...' : sp.wish_text;
 
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-            ctx.strokeStyle = 'rgba(251, 191, 36, 0.55)';
-            ctx.lineWidth = 1;
+            const avatarSize = 24;
+            const avatarRadius = avatarSize / 2;
+            const paddingX = 8;
+            const textStartX = avatarSize + paddingX + 4;
+
+            const nameWidth = ctx.measureText(senderTxt).width;
+            const wishWidth = ctx.measureText(wishShort).width;
+            const contentWidth = Math.max(nameWidth, wishWidth);
+
+            const boxWidth = textStartX + contentWidth + paddingX;
+            const boxHeight = 34;
             const bx = -boxWidth / 2;
-            const by = -82;
+            const by = -74;
+
+            // พื้นหลังกล่องข้อความ
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.50)';
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.roundRect(bx, by, boxWidth, 36, 8);
+            ctx.roundRect(bx, by, boxWidth, boxHeight, 8);
             ctx.fill();
             ctx.stroke();
 
+            // เข็มชี้กล่องข้อความ
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+            ctx.beginPath();
+            ctx.moveTo(-4, by + boxHeight);
+            ctx.lineTo(0, by + boxHeight + 5);
+            ctx.lineTo(4, by + boxHeight);
+            ctx.closePath();
+            ctx.fill();
+
+            // --- วาดรูป AVATAR ---
+            const avatarCenterX = bx + paddingX + avatarRadius;
+            const avatarCenterY = by + boxHeight / 2;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
+            ctx.clip();
+
+            if (sp.avatarImg && sp.avatarImg.complete && sp.avatarImg.naturalWidth !== 0) {
+                ctx.drawImage(sp.avatarImg, avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
+            } else {
+                const avGrad = ctx.createLinearGradient(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarCenterX + avatarRadius, avatarCenterY + avatarRadius);
+                avGrad.addColorStop(0, styleObj.color1 || '#fbbf24');
+                avGrad.addColorStop(1, styleObj.color2 || '#d97706');
+                ctx.fillStyle = avGrad;
+                ctx.fillRect(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Kanit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const initial = (senderTxt.trim()[0] || 'ก').toUpperCase();
+                ctx.fillText(initial, avatarCenterX, avatarCenterY + 1);
+            }
+            ctx.restore();
+
+            // กรอบรูป Avatar
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // --- ข้อความ ---
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+
             ctx.fillStyle = '#fbbf24';
-            ctx.textAlign = 'center';
-            ctx.fillText(senderTxt, 0, by + 14);
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '400 11px Kanit, sans-serif';
-            ctx.fillText(wishShort, 0, by + 29);
+            ctx.font = '600 11px Kanit, sans-serif';
+            ctx.fillText(senderTxt, bx + textStartX, by + 14);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '400 10px Kanit, sans-serif';
+            ctx.fillText(wishShort, bx + textStartX, by + 27);
+
             ctx.restore();
         }
 
@@ -1212,8 +1327,14 @@
 
             floatingSprites.forEach(sp => {
                 sp.x += sp.speed;
-                if (sp.x > w + 120) sp.x = -120;
-                drawKrathongSprite(riverCtx, sp, riverTick);
+                const vW = sp.virtualWidth || (w * 2.8);
+                if (sp.x > vW) {
+                    sp.x = -160;
+                }
+                // เรนเดอร์เฉพาะกระทงที่อยู่ในพื้นที่มองเห็นเพื่อประสิทธิภาพสูงสุด
+                if (sp.x >= -180 && sp.x <= w + 180) {
+                    drawKrathongSprite(riverCtx, sp, riverTick);
+                }
             });
             requestAnimationFrame(animateRiverCanvas);
         }
@@ -1264,10 +1385,25 @@
                     showToast('บันทึกกระทงไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ INSERT)', 'error');
                     return;
                 }
+
+                // เก็บรูปถ่ายไว้ในหน่วยความจำของเครื่องเท่านั้น (ไม่ส่งลงฐานข้อมูล)
+                if (tempFloatAvatarUrl) {
+                    const storeKey = sender + '_' + wish;
+                    localAvatarStore[storeKey] = tempFloatAvatarUrl;
+                    const imgObj = new Image();
+                    imgObj.src = tempFloatAvatarUrl;
+                    localAvatarStore[storeKey + '_img'] = imgObj;
+                }
+
                 document.getElementById('krathong-sender').value = '';
                 document.getElementById('krathong-wish').value = '';
+                document.getElementById('krathong-avatar').value = '';
+                tempFloatAvatarUrl = '';
+                const prev = document.getElementById('krathong-avatar-preview');
+                if (prev) prev.classList.add('hidden');
+
                 await loadKrathongsFromDB(true);
-                showToast('ปล่อยกระทงพร้อมคำอธิษฐานลงสู่สายน้ำและบันทึกลงฐานข้อมูลแล้ว', 'success');
+                showToast('ปล่อยกระทงพร้อมคำอธิษฐานลงสู่สายน้ำแล้ว', 'success');
             } catch (err) {
                 console.error(err);
                 showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + (err.message || err), 'error');
@@ -2297,7 +2433,7 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        <div style="display:flex; justify-justify:flex-end; justify-content:flex-end; margin-top:24pt; page-break-inside:avoid;">
+                        <div style="display:flex; justify-content:flex-end; margin-top:24pt; page-break-inside:avoid;">
                             <div style="width:42%; text-align:center;">
                                 <div>ลงชื่อ..........................................................กรรมการผู้ตัดสิน</div>
                                 <div style="margin-top:6pt;">( ${toThaiNum(judgeName)} )</div>
