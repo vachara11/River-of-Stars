@@ -260,10 +260,6 @@
 
                 <!-- Supabase status & menu toggle -->
                 <div class="flex items-center gap-2 shrink-0">
-                    <button id="sb-status-badge" onclick="openDbConfigModal()" title="สถานะฐานข้อมูล" class="text-[11px] px-2.5 py-1.5 rounded-full border flex items-center gap-1.5 bg-slate-900/90 text-slate-300 border-slate-700">
-                        <span id="sb-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-                        <span id="sb-text" class="hidden sm:inline whitespace-nowrap">ตรวจสอบ DB...</span>
-                    </button>
                     <button onclick="toggleMobileDrawer(true)" aria-label="เปิดเมนู" class="p-2 rounded-xl bg-slate-800/80 border border-amber-400/30 text-amber-300 lg:hidden">
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
@@ -309,10 +305,6 @@
                     </button>
                     <button onclick="switchTab('admin'); toggleMobileDrawer(false);" data-drawer="admin" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-purple-300 hover:bg-slate-800/80">
                         <i data-lucide="shield-check" class="w-4 h-4"></i> ระบบผู้ดูแลระบบ (Admin)
-                    </button>
-                    <hr class="border-slate-700/80 my-2">
-                    <button onclick="toggleMobileDrawer(false); openDbConfigModal();" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-slate-300 hover:bg-slate-800/80">
-                        <i data-lucide="database" class="w-4 h-4"></i> ตั้งค่า / ตรวจสอบฐานข้อมูล
                     </button>
                 </div>
             </div>
@@ -581,13 +573,11 @@
                     <form onsubmit="handleJudgeLogin(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">ชื่อผู้ใช้ (Username)</label>
-                            <input type="text" id="judge-user" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="text" id="judge-user" required value="judge1" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
+                            <input type="text" id="judge-user" required value="judge1" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
-                            <input type="password" id="judge-pass" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="password" id="judge-pass" required value="1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
+                            <input type="password" id="judge-pass" required value="1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
                         <button type="submit" class="w-full py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบกรรมการ
@@ -652,13 +642,11 @@
                     <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผู้ดูแลระบบ (Username)</label>
-                            <input type="text" id="admin-user"  class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="text" id="admin-user" required value="admin" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
+                            <input type="text" id="admin-user" required value="admin" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
-                            <input type="password" id="admin-pass"  class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
-                            <!-- <input type="password" id="admin-pass" required value="admin1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"> -->
+                            <input type="password" id="admin-pass" required value="admin1234" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
                         <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบแอดมิน
@@ -959,6 +947,7 @@
         function updateSupabaseStatusBadge() {
             const dot = document.getElementById('sb-dot');
             const text = document.getElementById('sb-text');
+            if (!dot || !text) return;
             if (sbClient) {
                 dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
                 text.textContent = 'DB เชื่อมต่อแล้ว';
