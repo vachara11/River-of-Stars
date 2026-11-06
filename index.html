@@ -292,11 +292,33 @@
         }
 
         /* ===== สายน้ำ: โหมดเต็มจอ ===== */
-        #river-wrap:fullscreen { width: 100vw !important; height: 100vh !important; border-radius: 0 !important; background: #020617; }
-        #river-wrap:-webkit-full-screen { width: 100vw !important; height: 100vh !important; border-radius: 0 !important; background: #020617; }
-        #river-wrap.river-fs-fallback { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; height: 100dvh !important; z-index: 100 !important; border-radius: 0 !important; }
-        #river-canvas { touch-action: manipulation; }
+        #river-wrap:fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            background: #020617;
+        }
 
+        #river-wrap:-webkit-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            background: #020617;
+        }
+
+        #river-wrap.river-fs-fallback {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            z-index: 100 !important;
+            border-radius: 0 !important;
+        }
+
+        #river-canvas {
+            touch-action: manipulation;
+        }
     </style>
     <style id="dynamic-print-orientation"></style>
 </head>
@@ -459,7 +481,8 @@
                                 <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ประเพณีลอยกระทงวิถีใหม่
                                 สืบสานศิลป์ไทยไร้ขยะ
                             </div>
-                                        <h2 class="text-2xl sm:text-3xl font-bold gold-gradient-text leading-relaxed">สายน้ำแห่งศรัทธา ลอยกระทงออนไลน์ Real-time</h2>
+                            <h2 class="text-2xl sm:text-3xl font-bold gold-gradient-text leading-relaxed">
+                                สายน้ำแห่งศรัทธา ลอยกระทงออนไลน์ Real-time</h2>
                             <p class="text-sm text-slate-300 mt-1">เลือกกระทงแนวดวงดาวและดอกไม้มงคล
                                 พร้อมส่งคำอธิษฐานลอยไปตามสายน้ำจำลองบน Canvas</p>
                         </div>
@@ -564,14 +587,18 @@
                         <div>
                             <h2 class="text-2xl font-bold gold-gradient-text">ระบบรับสมัครเข้าประกวดออนไลน์</h2>
                         </div>
-                        <div class="inline-flex rounded-xl bg-slate-900 p-1.5 border border-slate-700">
+                        <div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1.5 border border-slate-700 gap-1">
                             <button type="button" onclick="switchApplyType('noppamas')" id="btn-apply-noppamas"
                                 class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950">
-                                👑 ประกวดนางนพมาศ (บุคคล)
+                                👑 ประกวดนางนพมาศ
                             </button>
                             <button type="button" onclick="switchApplyType('krathong_team')" id="btn-apply-team"
                                 class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white">
-                                🪷 กระทงประดิษฐ์ (ทีม 5 คน)
+                                🪷 กระทงประดิษฐ์ (ทีม)
+                            </button>
+                            <button type="button" onclick="switchApplyType('booth')" id="btn-apply-booth"
+                                class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white">
+                                🎪 จองบูทกิจกรรม
                             </button>
                         </div>
                     </div>
@@ -718,6 +745,98 @@
                                 class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
                                 <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                                 ยืนยันส่งใบสมัครทีมและพิมพ์เอกสารทันที
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- ฟอร์มจองบูท -->
+                    <form id="form-apply-booth" onsubmit="submitBoothApplication(event)" class="mt-6 space-y-6 hidden">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">รหัสประจำตัวผู้จอง <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="booth-booker-id" required pattern="^[0-9]+$"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="เช่น 6730201001"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">คำนำหน้าชื่อ <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="booth-prefix" required
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                    <option value="นาย">นาย</option>
+                                    <option value="นางสาว">นางสาว</option>
+                                    <option value="นาง">นาง</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">ชื่อ-นามสกุล <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="booth-fullname" required placeholder="ชื่อ นามสกุล"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">เบอร์โทรศัพท์ (10 หลัก) <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="booth-phone" required pattern="^[0-9]{10}$" maxlength="10"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="0812345678"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">สาขาวิชา <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="booth-dept" required
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                    <option value="" disabled selected>-- เลือกสาขาวิชา --</option>
+                                    <option value="การบัญชี">การบัญชี</option>
+                                    <option value="การตลาด">การตลาด</option>
+                                    <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
+                                    <option value="ดิจิทัลกราฟิก">ดิจิทัลกราฟิก</option>
+                                    <option value="การท่องเที่ยว">การท่องเที่ยว</option>
+                                    <option value="อาหารและโภชนาการ">อาหารและโภชนาการ</option>
+                                    <option value="เทคโนโลยีธุรกิจดิจิทัล">เทคโนโลยีธุรกิจดิจิทัล</option>
+                                    <option value="อุตสาหกรรมแสงและเสียง">อุตสาหกรรมแสงและเสียง</option>
+                                    <option value="เทคโนโลยีระบบเสียง">เทคโนโลยีระบบเสียง</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">ประเภทของบูท <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="booth-type" required
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                    <option value="ขายอาหาร/เครื่องดื่ม">ขายอาหาร/เครื่องดื่ม</option>
+                                    <option value="กิจกรรม/เกม">กิจกรรม/เกม</option>
+                                    <option value="นิทรรศการ">นิทรรศการ</option>
+                                    <option value="สินค้าทั่วไป">สินค้าทั่วไป</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">การใช้ไฟฟ้า <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="booth-use-elec" required onchange="toggleBoothElec(this.value)"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                    <option value="false">ไม่ใช้ไฟฟ้า</option>
+                                    <option value="true">ใช้ไฟฟ้า</option>
+                                </select>
+                            </div>
+                            <div id="booth-elec-wrap" class="sm:col-span-2 hidden">
+                                <label class="block text-xs text-slate-300 mb-1">ระบุอุปกรณ์ไฟฟ้าที่ใช้ <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="booth-elec-devices"
+                                    placeholder="เช่น กระทะไฟฟ้า, ปลั๊กพ่วง 2 อัน"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            </div>
+                            <div class="sm:col-span-2 lg:col-span-3">
+                                <label class="block text-xs text-slate-300 mb-1">สิ่งที่อยากบอกผู้ให้เช่าเพิ่มเติม
+                                    (ไม่บังคับ)</label>
+                                <textarea id="booth-note" rows="2" placeholder="เช่น ขอพื้นที่ใกล้ก๊อกน้ำ..."
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                            </div>
+                        </div>
+                        <div class="flex justify-end pt-2">
+                            <button type="submit"
+                                class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i> ยืนยันส่งใบสมัครจองบูท
                             </button>
                         </div>
                     </form>
@@ -1023,7 +1142,7 @@
         // =====================================================================
         const DRIVE_FOLDER_ID = '19cEbure1PEvDbPjDlJK758TP5TEwUQv8'; // โฟลเดอร์ปลายทางใน Google Drive
         const GOOGLE_CLIENT_ID_CONST =
-        'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // ← ใส่ OAuth Client ID (หรือกรอกในหน้า "ตั้งค่า" ก็ได้)
+            'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // ← ใส่ OAuth Client ID (หรือกรอกในหน้า "ตั้งค่า" ก็ได้)
         const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
         // true = ถ้าอัปโหลดเข้า Drive ไม่ได้ จะสำรองไปเก็บที่ Supabase Storage (ปิดเป็น false หากต้องการ Drive อย่างเดียว)
         const ALLOW_FALLBACK_TO_SUPABASE = true;
@@ -1194,7 +1313,8 @@
         let appState = {
             settings: {
                 publish_results: false,
-                applications_open: true
+                applications_open: true,
+                loy_krathong_open: true
             },
             krathongs: [],
             applications: [],
@@ -1517,6 +1637,8 @@
                     if (pubRow) appState.settings.publish_results = pubRow.value_bool;
                     const openRow = setRes.data.find(r => r.setting_key === 'applications_open');
                     if (openRow) appState.settings.applications_open = openRow.value_bool;
+                    const loyOpenRow = setRes.data.find(r => r.setting_key === 'loy_krathong_open');
+                    if (loyOpenRow) appState.settings.loy_krathong_open = loyOpenRow.value_bool;
                 }
 
                 updateSupabaseStatusBadge();
@@ -1589,11 +1711,16 @@
             showToast('เชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
         }
 
-        let riverCanvas, riverCtx, floatingSprites = [], riverTick = 0;
-        let riverW = 0, riverH = 0, riverDpr = 1, riverFontVersion = 0, riverEventsBound = false;
+        let riverCanvas, riverCtx, floatingSprites = [],
+            riverTick = 0;
+        let riverW = 0,
+            riverH = 0,
+            riverDpr = 1,
+            riverFontVersion = 0,
+            riverEventsBound = false;
         const RIVER_LANES = 6;
-        const RIVER_MARGIN = 320;        // ระยะนอกจอซ้าย/ขวา
-        const RIVER_SPACING = 440;       // ระยะห่างระหว่างกระทงในแถวเดียวกัน (กันซ้อน)
+        const RIVER_MARGIN = 320; // ระยะนอกจอซ้าย/ขวา
+        const RIVER_SPACING = 440; // ระยะห่างระหว่างกระทงในแถวเดียวกัน (กันซ้อน)
         const RIVER_LANE_SPEEDS = [0.42, 0.55, 0.48, 0.62, 0.45, 0.58];
         const RIVER_NAME_FONT = '600 17px "Kanit", "Sarabun", sans-serif';
         const RIVER_WISH_FONT = '400 15px "Kanit", "Sarabun", sans-serif';
@@ -1603,8 +1730,12 @@
         let riverLaneCounts = new Array(RIVER_LANES).fill(0);
         let riverLaneTravel = new Array(RIVER_LANES).fill(RIVER_MARGIN + 40);
 
-        const RIVER_WORD_SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', { granularity: 'word' }) : null;
-        const RIVER_GRAPHEME_SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', { granularity: 'grapheme' }) : null;
+        const RIVER_WORD_SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', {
+            granularity: 'word'
+        }) : null;
+        const RIVER_GRAPHEME_SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', {
+            granularity: 'grapheme'
+        }) : null;
 
         let tempFloatAvatarBlob = null;
 
@@ -1680,21 +1811,25 @@
             return img;
         }
 
-                // ================= ตัวช่วยข้อความภาษาไทย =================
+        // ================= ตัวช่วยข้อความภาษาไทย =================
         function normalizeThaiText(text) {
             let s = String(text == null ? '' : text);
-            try { s = s.normalize('NFC'); } catch (e) {}
-            s = s.replace(/[\u200B-\u200D\uFEFF]/g, '');                    // อักขระล่องหน
-            s = s.replace(/\u0E4D\u0E32/g, '\u0E33');                         // ํ + า → ำ
-            s = s.replace(/\u0E33([\u0E48-\u0E4B])/g, '$1\u0E33');            // น+ำ+้ → น+้+ำ (สายนำ้ → สายน้ำ)
+            try {
+                s = s.normalize('NFC');
+            } catch (e) {}
+            s = s.replace(/[\u200B-\u200D\uFEFF]/g, ''); // อักขระล่องหน
+            s = s.replace(/\u0E4D\u0E32/g, '\u0E33'); // ํ + า → ำ
+            s = s.replace(/\u0E33([\u0E48-\u0E4B])/g, '$1\u0E33'); // น+ำ+้ → น+้+ำ (สายนำ้ → สายน้ำ)
             s = s.replace(/([\u0E48-\u0E4C])([\u0E31\u0E34-\u0E37\u0E47])/g, '$2$1'); // วรรณยุกต์ก่อนสระบน → สลับให้ถูก
-            s = s.replace(/([\u0E48-\u0E4C])([\u0E38-\u0E3A])/g, '$2$1');     // วรรณยุกต์ก่อนสระล่าง → สลับให้ถูก
+            s = s.replace(/([\u0E48-\u0E4C])([\u0E38-\u0E3A])/g, '$2$1'); // วรรณยุกต์ก่อนสระล่าง → สลับให้ถูก
             return s.replace(/\s+/g, ' ').trim();
         }
 
         function splitGraphemes(text) {
             if (RIVER_GRAPHEME_SEG) return Array.from(RIVER_GRAPHEME_SEG.segment(text), s => s.segment);
-            return text.match(/[^\u0E31\u0E33-\u0E3A\u0E47-\u0E4E][\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]*|[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/gu) || [];
+            return text.match(
+                /[^\u0E31\u0E33-\u0E3A\u0E47-\u0E4E][\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]*|[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/gu
+            ) || [];
         }
 
         function splitWords(text) {
@@ -1706,13 +1841,22 @@
         function wrapCanvasText(ctx, text, maxWidth) {
             const lines = [];
             let line = '';
-            const pushLine = () => { if (line.trim()) lines.push(line.trim()); line = ''; };
+            const pushLine = () => {
+                if (line.trim()) lines.push(line.trim());
+                line = '';
+            };
             splitWords(text).forEach(tok => {
                 const test = line + tok;
-                if (ctx.measureText(test).width <= maxWidth) { line = test; return; }
+                if (ctx.measureText(test).width <= maxWidth) {
+                    line = test;
+                    return;
+                }
                 pushLine();
                 if (/^\s+$/.test(tok)) return;
-                if (ctx.measureText(tok).width <= maxWidth) { line = tok; return; }
+                if (ctx.measureText(tok).width <= maxWidth) {
+                    line = tok;
+                    return;
+                }
                 splitGraphemes(tok).forEach(g => {
                     if (line && ctx.measureText(line + g).width > maxWidth) pushLine();
                     line += g;
@@ -1725,7 +1869,9 @@
         function ensureRiverFonts() {
             const bump = () => {
                 riverFontVersion++;
-                floatingSprites.forEach(sp => { sp._textLayout = null; });
+                floatingSprites.forEach(sp => {
+                    sp._textLayout = null;
+                });
             };
             if (!document.fonts || !document.fonts.load) return;
             const sample = 'กขคน้ำที่ปู่เก๋ฤๅ ABC';
@@ -1750,13 +1896,18 @@
         function toggleRiverFullscreen() {
             const wrap = document.getElementById('river-wrap');
             if (!wrap) return;
-            if (isRiverFullscreen()) { exitRiverFullscreen(); return; }
+            if (isRiverFullscreen()) {
+                exitRiverFullscreen();
+                return;
+            }
             const req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
             if (req) {
                 try {
                     const p = req.call(wrap);
                     if (p && p.catch) p.catch(() => enableRiverFsFallback(wrap));
-                } catch (e) { enableRiverFsFallback(wrap); }
+                } catch (e) {
+                    enableRiverFsFallback(wrap);
+                }
             } else {
                 enableRiverFsFallback(wrap); // iPhone Safari ไม่รองรับ Fullscreen API
             }
@@ -1772,7 +1923,10 @@
             const wrap = document.getElementById('river-wrap');
             if (getFsElement()) {
                 const ex = document.exitFullscreen || document.webkitExitFullscreen;
-                if (ex) { const p = ex.call(document); if (p && p.catch) p.catch(() => {}); }
+                if (ex) {
+                    const p = ex.call(document);
+                    if (p && p.catch) p.catch(() => {});
+                }
             }
             if (wrap) wrap.classList.remove('river-fs-fallback');
             document.body.classList.remove('overflow-hidden');
@@ -1788,15 +1942,18 @@
             if (label) label.textContent = on ? 'ออกจากเต็มจอ' : 'เต็มจอ';
             if (btn) btn.title = on ? 'ออกจากเต็มจอ' : 'ขยายเต็มจอ';
             if (icon) {
-                icon.innerHTML = on
-                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>'
-                    : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+                icon.innerHTML = on ?
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>' :
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
             }
             // ให้หน้าต่างขยายดูกระทง (lightbox) แสดงได้ขณะอยู่ในโหมดเต็มจอ
             const lb = document.getElementById('krathong-lightbox');
             if (lb && wrap) {
-                if (getFsElement() === wrap) { if (lb.parentElement !== wrap) wrap.appendChild(lb); }
-                else if (lb.parentElement === wrap) { document.body.appendChild(lb); }
+                if (getFsElement() === wrap) {
+                    if (lb.parentElement !== wrap) wrap.appendChild(lb);
+                } else if (lb.parentElement === wrap) {
+                    document.body.appendChild(lb);
+                }
             }
         }
 
@@ -1814,7 +1971,9 @@
                 riverCanvas.width = Math.round(riverW * riverDpr);
                 riverCanvas.height = Math.round(riverH * riverDpr);
                 riverCtx.setTransform(riverDpr, 0, 0, riverDpr, 0, 0);
-                floatingSprites.forEach(sp => { sp.baseY = riverH * (sp.laneRatio || 0.6); });
+                floatingSprites.forEach(sp => {
+                    sp.baseY = riverH * (sp.laneRatio || 0.6);
+                });
             };
             resize();
             window.addEventListener('resize', resize);
@@ -1826,15 +1985,21 @@
                 const py = (ev.clientY - r.top) * (riverH / r.height);
                 for (let i = floatingSprites.length - 1; i >= 0; i--) {
                     const h = floatingSprites[i]._hit;
-                    if (h && px >= h.x && px <= h.x + h.w && py >= h.y && py <= h.y + h.h) return floatingSprites[i];
+                    if (h && px >= h.x && px <= h.x + h.w && py >= h.y && py <= h.y + h.h) return floatingSprites[
+                        i];
                 }
                 return null;
             };
             riverCanvas.addEventListener('click', ev => {
                 const sp = hitTest(ev);
-                if (sp) { openKrathongLightbox(sp); updateRiverFsUI(); }
+                if (sp) {
+                    openKrathongLightbox(sp);
+                    updateRiverFsUI();
+                }
             });
-            riverCanvas.addEventListener('mousemove', ev => { riverCanvas.style.cursor = hitTest(ev) ? 'pointer' : 'default'; });
+            riverCanvas.addEventListener('mousemove', ev => {
+                riverCanvas.style.cursor = hitTest(ev) ? 'pointer' : 'default';
+            });
 
             if (!riverEventsBound) {
                 riverEventsBound = true;
@@ -1844,7 +2009,8 @@
                 document.addEventListener('webkitfullscreenchange', updateRiverFsUI);
                 document.addEventListener('keydown', e => {
                     const wrap = document.getElementById('river-wrap');
-                    if (e.key === 'Escape' && wrap && wrap.classList.contains('river-fs-fallback')) exitRiverFullscreen();
+                    if (e.key === 'Escape' && wrap && wrap.classList.contains('river-fs-fallback'))
+                        exitRiverFullscreen();
                 });
             }
 
@@ -1987,10 +2153,20 @@
                 ctx.font = RIVER_WISH_FONT;
                 const wishLines = wishTxt ? wrapCanvasText(ctx, wishTxt, RIVER_TEXT_MAX_W) : [];
                 const wishW = wishLines.length ? Math.max(...wishLines.map(l => ctx.measureText(l).width)) : 0;
-                sp._textLayout = { v: riverFontVersion, nameLines, wishLines, contentWidth: Math.max(nameW, wishW, 90) };
+                sp._textLayout = {
+                    v: riverFontVersion,
+                    nameLines,
+                    wishLines,
+                    contentWidth: Math.max(nameW, wishW, 90)
+                };
             }
-            const { nameLines, wishLines, contentWidth } = sp._textLayout;
-            const textBlockH = nameLines.length * RIVER_NAME_LH + (wishLines.length ? 4 + wishLines.length * RIVER_WISH_LH : 0);
+            const {
+                nameLines,
+                wishLines,
+                contentWidth
+            } = sp._textLayout;
+            const textBlockH = nameLines.length * RIVER_NAME_LH + (wishLines.length ? 4 + wishLines.length *
+                RIVER_WISH_LH : 0);
             const boxHeight = Math.max(avatarSize, textBlockH) + paddingY * 2;
             const boxWidth = textStartX + contentWidth + 16;
             const bx = -boxWidth / 2;
@@ -2034,10 +2210,13 @@
             const im = sp.avatarImg;
             if (im && im.complete && im.naturalWidth > 0) {
                 const s = Math.min(im.naturalWidth, im.naturalHeight);
-                const sx = (im.naturalWidth - s) / 2, sy = (im.naturalHeight - s) / 2;
-                ctx.drawImage(im, sx, sy, s, s, avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
+                const sx = (im.naturalWidth - s) / 2,
+                    sy = (im.naturalHeight - s) / 2;
+                ctx.drawImage(im, sx, sy, s, s, avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize,
+                    avatarSize);
             } else {
-                const avGrad = ctx.createLinearGradient(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarCenterX + avatarRadius, avatarCenterY + avatarRadius);
+                const avGrad = ctx.createLinearGradient(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius,
+                    avatarCenterX + avatarRadius, avatarCenterY + avatarRadius);
                 avGrad.addColorStop(0, styleObj.color1 || '#fbbf24');
                 avGrad.addColorStop(1, styleObj.color2 || '#d97706');
                 ctx.fillStyle = avGrad;
@@ -2083,7 +2262,8 @@
         }
 
         function syncCanvasKrathongs() {
-            const list = (typeof appState !== 'undefined' && appState && Array.isArray(appState.krathongs)) ? appState.krathongs : [];
+            const list = (typeof appState !== 'undefined' && appState && Array.isArray(appState.krathongs)) ? appState
+                .krathongs : [];
             const countEl = document.getElementById('krathong-count-badge');
             if (countEl) countEl.textContent = list.length;
             const h = riverH || (riverCanvas ? riverCanvas.height : 460);
@@ -2154,7 +2334,7 @@
             document.body.appendChild(overlay);
         }
 
-        
+
 
         function renderKrathongStyleSelector() {
             const grid = document.getElementById('krathong-style-grid');
@@ -2270,25 +2450,6 @@
             container.innerHTML = html;
         }
 
-        function switchApplyType(type) {
-            const fNop = document.getElementById('form-apply-noppamas');
-            const fTeam = document.getElementById('form-apply-team');
-            const bNop = document.getElementById('btn-apply-noppamas');
-            const bTeam = document.getElementById('btn-apply-team');
-            if (type === 'noppamas') {
-                fNop.classList.remove('hidden');
-                fTeam.classList.add('hidden');
-                bNop.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950';
-                bTeam.className =
-                    'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
-            } else {
-                fTeam.classList.remove('hidden');
-                fNop.classList.add('hidden');
-                bTeam.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950';
-                bNop.className =
-                'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
-            }
-        }
 
         function ensurePrefixInName(prefix, rawName) {
             const clean = rawName.trim();
@@ -2414,6 +2575,86 @@
             printOfficialApplicationForm(newApp.id);
         }
 
+
+        // ควบคุมการแสดงผลฟอร์มตอนกดเปลี่ยนปุ่ม
+        function switchApplyType(type) {
+            // เพิ่มบรรทัดนี้เพื่อแปลงค่า krathong_team ให้ตรงกับชื่อ id ของฟอร์ม (team)
+            if (type === 'krathong_team') type = 'team';
+
+            const forms = ['noppamas', 'team', 'booth'];
+            forms.forEach(f => {
+                const formEl = document.getElementById(`form-apply-${f}`);
+                const btnEl = document.getElementById(`btn-apply-${f}`);
+                if (!formEl || !btnEl) return;
+                
+                if (f === type) {
+                    formEl.classList.remove('hidden');
+                    btnEl.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950';
+                } else {
+                    formEl.classList.add('hidden');
+                    btnEl.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
+                }
+            });
+        }
+
+        // ควบคุมช่องกรอกอุปกรณ์ไฟฟ้า
+        function toggleBoothElec(val) {
+            const wrap = document.getElementById('booth-elec-wrap');
+            const input = document.getElementById('booth-elec-devices');
+            if(val === 'true') {
+                wrap.classList.remove('hidden');
+                input.setAttribute('required', 'true');
+            } else {
+                wrap.classList.add('hidden');
+                input.removeAttribute('required');
+                input.value = '';
+            }
+        }
+
+        // ฟังก์ชันส่งฟอร์มลง Database
+        async function submitBoothApplication(e) {
+            e.preventDefault();
+            const bookerId = document.getElementById('booth-booker-id').value.trim();
+            const prefix = document.getElementById('booth-prefix').value;
+            const fullname = document.getElementById('booth-fullname').value.trim();
+            const phone = document.getElementById('booth-phone').value.trim(); // <--- เพิ่มบรรทัดนี้
+            const dept = document.getElementById('booth-dept').value;
+            const boothType = document.getElementById('booth-type').value;
+            const useElec = document.getElementById('booth-use-elec').value === 'true';
+            const elecDevices = document.getElementById('booth-elec-devices').value.trim();
+            const note = document.getElementById('booth-note').value.trim();
+
+            showLoader('กำลังบันทึกใบสมัครจองบูท...');
+
+            const newBoothApp = {
+                booker_id: bookerId,
+                prefix_name: prefix,
+                full_name: ensurePrefixInName(prefix, fullname),
+                phone: phone, // <--- เพิ่มบรรทัดนี้เพื่อส่งเข้า Database
+                department: dept,
+                booth_type: boothType,
+                use_electricity: useElec,
+                electrical_devices: elecDevices,
+                additional_note: note,
+                status: 'PENDING',
+                created_at: new Date().toISOString()
+            };
+
+            if (sbClient) {
+                const { error } = await sbClient.from('booth_applications').insert([newBoothApp]);
+                if (error) {
+                    hideLoader();
+                    showToast('เกิดข้อผิดพลาดในการจอง: ' + error.message, 'error');
+                    return;
+                }
+            }
+
+            e.target.reset();
+            toggleBoothElec('false');
+            hideLoader();
+            showToast('ส่งใบสมัครจองบูทสำเร็จแล้ว!', 'success');
+        }
+
         function getAoVorThorLogoSvg() {
             return `
                 <div style="text-align: center; margin-bottom: 6pt;">
@@ -2443,7 +2684,7 @@
             const contestantNoTh = app.contestant_number ? toThaiNum(app.contestant_number) : 'รอการอนุมัติ';
 
             let bodySection = '';
-            let rightHeaderSection = ''; 
+            let rightHeaderSection = '';
 
             if (app.contest_type === 'noppamas') {
                 rightHeaderSection = `
@@ -2828,15 +3069,17 @@
             renderJudgeScoringTable();
         }
 
-function renderJudgeScoringTable() {
+        function renderJudgeScoringTable() {
             if (!activeJudgeSession) return;
             const j = activeJudgeSession.judge;
             const cat = document.getElementById('judge-category-select').value || 'noppamas';
-            const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b.order_index);
+            const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b
+                .order_index);
             const contestants = appState.applications.filter(a => a.contest_type === cat && a.status === 'APPROVED')
                 .sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
 
-            const sub = appState.judge_submissions.find(s => String(s.judge_id) === String(j.id) && s.contest_type === cat);
+            const sub = appState.judge_submissions.find(s => String(s.judge_id) === String(j.id) && s.contest_type ===
+                cat);
             const isLocked = sub && (sub.status === 'SUBMITTED' || sub.status === 'APPROVED');
             const lockOverlay = document.getElementById('judge-lock-overlay');
             if (isLocked) lockOverlay.classList.remove('hidden');
@@ -2844,7 +3087,8 @@ function renderJudgeScoringTable() {
 
             const wrapper = document.getElementById('judge-table-wrapper');
             if (contestants.length === 0) {
-                wrapper.innerHTML = `<div class="p-8 text-center text-sm text-slate-400">ยังไม่มีผู้เข้าประกวดที่ได้รับการอนุมัติในหมวดหมู่นี้</div>`;
+                wrapper.innerHTML =
+                    `<div class="p-8 text-center text-sm text-slate-400">ยังไม่มีผู้เข้าประกวดที่ได้รับการอนุมัติในหมวดหมู่นี้</div>`;
                 return;
             }
 
@@ -2874,30 +3118,53 @@ function renderJudgeScoringTable() {
                             }).join('');
                             
                             // แสดงรูปภาพเฉพาะนางนพมาศ (ถ้าเป็นกระทงทีม จะไม่สร้างกล่องรูปภาพ)
-                            const photoHtml = con.contest_type === 'noppamas' ? `
-                                <div class="w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center">
-                                    <img src="${imgSrc(con.photo_url)}" onerror="handleImgError(this)" class="w-full h-full object-contain">
-                                </div>
-                            ` : '';
+                            const photoHtml = con.contest_type === 'noppamas' ? ` <
+                div class =
+                "w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center" >
+                <
+                img src = "${imgSrc(con.photo_url)}"
+            onerror = "handleImgError(this)"
+            class = "w-full h-full object-contain" >
+                <
+                /div>
+            ` : '';
 
-                            return `
-                                <tr>
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-3">
-                                            ${photoHtml}
-                                            <div>
-                                                <span class="text-xs font-bold text-amber-400">${con.contestant_number || '-'}</span>
-                                                <p class="font-semibold text-white">${getDisplayName(con)}</p>
-                                                <p class="text-[11px] text-slate-400">${con.department} (${con.edu_level})</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    ${cells}
-                                    <td class="p-3 text-right font-extrabold text-emerald-400" id="raw-total-${j.id}-${con.id}">
-                                        ${total.toFixed(1)}
-                                    </td>
-                                </tr>
-                            `;
+                            return ` <
+            tr >
+                <
+                td class = "p-3" >
+                <
+                div class = "flex items-center gap-3" >
+                $ {
+                    photoHtml
+                } <
+                div >
+                <
+                span class = "text-xs font-bold text-amber-400" > $ {
+                    con.contestant_number || '-'
+                } < /span> <
+            p class = "font-semibold text-white" > $ {
+                getDisplayName(con)
+            } < /p> <
+            p class = "text-[11px] text-slate-400" > $ {
+                    con.department
+                }($ {
+                    con.edu_level
+                }) < /p> < /
+                div > <
+                /div> < /
+                td >
+                $ {
+                    cells
+                } <
+                td class = "p-3 text-right font-extrabold text-emerald-400"
+            id = "raw-total-${j.id}-${con.id}" >
+                $ {
+                    total.toFixed(1)
+                } <
+                /td> < /
+                tr >
+                `;
                         }).join('')}
                     </tbody>
                 </table>
@@ -2907,19 +3174,20 @@ function renderJudgeScoringTable() {
         async function handleLiveScoreInput(judgeId, appId, criteriaId, maxScore, inputEl) {
             let num = parseFloat(inputEl.value);
             if (isNaN(num)) num = 0;
-            
+
             // ป้องกันการกรอกคะแนนเกินค่าที่ตั้งไว้
             if (num > maxScore) {
                 num = maxScore;
                 inputEl.value = maxScore;
             }
-            
+
             const jId = String(judgeId);
             const aId = String(appId);
             const cId = String(criteriaId);
 
             // อัปเดต State ในหน้าจอ
-            const ex = appState.scores.find(s => String(s.judge_id) === jId && String(s.application_id) === aId && String(s.criteria_id) === cId);
+            const ex = appState.scores.find(s => String(s.judge_id) === jId && String(s.application_id) === aId &&
+                String(s.criteria_id) === cId);
             if (ex) {
                 ex.score = num;
             } else {
@@ -2934,9 +3202,10 @@ function renderJudgeScoringTable() {
             // คำนวณคะแนนรวมใหม่ทันที
             const cat = document.getElementById('judge-category-select').value;
             const catCriIds = appState.criteria.filter(c => c.contest_type === cat).map(c => String(c.id));
-            
+
             const newTotal = appState.scores
-                .filter(s => String(s.judge_id) === jId && String(s.application_id) === aId && catCriIds.includes(String(s.criteria_id)))
+                .filter(s => String(s.judge_id) === jId && String(s.application_id) === aId && catCriIds.includes(
+                    String(s.criteria_id)))
                 .reduce((sum, s) => sum + Number(s.score || 0), 0);
 
             // อัปเดตตัวเลขแสดงผลในคอลัมน์ "คะแนนรวม"
@@ -3170,8 +3439,10 @@ function renderJudgeScoringTable() {
             if (!j) return;
             const catLabel = contestType === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์';
 
-            const criteriaList = appState.criteria.filter(c => c.contest_type === contestType).sort((a, b) => a.order_index - b.order_index);
-            const contestants = appState.applications.filter(a => a.contest_type === contestType && a.status === 'APPROVED')
+            const criteriaList = appState.criteria.filter(c => c.contest_type === contestType).sort((a, b) => a
+                .order_index - b.order_index);
+            const contestants = appState.applications.filter(a => a.contest_type === contestType && a.status ===
+                    'APPROVED')
                 .sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
 
             let tableHtml = `
@@ -3192,16 +3463,26 @@ function renderJudgeScoringTable() {
                                 total += val;
                                 return `<td class="p-2.5 text-center font-mono text-slate-300">${val > 0 ? val : '-'}</td>`;
                             }).join('');
-                            return `
-                                <tr class="hover:bg-slate-800/30">
-                                    <td class="p-3">
-                                        <span class="text-xs font-bold text-amber-400 mr-2">${con.contestant_number || '-'}</span>
-                                        <span class="font-medium text-white">${getDisplayName(con)}</span>
-                                    </td>
-                                    ${cells}
-                                    <td class="p-3 text-right font-bold text-emerald-400">${total.toFixed(1)}</td>
-                                </tr>
-                            `;
+                            return ` <
+                tr class = "hover:bg-slate-800/30" >
+                <
+                td class = "p-3" >
+                <
+                span class = "text-xs font-bold text-amber-400 mr-2" > $ {
+                    con.contestant_number || '-'
+                } < /span> <
+            span class = "font-medium text-white" > $ {
+                    getDisplayName(con)
+                } < /span> < /
+                td >
+                $ {
+                    cells
+                } <
+                td class = "p-3 text-right font-bold text-emerald-400" > $ {
+                    total.toFixed(1)
+                } < /td> < /
+                tr >
+                `;
                         }).join('')}
                     </tbody>
                 </table>
@@ -3213,7 +3494,8 @@ function renderJudgeScoringTable() {
 
             modal = document.createElement('div');
             modal.id = modalId;
-            modal.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+            modal.className =
+                'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
             modal.innerHTML = `
                 <div class="glass-card max-w-5xl w-full rounded-3xl p-6 space-y-4 border border-amber-400/40 max-h-[85vh] flex flex-col shadow-2xl">
                     <div class="flex items-center justify-between border-b border-slate-700 pb-3">
@@ -3260,15 +3542,27 @@ function renderJudgeScoringTable() {
 
         function renderAdminMenuPublish(container) {
             const isPub = appState.settings.publish_results;
+            const isLoyKrathongOpen = appState.settings.loy_krathong_open !== false;
+            
             container.innerHTML = `
                 <div class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30">
                         <div>
-                            <h3 class="text-xl font-bold gold-gradient-text">สวิตช์เปิด-ปิดการประกาศผลสู่สาธารณะ</h3>
+                            <h3 class="text-xl font-bold gold-gradient-text">สวิตช์เปิด-ปิดการประกาศผลตัดสินสู่สาธารณะ</h3>
                             <p class="text-xs text-slate-300 mt-1">สถานะ: <strong class="${isPub ? 'text-emerald-400' : 'text-rose-400'}">${isPub ? 'เปิดประกาศผลแล้ว' : 'ปิดซ่อนผล'}</strong></p>
                         </div>
                         <button onclick="togglePublishResults()" class="px-6 py-3 rounded-xl font-bold text-sm transition ${isPub ? 'bg-rose-500 text-white' : 'bg-emerald-400 text-slate-950'}">
                             ${isPub ? '🔒 ปิดซ่อนผล' : '📢 เปิดประกาศผลทันที'}
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-indigo-400/30 mt-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-indigo-300">สวิตช์เปิด-ปิด ระบบลอยกระทงออนไลน์</h3>
+                            <p class="text-xs text-slate-300 mt-1">สถานะ: <strong class="${isLoyKrathongOpen ? 'text-emerald-400' : 'text-rose-400'}">${isLoyKrathongOpen ? 'เปิดให้ลอยกระทง' : 'ปิดรับการลอยกระทงแล้ว'}</strong></p>
+                        </div>
+                        <button onclick="toggleLoyKrathongOpen()" class="px-6 py-3 rounded-xl font-bold text-sm transition ${isLoyKrathongOpen ? 'bg-rose-500 text-white' : 'bg-indigo-400 text-slate-950'}">
+                            ${isLoyKrathongOpen ? '🔒 ปิดลอยกระทง' : '🌊 เปิดลอยกระทง'}
                         </button>
                     </div>
                 </div>
@@ -3288,6 +3582,48 @@ function renderJudgeScoringTable() {
             switchAdminMenu('publish');
             showToast('อัปเดตการแสดงผลเรียบร้อย', 'success');
         }
+
+        // ฟังก์ชันอัปเดตการเปิด/ปิดระบบลอยกระทง
+        async function toggleLoyKrathongOpen() {
+            if (typeof appState.settings.loy_krathong_open === 'undefined') appState.settings.loy_krathong_open = true;
+            appState.settings.loy_krathong_open = !appState.settings.loy_krathong_open;
+            
+            if (sbClient) {
+                await sbClient.from('system_settings').upsert([{
+                    setting_key: 'loy_krathong_open',
+                    value_bool: appState.settings.loy_krathong_open,
+                    updated_at: new Date().toISOString()
+                }]);
+            }
+            switchAdminMenu('publish');
+            checkLoyKrathongStatus(); // อัปเดต UI หน้าแรก
+            showToast(appState.settings.loy_krathong_open ? 'เปิดระบบลอยกระทงแล้ว' : 'ปิดระบบลอยกระทงแล้ว', 'success');
+        }
+
+        // ฟังก์ชันบล็อก/คลายบล็อกฟอร์มลอยกระทงในหน้าแรก
+        function checkLoyKrathongStatus() {
+            const isOpen = appState.settings.loy_krathong_open !== false;
+            const formBox = document.getElementById('krathong-form-box');
+            if(!formBox) return;
+            
+            let msgBox = document.getElementById('loy-krathong-closed-msg');
+            if(!msgBox) {
+                msgBox = document.createElement('div');
+                msgBox.id = 'loy-krathong-closed-msg';
+                msgBox.className = 'p-8 text-center bg-rose-950/20 border-t border-rose-900/50';
+                msgBox.innerHTML = `<h3 class="text-xl font-bold text-rose-400">ปิดระบบลอยกระทงแล้ว</h3><p class="text-sm text-slate-300 mt-2">ขอบคุณทุกท่านที่ร่วมสืบสานประเพณีลอยกระทงออนไลน์ในปีนี้</p>`;
+                formBox.parentElement.appendChild(msgBox);
+            }
+
+            if(isOpen) {
+                formBox.classList.remove('hidden');
+                msgBox.classList.add('hidden');
+            } else {
+                formBox.classList.add('hidden');
+                msgBox.classList.remove('hidden');
+            }
+        }
+
 
         function renderAdminMenuCriteria(container) {
             container.innerHTML = `
@@ -3412,7 +3748,7 @@ function renderJudgeScoringTable() {
             `;
         }
 
-function printAdminDocument(docType) {
+        function printAdminDocument(docType) {
             const cat = document.getElementById('print-center-cat').value;
             const judgeId = Number(document.getElementById('print-center-judge').value);
 
@@ -3499,14 +3835,23 @@ function printAdminDocument(docType) {
                                         return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
                                     }).join('');
                                     
-                                    return `
-                                        <tr>
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
-                                            <td>${getDisplayNameThai(con)}</td>
-                                            ${cols}
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(sum.toFixed(1))}</td>
-                                        </tr>
-                                    `;
+                                    return ` <
+                    tr >
+                    <
+                    td style = "text-align:center; font-weight:bold;" > $ {
+                        toThaiNum(con.contestant_number)
+                    } < /td> <
+                td > $ {
+                    getDisplayNameThai(con)
+                } < /td>
+                $ {
+                    cols
+                } <
+                td style = "text-align:center; font-weight:bold;" > $ {
+                        toThaiNum(sum.toFixed(1))
+                    } < /td> < /
+                    tr >
+                    `;
                                 }).join('')}
                             </tbody>
                         </table>
@@ -3524,7 +3869,7 @@ function printAdminDocument(docType) {
                 setPrintOrientation('landscape');
                 const judgesForCat = appState.judges.filter(j => j.assigned_type === 'all' || j.assigned_type === cat);
                 const catCriIds = criteriaList.map(c => Number(c.id));
-                
+
                 // สร้างช่องลงชื่อตามจำนวนกรรมการในหมวดหมู่นี้
                 const signaturesHtml = judgesForCat.map(j => `
                     <div style="width:30%; text-align:center; margin-bottom: 20pt;">
@@ -3561,14 +3906,23 @@ function printAdminDocument(docType) {
                                         return `<td style="text-align:center;">${toThaiNum(jSum.toFixed(1))}</td>`;
                                     }).join('');
                                     
-                                    return `
-                                        <tr>
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
-                                            <td>${getDisplayNameThai(con)}</td>
-                                            ${jCols}
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(grandTotal.toFixed(1))}</td>
-                                        </tr>
-                                    `;
+                                    return ` <
+                    tr >
+                    <
+                    td style = "text-align:center; font-weight:bold;" > $ {
+                        toThaiNum(con.contestant_number)
+                    } < /td> <
+                td > $ {
+                    getDisplayNameThai(con)
+                } < /td>
+                $ {
+                    jCols
+                } <
+                td style = "text-align:center; font-weight:bold;" > $ {
+                        toThaiNum(grandTotal.toFixed(1))
+                    } < /td> < /
+                    tr >
+                    `;
                                 }).join('')}
                             </tbody>
                         </table>
@@ -3805,7 +4159,7 @@ function printAdminDocument(docType) {
                 appState.settings.applications_open = true;
             }
             appState.settings.applications_open = !appState.settings.applications_open;
-            
+
             if (sbClient) {
                 await sbClient.from('system_settings').upsert([{
                     setting_key: 'applications_open',
@@ -3813,10 +4167,11 @@ function printAdminDocument(docType) {
                     updated_at: new Date().toISOString()
                 }]);
             }
-            
+
             switchAdminMenu('applications');
             updateApplyViewVisibility();
-            showToast(appState.settings.applications_open ? 'เปิดระบบรับสมัครแล้ว' : 'ปิดระบบรับสมัครแล้ว', 'success');
+            showToast(appState.settings.applications_open ? 'เปิดระบบรับสมัครแล้ว' : 'ปิดระบบรับสมัครแล้ว',
+                'success');
         }
 
         function updateApplyViewVisibility() {
@@ -3824,10 +4179,10 @@ function printAdminDocument(docType) {
             const fNop = document.getElementById('form-apply-noppamas');
             const fTeam = document.getElementById('form-apply-team');
             const btnNop = document.getElementById('btn-apply-noppamas');
-            
+
             // หา div ที่ครอบปุ่มสวิตช์ฟอร์ม
             const typeSelector = btnNop ? btnNop.parentElement : null;
-            
+
             // ตรวจสอบและสร้างหน้าจอแจ้งปิดรับสมัคร
             let closedMsg = document.getElementById('apply-closed-msg');
             if (!closedMsg && fNop) {
@@ -3946,7 +4301,8 @@ function printAdminDocument(docType) {
             renderPublicContestants();
             renderPublicCriteria();
             renderPublicResults();
-            updateApplyViewVisibility(); // แทรกบรรทัดนี้ลงไป
+            updateApplyViewVisibility();
+            checkLoyKrathongStatus(); // <--- เพิ่มตรงนี้
             if (currentTab === 'judge') renderJudgeView();
             if (currentTab === 'admin') renderAdminWorkspace();
             lucide.createIcons();
