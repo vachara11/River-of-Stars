@@ -1193,7 +1193,8 @@
 
         let appState = {
             settings: {
-                publish_results: false
+                publish_results: false,
+                applications_open: true
             },
             krathongs: [],
             applications: [],
@@ -1514,6 +1515,8 @@
                 if (setRes.data && setRes.data.length > 0) {
                     const pubRow = setRes.data.find(r => r.setting_key === 'publish_results');
                     if (pubRow) appState.settings.publish_results = pubRow.value_bool;
+                    const openRow = setRes.data.find(r => r.setting_key === 'applications_open');
+                    if (openRow) appState.settings.applications_open = openRow.value_bool;
                 }
 
                 updateSupabaseStatusBadge();
@@ -3749,9 +3752,20 @@ function printAdminDocument(docType) {
         }
 
         function renderAdminMenuApplications(container) {
+            const isOpen = appState.settings.applications_open !== false;
             container.innerHTML = `
                 <div class="space-y-6">
-                    <h3 class="text-xl font-bold gold-gradient-text">📋 จัดการใบสมัครและรันหมายเลขผู้เข้าประกวด</h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30">
+                        <div>
+                            <h3 class="text-xl font-bold gold-gradient-text">สวิตช์เปิด-ปิดระบบรับสมัครเข้าประกวด</h3>
+                            <p class="text-xs text-slate-300 mt-1">สถานะ: <strong class="${isOpen ? 'text-emerald-400' : 'text-rose-400'}">${isOpen ? 'เปิดรับสมัคร' : 'ปิดรับสมัครแล้ว'}</strong></p>
+                        </div>
+                        <button onclick="toggleApplicationsOpen()" class="px-6 py-3 rounded-xl font-bold text-sm transition ${isOpen ? 'bg-rose-500 text-white' : 'bg-emerald-400 text-slate-950'}">
+                            ${isOpen ? '🔒 ปิดรับสมัคร' : '📢 เปิดรับสมัคร'}
+                        </button>
+                    </div>
+
+                    <h3 class="text-xl font-bold gold-gradient-text mt-6">📋 จัดการใบสมัครและรันหมายเลขผู้เข้าประกวด</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs sm:text-sm">
                             <thead>
@@ -3784,6 +3798,65 @@ function printAdminDocument(docType) {
                     </div>
                 </div>
             `;
+        }
+
+        async function toggleApplicationsOpen() {
+            if (typeof appState.settings.applications_open === 'undefined') {
+                appState.settings.applications_open = true;
+            }
+            appState.settings.applications_open = !appState.settings.applications_open;
+            
+            if (sbClient) {
+                await sbClient.from('system_settings').upsert([{
+                    setting_key: 'applications_open',
+                    value_bool: appState.settings.applications_open,
+                    updated_at: new Date().toISOString()
+                }]);
+            }
+            
+            switchAdminMenu('applications');
+            updateApplyViewVisibility();
+            showToast(appState.settings.applications_open ? 'เปิดระบบรับสมัครแล้ว' : 'ปิดระบบรับสมัครแล้ว', 'success');
+        }
+
+        function updateApplyViewVisibility() {
+            const isOpen = appState.settings.applications_open !== false;
+            const fNop = document.getElementById('form-apply-noppamas');
+            const fTeam = document.getElementById('form-apply-team');
+            const btnNop = document.getElementById('btn-apply-noppamas');
+            
+            // หา div ที่ครอบปุ่มสวิตช์ฟอร์ม
+            const typeSelector = btnNop ? btnNop.parentElement : null;
+            
+            // ตรวจสอบและสร้างหน้าจอแจ้งปิดรับสมัคร
+            let closedMsg = document.getElementById('apply-closed-msg');
+            if (!closedMsg && fNop) {
+                closedMsg = document.createElement('div');
+                closedMsg.id = 'apply-closed-msg';
+                closedMsg.className = 'py-12 text-center space-y-4';
+                closedMsg.innerHTML = `
+                    <div class="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center mx-auto mb-4 border border-rose-500/50">
+                        <i data-lucide="lock" class="w-8 h-8 text-rose-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-rose-400">ปิดรับสมัครแล้ว</h3>
+                    <p class="text-slate-300">ขออภัย ขณะนี้ระบบได้ปิดรับสมัครการประกวดเรียบร้อยแล้ว<br>โปรดติดตามผลการแข่งขันในลำดับถัดไป</p>
+                `;
+                fNop.parentElement.insertBefore(closedMsg, fNop);
+                lucide.createIcons();
+            }
+
+            if (isOpen) {
+                if (typeSelector) typeSelector.classList.remove('hidden');
+                if (closedMsg) closedMsg.classList.add('hidden');
+                // แสดงฟอร์มล่าสุดกลับมา
+                const currentType = fTeam && !fTeam.classList.contains('hidden') ? 'krathong_team' : 'noppamas';
+                switchApplyType(currentType);
+            } else {
+                if (typeSelector) typeSelector.classList.add('hidden');
+                if (fNop) fNop.classList.add('hidden');
+                if (fTeam) fTeam.classList.add('hidden');
+                if (closedMsg) closedMsg.classList.remove('hidden');
+            }
         }
 
         async function approveApplication(id) {
@@ -3873,6 +3946,7 @@ function printAdminDocument(docType) {
             renderPublicContestants();
             renderPublicCriteria();
             renderPublicResults();
+            updateApplyViewVisibility(); // แทรกบรรทัดนี้ลงไป
             if (currentTab === 'judge') renderJudgeView();
             if (currentTab === 'admin') renderAdminWorkspace();
             lucide.createIcons();
