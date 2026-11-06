@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th" class="dark scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -10,7 +11,9 @@
     <!-- Google Fonts: Kanit & Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
@@ -24,16 +27,19 @@
 
     <style>
         /* แก้ไขปัญหา Scroll ค้าง: ใช้ overflow-x: clip แทน hidden เพื่อไม่ให้บล็อก position: sticky */
-        html, body {
+        html,
+        body {
             overflow-x: clip;
             scroll-behavior: smooth;
         }
+
         body {
             font-family: 'Kanit', sans-serif;
             background: radial-gradient(ellipse at top, #141836 0%, #080c18 65%, #03050a 100%);
             color: #f8fafc;
             min-height: 100vh;
         }
+
         /* Starfield Background */
         .starfield {
             position: fixed;
@@ -41,18 +47,27 @@
             pointer-events: none;
             z-index: 0;
             background-image:
-                radial-gradient(1.5px 1.5px at 15% 20%, rgba(255,255,255,0.9) 50%, transparent 100%),
-                radial-gradient(1px 1px at 35% 65%, rgba(251,191,36,0.8) 50%, transparent 100%),
-                radial-gradient(2px 2px at 70% 30%, rgba(255,255,255,0.85) 50%, transparent 100%),
-                radial-gradient(1.5px 1.5px at 85% 75%, rgba(167,139,250,0.9) 50%, transparent 100%),
-                radial-gradient(1px 1px at 50% 15%, rgba(251,191,36,0.9) 50%, transparent 100%);
+                radial-gradient(1.5px 1.5px at 15% 20%, rgba(255, 255, 255, 0.9) 50%, transparent 100%),
+                radial-gradient(1px 1px at 35% 65%, rgba(251, 191, 36, 0.8) 50%, transparent 100%),
+                radial-gradient(2px 2px at 70% 30%, rgba(255, 255, 255, 0.85) 50%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 85% 75%, rgba(167, 139, 250, 0.9) 50%, transparent 100%),
+                radial-gradient(1px 1px at 50% 15%, rgba(251, 191, 36, 0.9) 50%, transparent 100%);
             background-size: 320px 320px;
             animation: twinkleStars 8s ease-in-out infinite alternate;
         }
+
         @keyframes twinkleStars {
-            0% { opacity: 0.4; transform: scale(1); }
-            100% { opacity: 0.9; transform: scale(1.02); }
+            0% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.9;
+                transform: scale(1.02);
+            }
         }
+
         /* Glassmorphism Cards */
         .glass-card {
             background: rgba(15, 23, 42, 0.72);
@@ -61,6 +76,7 @@
             border: 1px solid rgba(251, 191, 36, 0.22);
             box-shadow: 0 12px 36px 0 rgba(2, 6, 23, 0.7);
         }
+
         /* Floating Sticky Navbar */
         .floating-navbar {
             background: rgba(10, 16, 35, 0.85);
@@ -69,21 +85,34 @@
             border: 1px solid rgba(251, 191, 36, 0.28);
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
         }
+
         .gold-gradient-text {
             background: linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #d97706 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            color: transparent;
+            /* เผื่อพื้นที่ให้สระบน/วรรณยุกต์ซ้อน (เช่น น้ำ, ปู่, ที่) ไม่ถูกตัดหาย */
+            line-height: 1.65 !important;
+            padding-top: 0.18em;
+            padding-bottom: 0.08em;
+            overflow: visible;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
+
         .input-night {
             background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(148, 163, 184, 0.3);
             color: #f8fafc;
         }
+
         .input-night:focus {
             outline: none;
             border-color: #fbbf24;
             box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
         }
+
         /* Navigation Pill Buttons */
         .nav-pill {
             display: inline-flex;
@@ -98,6 +127,7 @@
             white-space: nowrap;
             border: 1px solid transparent;
         }
+
         /* Mobile bottom tab bar */
         .bottom-nav {
             background: rgba(8, 12, 24, 0.94);
@@ -106,6 +136,7 @@
             border-top: 1px solid rgba(251, 191, 36, 0.28);
             padding-bottom: env(safe-area-inset-bottom);
         }
+
         .bnav-btn {
             flex: 1;
             display: flex;
@@ -119,37 +150,65 @@
             transition: color .2s ease;
             position: relative;
         }
-        .bnav-btn.active { color: #fde68a; font-weight: 600; }
+
+        .bnav-btn.active {
+            color: #fde68a;
+            font-weight: 600;
+        }
+
         .bnav-btn.active::before {
             content: '';
             position: absolute;
-            top: 0; left: 30%; right: 30%;
+            top: 0;
+            left: 30%;
+            right: 30%;
             height: 3px;
             border-radius: 0 0 6px 6px;
             background: linear-gradient(90deg, #fbbf24, #d97706);
         }
-        .drawer-item { transition: all .2s ease; border: 1px solid transparent; }
+
+        .drawer-item {
+            transition: all .2s ease;
+            border: 1px solid transparent;
+        }
+
         .drawer-item.active {
-            background: linear-gradient(135deg, rgba(251,191,36,.2), rgba(217,119,6,.25));
-            border-color: rgba(251,191,36,.45);
+            background: linear-gradient(135deg, rgba(251, 191, 36, .2), rgba(217, 119, 6, .25));
+            border-color: rgba(251, 191, 36, .45);
             color: #fde68a;
         }
-        #mobile-drawer-panel { transform: translateX(100%); transition: transform .28s ease; }
-        #mobile-drawer.open #mobile-drawer-panel { transform: translateX(0); }
-        @media (max-width: 1023px) {
-            body { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
-            #toast-container { top: 5.5rem; }
+
+        #mobile-drawer-panel {
+            transform: translateX(100%);
+            transition: transform .28s ease;
         }
+
+        #mobile-drawer.open #mobile-drawer-panel {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 1023px) {
+            body {
+                padding-bottom: calc(66px + env(safe-area-inset-bottom));
+            }
+
+            #toast-container {
+                top: 5.5rem;
+            }
+        }
+
         .nav-pill:hover {
             color: #ffffff;
             background: rgba(255, 255, 255, 0.08);
         }
+
         .nav-pill.active {
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.22) 0%, rgba(217, 119, 6, 0.28) 100%);
             color: #fde68a;
             border: 1px solid rgba(251, 191, 36, 0.45);
             font-weight: 600;
         }
+
         /* Admin Submenu Buttons */
         .admin-tab-btn {
             transition: all 0.2s ease;
@@ -157,11 +216,13 @@
             background: rgba(15, 23, 42, 0.6);
             color: #94a3b8;
         }
+
         .admin-tab-btn:hover {
             background: rgba(30, 41, 59, 0.85);
             color: #f1f5f9;
             border-color: rgba(251, 191, 36, 0.4);
         }
+
         .admin-tab-btn.active {
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             color: #090d16;
@@ -169,11 +230,26 @@
             border-color: #fde68a;
             box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
         }
+
         /* Print Stylesheet */
-        #print-area { display: none; }
+        #print-area {
+            display: none;
+        }
+
         @media print {
-            body { background: #ffffff !important; color: #000000 !important; margin: 0 !important; }
-            #app-shell, #toast-container, #global-loader, .no-print { display: none !important; }
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+            }
+
+            #app-shell,
+            #toast-container,
+            #global-loader,
+            .no-print {
+                display: none !important;
+            }
+
             #print-area {
                 display: block !important;
                 width: 100% !important;
@@ -183,22 +259,56 @@
                 font-size: 16pt !important;
                 line-height: 1.35 !important;
             }
-            .print-page { width: 100%; box-sizing: border-box; padding: 8mm 12mm; page-break-after: always; }
-            .print-page:last-child { page-break-after: auto; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 8pt; font-size: 15pt; }
-            .print-table th, .print-table td { border: 1px solid #000000 !important; padding: 5pt 7pt; color: #000000 !important; }
-            .print-table th { background-color: #f3f4f6 !important; font-weight: bold; }
+
+            .print-page {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 8mm 12mm;
+                page-break-after: always;
+            }
+
+            .print-page:last-child {
+                page-break-after: auto;
+            }
+
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 8pt;
+                font-size: 15pt;
+            }
+
+            .print-table th,
+            .print-table td {
+                border: 1px solid #000000 !important;
+                padding: 5pt 7pt;
+                color: #000000 !important;
+            }
+
+            .print-table th {
+                background-color: #f3f4f6 !important;
+                font-weight: bold;
+            }
         }
+
+        /* ===== สายน้ำ: โหมดเต็มจอ ===== */
+        #river-wrap:fullscreen { width: 100vw !important; height: 100vh !important; border-radius: 0 !important; background: #020617; }
+        #river-wrap:-webkit-full-screen { width: 100vw !important; height: 100vh !important; border-radius: 0 !important; background: #020617; }
+        #river-wrap.river-fs-fallback { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; height: 100dvh !important; z-index: 100 !important; border-radius: 0 !important; }
+        #river-canvas { touch-action: manipulation; }
+
     </style>
     <style id="dynamic-print-orientation"></style>
 </head>
+
 <body class="relative selection:bg-amber-500 selection:text-slate-950">
 
     <!-- Starfield Background -->
     <div class="starfield no-print"></div>
 
     <!-- Global Loader Overlay -->
-    <div id="global-loader" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+    <div id="global-loader"
+        class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm">
         <div class="glass-card p-6 rounded-2xl flex flex-col items-center gap-3 border border-amber-400/40">
             <div class="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
             <p id="loader-text" class="text-amber-300 font-medium text-sm">กำลังประมวลผลข้อมูล...</p>
@@ -206,7 +316,8 @@
     </div>
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-24 right-4 z-[90] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+    <div id="toast-container"
+        class="fixed top-24 right-4 z-[90] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
     <!-- Official A4 Print Container -->
     <div id="print-area"></div>
@@ -216,29 +327,38 @@
 
         <!-- HEADER / NAVBAR -->
         <header class="w-full px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 sticky top-0 z-40 no-print">
-            <div class="max-w-[1400px] mx-auto floating-navbar rounded-2xl px-3 sm:px-5 py-2 flex items-center justify-between gap-3">
+            <div
+                class="max-w-[1400px] mx-auto floating-navbar rounded-2xl px-3 sm:px-5 py-2 flex items-center justify-between gap-3">
 
                 <!-- Logo & Title -->
                 <div class="flex items-center gap-2.5 cursor-pointer min-w-0 shrink-0" onclick="switchTab('home')">
-                    <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow shrink-0" onerror="this.onerror=null; this.src='https://placehold.co/44x44?text=อวท.'">
+                    <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo"
+                        class="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow shrink-0"
+                        onerror="this.onerror=null; this.src='https://placehold.co/44x44?text=อวท.'">
                     <div class="min-w-0 leading-tight">
-                        <h1 class="font-bold text-[13px] sm:text-base gold-gradient-text whitespace-nowrap">ลอยกระทงออนไลน์ <span class="hidden sm:inline">& ระบบประกวด</span></h1>
-                        <p class="text-[10px] sm:text-[11px] text-indigo-200/80 whitespace-nowrap truncate max-w-[170px] sm:max-w-none">องค์การนักวิชาชีพในอนาคตฯ (อวท.)</p>
+                        <h1 class="font-bold text-[13px] sm:text-base gold-gradient-text whitespace-nowrap">
+                            ลอยกระทงออนไลน์ <span class="hidden sm:inline">& ระบบประกวด</span></h1>
+                        <p
+                            class="text-[10px] sm:text-[11px] text-indigo-200/80 whitespace-nowrap truncate max-w-[170px] sm:max-w-none">
+                            อวท.วิทยาลัยเทคโนโลยีพงษ์สวัสดิ์</p>
                     </div>
                 </div>
 
                 <!-- Navigation Pills (Desktop / Tablet landscape) -->
                 <nav class="hidden lg:flex items-center gap-0.5 xl:gap-1 flex-1 justify-center">
-                    <button onclick="switchTab('home')" data-nav="home" title="หน้าแรก & ลอยกระทง" class="nav-pill active">
+                    <button onclick="switchTab('home')" data-nav="home" title="หน้าแรก & ลอยกระทง"
+                        class="nav-pill active">
                         <i data-lucide="waves" class="w-4 h-4"></i> <span class="hidden xl:inline">หน้าแรก</span>
                     </button>
                     <button onclick="switchTab('apply')" data-nav="apply" title="สมัครประกวด" class="nav-pill">
-                        <i data-lucide="file-plus-2" class="w-4 h-4"></i> <span class="hidden xl:inline">สมัครประกวด</span>
+                        <i data-lucide="file-plus-2" class="w-4 h-4"></i> <span
+                            class="hidden xl:inline">สมัครประกวด</span>
                     </button>
                     <button onclick="switchTab('search')" data-nav="search" title="ค้นหาใบสมัคร" class="nav-pill">
                         <i data-lucide="search" class="w-4 h-4"></i> <span class="hidden xl:inline">ค้นหาใบสมัคร</span>
                     </button>
-                    <button onclick="switchTab('contestants')" data-nav="contestants" title="ผู้เข้าประกวด" class="nav-pill">
+                    <button onclick="switchTab('contestants')" data-nav="contestants" title="ผู้เข้าประกวด"
+                        class="nav-pill">
                         <i data-lucide="users" class="w-4 h-4"></i> <span class="hidden xl:inline">ผู้เข้าประกวด</span>
                     </button>
                     <button onclick="switchTab('criteria')" data-nav="criteria" title="เกณฑ์การตัดสิน" class="nav-pill">
@@ -250,17 +370,20 @@
 
                     <div class="h-5 w-px bg-slate-700/80 mx-1.5"></div>
 
-                    <button onclick="switchTab('judge')" data-nav="judge" title="กรรมการ" class="nav-pill text-amber-300 hover:text-amber-200">
+                    <button onclick="switchTab('judge')" data-nav="judge" title="กรรมการ"
+                        class="nav-pill text-amber-300 hover:text-amber-200">
                         <i data-lucide="scale" class="w-4 h-4"></i> <span class="hidden xl:inline">กรรมการ</span>
                     </button>
-                    <button onclick="switchTab('admin')" data-nav="admin" title="แอดมิน" class="nav-pill text-purple-300 hover:text-purple-200">
+                    <button onclick="switchTab('admin')" data-nav="admin" title="แอดมิน"
+                        class="nav-pill text-purple-300 hover:text-purple-200">
                         <i data-lucide="shield-check" class="w-4 h-4"></i> <span class="hidden xl:inline">แอดมิน</span>
                     </button>
                 </nav>
 
                 <!-- Supabase status & menu toggle -->
                 <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="toggleMobileDrawer(true)" aria-label="เปิดเมนู" class="p-2 rounded-xl bg-slate-800/80 border border-amber-400/30 text-amber-300 lg:hidden">
+                    <button onclick="toggleMobileDrawer(true)" aria-label="เปิดเมนู"
+                        class="p-2 rounded-xl bg-slate-800/80 border border-amber-400/30 text-amber-300 lg:hidden">
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -270,40 +393,52 @@
         <!-- Mobile Drawer -->
         <div id="mobile-drawer" class="fixed inset-0 z-[60] hidden no-print">
             <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleMobileDrawer(false)"></div>
-            <div id="mobile-drawer-panel" class="fixed top-0 right-0 bottom-0 w-[82%] max-w-xs glass-card border-l border-amber-400/30 p-5 flex flex-col z-10 overflow-y-auto" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));">
+            <div id="mobile-drawer-panel"
+                class="fixed top-0 right-0 bottom-0 w-[82%] max-w-xs glass-card border-l border-amber-400/30 p-5 flex flex-col z-10 overflow-y-auto"
+                style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-700">
                     <div class="flex items-center gap-2">
-                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-8 h-8 object-contain">
+                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo"
+                            class="w-8 h-8 object-contain">
                         <span class="font-bold gold-gradient-text text-sm">เมนูระบบ</span>
                     </div>
-                    <button onclick="toggleMobileDrawer(false)" aria-label="ปิดเมนู" class="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                    <button onclick="toggleMobileDrawer(false)" aria-label="ปิดเมนู"
+                        class="p-1.5 rounded-lg bg-slate-800 text-slate-300">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
                 <div class="mt-4 flex flex-col gap-1.5">
-                    <button onclick="switchTab('home'); toggleMobileDrawer(false);" data-drawer="home" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                    <button onclick="switchTab('home'); toggleMobileDrawer(false);" data-drawer="home"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
                         <i data-lucide="waves" class="w-4 h-4 text-amber-400"></i> หน้าแรก & ลอยกระทง
                     </button>
-                    <button onclick="switchTab('apply'); toggleMobileDrawer(false);" data-drawer="apply" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                    <button onclick="switchTab('apply'); toggleMobileDrawer(false);" data-drawer="apply"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
                         <i data-lucide="file-plus-2" class="w-4 h-4 text-amber-400"></i> สมัครเข้าประกวด
                     </button>
-                    <button onclick="switchTab('search'); toggleMobileDrawer(false);" data-drawer="search" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                    <button onclick="switchTab('search'); toggleMobileDrawer(false);" data-drawer="search"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
                         <i data-lucide="search" class="w-4 h-4 text-amber-400"></i> ค้นหา/พิมพ์ใบสมัคร
                     </button>
-                    <button onclick="switchTab('contestants'); toggleMobileDrawer(false);" data-drawer="contestants" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                    <button onclick="switchTab('contestants'); toggleMobileDrawer(false);" data-drawer="contestants"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
                         <i data-lucide="users" class="w-4 h-4 text-amber-400"></i> ทำเนียบผู้เข้าประกวด
                     </button>
-                    <button onclick="switchTab('criteria'); toggleMobileDrawer(false);" data-drawer="criteria" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                    <button onclick="switchTab('criteria'); toggleMobileDrawer(false);" data-drawer="criteria"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
                         <i data-lucide="clipboard-list" class="w-4 h-4 text-amber-400"></i> เกณฑ์การตัดสิน
                     </button>
-                    <button onclick="switchTab('results'); toggleMobileDrawer(false);" data-drawer="results" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
+                    <button onclick="switchTab('results'); toggleMobileDrawer(false);" data-drawer="results"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-slate-800/80">
                         <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i> ประกาศผลการตัดสิน
                     </button>
                     <hr class="border-slate-700/80 my-2">
-                    <button onclick="switchTab('judge'); toggleMobileDrawer(false);" data-drawer="judge" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-amber-300 hover:bg-slate-800/80">
+                    <button onclick="switchTab('judge'); toggleMobileDrawer(false);" data-drawer="judge"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-amber-300 hover:bg-slate-800/80">
                         <i data-lucide="scale" class="w-4 h-4"></i> ระบบกรรมการให้คะแนน
                     </button>
-                    <button onclick="switchTab('admin'); toggleMobileDrawer(false);" data-drawer="admin" class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-purple-300 hover:bg-slate-800/80">
+                    <button onclick="switchTab('admin'); toggleMobileDrawer(false);" data-drawer="admin"
+                        class="drawer-item w-full text-left px-3.5 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-purple-300 hover:bg-slate-800/80">
                         <i data-lucide="shield-check" class="w-4 h-4"></i> ระบบผู้ดูแลระบบ (Admin)
                     </button>
                 </div>
@@ -316,31 +451,50 @@
             <!-- VIEW 1: หน้าแรก & ลอยกระทงออนไลน์ (HOME) -->
             <section id="view-home" class="view-section space-y-8">
                 <div class="glass-card rounded-3xl overflow-hidden border border-amber-400/30 shadow-2xl">
-                    <div class="p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-gradient-to-r from-slate-900/90 via-indigo-950/80 to-slate-900/90">
+                    <div
+                        class="p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-gradient-to-r from-slate-900/90 via-indigo-950/80 to-slate-900/90">
                         <div>
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-medium mb-2">
-                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ประเพณีลอยกระทงวิถีใหม่ สืบสานศิลป์ไทยไร้ขยะ
+                            <div
+                                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-medium mb-2">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ประเพณีลอยกระทงวิถีใหม่
+                                สืบสานศิลป์ไทยไร้ขยะ
                             </div>
-                            <h2 class="text-2xl sm:text-3xl font-bold gold-gradient-text">สายน้ำแห่งศรัทธา ลอยกระทงออนไลน์ Real-time</h2>
-                            <p class="text-sm text-slate-300 mt-1">เลือกกระทงแนวดวงดาวและดอกไม้มงคล พร้อมส่งคำอธิษฐานลอยไปตามสายน้ำจำลองบน Canvas</p>
+                                        <h2 class="text-2xl sm:text-3xl font-bold gold-gradient-text leading-relaxed">สายน้ำแห่งศรัทธา ลอยกระทงออนไลน์ Real-time</h2>
+                            <p class="text-sm text-slate-300 mt-1">เลือกกระทงแนวดวงดาวและดอกไม้มงคล
+                                พร้อมส่งคำอธิษฐานลอยไปตามสายน้ำจำลองบน Canvas</p>
                         </div>
                         <div class="flex flex-wrap gap-2.5">
-                            <button onclick="switchTab('apply')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:brightness-110 transition flex items-center gap-2">
+                            <button onclick="switchTab('apply')"
+                                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:brightness-110 transition flex items-center gap-2">
                                 <i data-lucide="award" class="w-4 h-4"></i> สมัครประกวดนางนพมาศ / กระทง
                             </button>
-                            <button onclick="document.getElementById('krathong-form-box').scrollIntoView({behavior:'smooth'})" class="px-4 py-2.5 rounded-xl bg-indigo-900/70 border border-amber-400/40 text-amber-200 font-medium text-sm hover:bg-indigo-800/70 transition flex items-center gap-2">
+                            <button
+                                onclick="document.getElementById('krathong-form-box').scrollIntoView({behavior:'smooth'})"
+                                class="px-4 py-2.5 rounded-xl bg-indigo-900/70 border border-amber-400/40 text-amber-200 font-medium text-sm hover:bg-indigo-800/70 transition flex items-center gap-2">
                                 <i data-lucide="send" class="w-4 h-4"></i> เขียนคำอธิษฐานลอยกระทง
                             </button>
                         </div>
                     </div>
 
                     <!-- Canvas สายน้ำ -->
-                    <div class="relative w-full h-[400px] sm:h-[460px] bg-slate-950">
+                    <div id="river-wrap" class="relative w-full h-[400px] sm:h-[460px] bg-slate-950">
                         <canvas id="river-canvas" class="w-full h-full block"></canvas>
-                        <div class="absolute top-3 left-4 flex items-center gap-2 bg-slate-950/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/30 text-xs text-amber-200">
+                        <div
+                            class="absolute top-3 left-4 flex items-center gap-2 bg-slate-950/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/30 text-xs text-amber-200">
                             <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
                             <span>จำนวนกระทงในสายน้ำ: <strong id="krathong-count-badge">0</strong> ใบ</span>
                         </div>
+                        <button id="river-fs-btn" type="button" title="ขยายเต็มจอ"
+                            class="absolute top-3 right-4 z-10 flex items-center gap-1.5 bg-slate-950/70 hover:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/30 text-xs text-amber-200 transition print:hidden">
+                            <span id="river-fs-icon" class="flex"><svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                    height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                                    <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+                                    <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+                                    <path d="M16 21h3a2 2 0 0 0 2-2v-3" /></svg></span>
+                            <span id="river-fs-label">เต็มจอ</span>
+                        </button>
                     </div>
 
                     <!-- ฟอร์มลอยกระทง -->
@@ -348,29 +502,44 @@
                         <h3 class="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2">
                             <i data-lucide="star" class="w-5 h-5"></i> เลือกลายกระทงและส่งคำอธิษฐานของคุณ
                         </h3>
-                        <form id="form-float-krathong" onsubmit="handleFloatKrathong(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <form id="form-float-krathong" onsubmit="handleFloatKrathong(event)"
+                            class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             <div class="lg:col-span-7 space-y-2">
-                                <label class="block text-xs font-medium text-slate-300">เลือกรูปแบบกระทง (แนวดวงดาวจักรวาล & ดอกไม้ไทยมงคล)</label>
+                                <label class="block text-xs font-medium text-slate-300">เลือกรูปแบบกระทง
+                                    (แนวดวงดาวจักรวาล & ดอกไม้ไทยมงคล)</label>
                                 <div id="krathong-style-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                                 <input type="hidden" id="selected-krathong-type" value="star_galaxy">
                             </div>
                             <div class="lg:col-span-5 flex flex-col justify-between space-y-3">
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อผู้ลอยกระทง / สังกัด <span class="text-rose-400">*</span></label>
-                                    <input type="text" id="krathong-sender" required maxlength="50" placeholder="เช่น กานต์พิชชา ปวส.1 การบัญชี" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อผู้ลอยกระทง /
+                                        สังกัด <span class="text-rose-400">*</span></label>
+                                    <input type="text" id="krathong-sender" required maxlength="50"
+                                        placeholder="เช่น กานต์พิชชา ปวส.1 การบัญชี"
+                                        class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-300 mb-1">คำอธิษฐานขอพร <span class="text-rose-400">*</span></label>
-                                    <textarea id="krathong-wish" required maxlength="140" rows="2" placeholder="พิมพ์คำอธิษฐานของคุณที่นี่..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">คำอธิษฐานขอพร <span
+                                            class="text-rose-400">*</span></label>
+                                    <textarea id="krathong-wish" required maxlength="140" rows="2"
+                                        placeholder="พิมพ์คำอธิษฐานของคุณที่นี่..."
+                                        class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-300 mb-1">รูปถ่ายผู้ลอยกระทง <span class="text-slate-400 font-normal">(ไม่บังคับ เฉพาะคนที่อยากใส่รูปไปในกระทง) · ทุกคนเห็นบนสายน้ำ)</span></label>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">รูปถ่ายผู้ลอยกระทง
+                                        <span class="text-slate-400 font-normal">(ไม่บังคับ
+                                            เฉพาะคนที่อยากใส่รูปไปในกระทง) · ทุกคนเห็นบนสายน้ำ)</span></label>
                                     <div class="flex items-center gap-3">
-                                        <input type="file" id="krathong-avatar" accept="image/*" onchange="previewFloatAvatar(this)" class="input-night flex-1 px-3 py-1.5 rounded-xl text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
-                                        <img id="krathong-avatar-preview" class="w-24 h-24 rounded-full object-cover border-2 border-amber-400 hidden shrink-0" alt="Preview Avatar">
+                                        <input type="file" id="krathong-avatar" accept="image/*"
+                                            onchange="previewFloatAvatar(this)"
+                                            class="input-night flex-1 px-3 py-1.5 rounded-xl text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                                        <img id="krathong-avatar-preview"
+                                            class="w-24 h-24 rounded-full object-cover border-2 border-amber-400 hidden shrink-0"
+                                            alt="Preview Avatar">
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2">
+                                <button type="submit"
+                                    class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2">
                                     <i data-lucide="sparkles" class="w-5 h-5"></i> ปล่อยกระทงลงสู่สายน้ำ
                                 </button>
                             </div>
@@ -390,16 +559,18 @@
             <!-- VIEW 2: ระบบรับสมัคร -->
             <section id="view-apply" class="view-section hidden space-y-6">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                    <div
+                        class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
                         <div>
                             <h2 class="text-2xl font-bold gold-gradient-text">ระบบรับสมัครเข้าประกวดออนไลน์</h2>
-                            <p class="text-sm text-slate-300 mt-1">บีบอัดรูปถ่ายอัตโนมัติ และออกเอกสารใบสมัครทางการ (TH Sarabun PSK เลขไทย) ทันที</p>
                         </div>
                         <div class="inline-flex rounded-xl bg-slate-900 p-1.5 border border-slate-700">
-                            <button type="button" onclick="switchApplyType('noppamas')" id="btn-apply-noppamas" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950">
+                            <button type="button" onclick="switchApplyType('noppamas')" id="btn-apply-noppamas"
+                                class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950">
                                 👑 ประกวดนางนพมาศ (บุคคล)
                             </button>
-                            <button type="button" onclick="switchApplyType('krathong_team')" id="btn-apply-team" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white">
+                            <button type="button" onclick="switchApplyType('krathong_team')" id="btn-apply-team"
+                                class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white">
                                 🪷 กระทงประดิษฐ์ (ทีม 5 คน)
                             </button>
                         </div>
@@ -409,40 +580,57 @@
                     <form id="form-apply-noppamas" onsubmit="submitNoppamasApplication(event)" class="mt-6 space-y-6">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">คำนำหน้านาม <span class="text-rose-400">*</span></label>
-                                <select id="nop-prefix" required class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">คำนำหน้านาม <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="nop-prefix" required
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                                     <option value="นางสาว">นางสาว</option>
                                     <option value="นาย">นาย</option>
                                     <option value="นาง">นาง</option>
                                 </select>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-xs text-slate-300 mb-1">ชื่อ - นามสกุล <span class="text-rose-400">*</span></label>
-                                <input type="text" id="nop-fullname" required placeholder="เช่น นางสาวกัญญาพัชร รัตนโชติ" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">ชื่อ - นามสกุล <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="nop-fullname" required
+                                    placeholder="เช่น นางสาวกัญญาพัชร รัตนโชติ"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">เพศ <span class="text-rose-400">*</span></label>
-                                <select id="nop-gender" required class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">เพศ <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="nop-gender" required
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                                     <option value="หญิง">หญิง</option>
                                     <option value="ชาย">ชาย</option>
                                     <option value="LGBTQ+">LGBTQ+</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">รหัสนักศึกษา (ตัวเลขเท่านั้น) <span class="text-rose-400">*</span></label>
-                                <input type="text" id="nop-student-id" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="เช่น 6730201001" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">รหัสนักศึกษา (ตัวเลขเท่านั้น) <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="nop-student-id" required pattern="^[0-9]+$"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="เช่น 6730201001"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">เบอร์โทรศัพท์ (10 หลัก) <span class="text-rose-400">*</span></label>
-                                <input type="text" id="nop-phone" required pattern="^[0-9]{10}$" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="0812345678" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">เบอร์โทรศัพท์ (10 หลัก) <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="nop-phone" required pattern="^[0-9]{10}$" maxlength="10"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="0812345678"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">สาขาวิชา <span class="text-rose-400">*</span></label>
-                                <input type="text" id="nop-dept" required placeholder="เช่น การบัญชี" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">สาขาวิชา <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="nop-dept" required placeholder="เช่น การบัญชี"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">ระดับชั้น <span class="text-rose-400">*</span></label>
-                                <select id="nop-level" required class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">ระดับชั้น <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="nop-level" required
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                                     <option value="ปวช.1">ปวช.1</option>
                                     <option value="ปวช.2">ปวช.2</option>
                                     <option value="ปวช.3">ปวช.3</option>
@@ -451,21 +639,31 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">ห้อง (เฉพาะตัวเลข) <span class="text-rose-400">*</span></label>
-                                <input type="text" id="nop-room" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="1" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">ห้อง (เฉพาะตัวเลข) <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="nop-room" required pattern="^[0-9]+$"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="1"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                             </div>
                             <div class="sm:col-span-2 lg:col-span-3">
-                                <label class="block text-xs text-slate-300 mb-1">สโลแกน / คำแนะนำตัว <span class="text-rose-400">*</span></label>
-                                <textarea id="nop-slogan" required rows="2" placeholder="ระบุคติประจำใจหรือคำแนะนำตัว..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                                <label class="block text-xs text-slate-300 mb-1">สโลแกน / คำแนะนำตัว <span
+                                        class="text-rose-400">*</span></label>
+                                <textarea id="nop-slogan" required rows="2"
+                                    placeholder="ระบุคติประจำใจหรือคำแนะนำตัว..."
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                             </div>
                             <div class="sm:col-span-2 lg:col-span-3">
-                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผู้สมัคร <span class="text-rose-400">*</span></label>
-                                <input type="file" id="nop-photo" accept="image/*" required onchange="previewCompressedImage(this, 'nop-photo-preview')" class="input-night w-full px-3.5 py-2 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                                <label class="block text-xs text-slate-300 mb-1">อัปโหลดรูปถ่ายผู้สมัคร <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="file" id="nop-photo" accept="image/*" required
+                                    onchange="previewCompressedImage(this, 'nop-photo-preview')"
+                                    class="input-night w-full px-3.5 py-2 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
                                 <div id="nop-photo-preview" class="mt-2 hidden items-center gap-3"></div>
                             </div>
                         </div>
                         <div class="flex justify-end pt-2">
-                            <button type="submit" class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
+                            <button type="submit"
+                                class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
                                 <i data-lucide="check-circle-2" class="w-5 h-5"></i> ยืนยันส่งใบสมัครและพิมพ์เอกสารทันที
                             </button>
                         </div>
@@ -475,12 +673,16 @@
                     <form id="form-apply-team" onsubmit="submitTeamApplication(event)" class="mt-6 space-y-6 hidden">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="sm:col-span-2">
-                                <label class="block text-xs text-slate-300 mb-1">สาขาวิชาที่ส่งเข้าประกวด <span class="text-rose-400">*</span></label>
-                                <input type="text" id="team-dept" required placeholder="เช่น คอมพิวเตอร์กราฟิก" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">สาขาวิชาที่ส่งเข้าประกวด <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="team-dept" required placeholder="เช่น คอมพิวเตอร์กราฟิก"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">ระดับชั้น <span class="text-rose-400">*</span></label>
-                                <select id="team-level" required class="input-night w-full px-3 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">ระดับชั้น <span
+                                        class="text-rose-400">*</span></label>
+                                <select id="team-level" required
+                                    class="input-night w-full px-3 py-2.5 rounded-xl text-sm">
                                     <option value="ปวช.1">ปวช.1</option>
                                     <option value="ปวช.2">ปวช.2</option>
                                     <option value="ปวช.3">ปวช.3</option>
@@ -489,24 +691,33 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">ห้อง (เฉพาะตัวเลข) <span class="text-rose-400">*</span></label>
-                                <input type="text" id="team-room" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="1" class="input-night w-full px-3 py-2.5 rounded-xl text-sm">
+                                <label class="block text-xs text-slate-300 mb-1">ห้อง (เฉพาะตัวเลข) <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="team-room" required pattern="^[0-9]+$"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="1"
+                                    class="input-night w-full px-3 py-2.5 rounded-xl text-sm">
                             </div>
                         </div>
 
                         <div class="space-y-3">
-                            <label class="block text-xs font-semibold text-amber-300">รายชื่อสมาชิกในทีม (สูงสุด 5 คน)</label>
+                            <label class="block text-xs font-semibold text-amber-300">รายชื่อสมาชิกในทีม (สูงสุด 5
+                                คน)</label>
                             <div id="team-members-inputs" class="space-y-2.5"></div>
                         </div>
 
                         <div>
-                            <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง <span class="text-rose-400">*</span></label>
-                            <textarea id="team-concept" required rows="3" placeholder="อธิบายวัสดุธรรมชาติและแนวคิดการประดิษฐ์กระทง..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                            <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง <span
+                                    class="text-rose-400">*</span></label>
+                            <textarea id="team-concept" required rows="3"
+                                placeholder="อธิบายวัสดุธรรมชาติและแนวคิดการประดิษฐ์กระทง..."
+                                class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                         </div>
 
                         <div class="flex justify-end pt-2">
-                            <button type="submit" class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
-                                <i data-lucide="check-circle-2" class="w-5 h-5"></i> ยืนยันส่งใบสมัครทีมและพิมพ์เอกสารทันที
+                            <button type="submit"
+                                class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                ยืนยันส่งใบสมัครทีมและพิมพ์เอกสารทันที
                             </button>
                         </div>
                     </form>
@@ -519,10 +730,16 @@
                     <h2 class="text-2xl font-bold gold-gradient-text flex items-center gap-2">
                         <i data-lucide="search" class="w-6 h-6 text-amber-400"></i> ค้นหาและพิมพ์ใบสมัครย้อนหลัง
                     </h2>
-                    <p class="text-sm text-slate-300 mt-1">กรอกรหัสนักศึกษา (ตัวเลขเท่านั้น) เพื่อตรวจสอบสถานะและพิมพ์ใบสมัครทางการ</p>
-                    <form onsubmit="handleSearchApplication(event)" class="mt-5 flex flex-col sm:flex-row gap-3 max-w-xl">
-                        <input type="text" id="search-student-id" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="กรอกรหัสนักศึกษา เช่น 6730201001" class="input-night flex-1 px-4 py-3 rounded-xl text-sm">
-                        <button type="submit" class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition flex items-center justify-center gap-2">
+                    <p class="text-sm text-slate-300 mt-1">กรอกรหัสนักศึกษา (ตัวเลขเท่านั้น)
+                        เพื่อตรวจสอบสถานะและพิมพ์ใบสมัครทางการ</p>
+                    <form onsubmit="handleSearchApplication(event)"
+                        class="mt-5 flex flex-col sm:flex-row gap-3 max-w-xl">
+                        <input type="text" id="search-student-id" required pattern="^[0-9]+$"
+                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                            placeholder="กรอกรหัสนักศึกษา เช่น 6730201001"
+                            class="input-night flex-1 px-4 py-3 rounded-xl text-sm">
+                        <button type="submit"
+                            class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition flex items-center justify-center gap-2">
                             <i data-lucide="search" class="w-4 h-4"></i> ค้นหาใบสมัคร
                         </button>
                     </form>
@@ -534,13 +751,18 @@
             <section id="view-contestants" class="view-section hidden space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold gold-gradient-text">ทำเนียบผู้เข้าประกวด (ที่ผ่านการอนุมัติแล้ว)</h2>
+                        <h2 class="text-2xl font-bold gold-gradient-text">ทำเนียบผู้เข้าประกวด (ที่ผ่านการอนุมัติแล้ว)
+                        </h2>
                         <p class="text-sm text-slate-300">แสดงหมายเลขประจำตัว รูปถ่าย สาขาวิชา และระดับชั้น/ห้อง</p>
                     </div>
                     <div class="inline-flex rounded-xl bg-slate-900 p-1.5 border border-slate-700">
-                        <button onclick="filterPublicContestants('all')" id="filter-cont-all" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-400 text-slate-950">ทั้งหมด</button>
-                        <button onclick="filterPublicContestants('noppamas')" id="filter-cont-noppamas" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300">👑 นางนพมาศ</button>
-                        <button onclick="filterPublicContestants('krathong_team')" id="filter-cont-team" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300">🪷 กระทงประดิษฐ์</button>
+                        <button onclick="filterPublicContestants('all')" id="filter-cont-all"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-400 text-slate-950">ทั้งหมด</button>
+                        <button onclick="filterPublicContestants('noppamas')" id="filter-cont-noppamas"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300">👑 นางนพมาศ</button>
+                        <button onclick="filterPublicContestants('krathong_team')" id="filter-cont-team"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300">🪷
+                            กระทงประดิษฐ์</button>
                     </div>
                 </div>
                 <div id="public-contestants-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -564,20 +786,24 @@
             <section id="view-judge" class="view-section hidden space-y-6">
                 <div id="judge-login-box" class="max-w-md mx-auto glass-card rounded-3xl p-6 sm:p-8">
                     <div class="text-center mb-6">
-                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-16 h-16 object-contain mx-auto mb-3 drop-shadow">
+                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo"
+                            class="w-16 h-16 object-contain mx-auto mb-3 drop-shadow">
                         <h2 class="text-xl font-bold gold-gradient-text">เข้าสู่ระบบกรรมการตัดสิน</h2>
                         <p class="text-xs text-slate-400 mt-1">Session อายุการใช้งาน 8 ชั่วโมง</p>
                     </div>
                     <form onsubmit="handleJudgeLogin(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">ชื่อผู้ใช้ (Username)</label>
-                            <input type="text" id="judge-user" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="text" id="judge-user"
+                                class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
-                            <input type="password" id="judge-pass" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="password" id="judge-pass"
+                                class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
-                        <button type="submit" class="w-full py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition">
+                        <button type="submit"
+                            class="w-full py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบกรรมการ
                         </button>
                     </form>
@@ -587,14 +813,18 @@
                     <div class="glass-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-400/20 text-amber-300 border border-amber-400/30">Judge Active</span>
+                                <span
+                                    class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-400/20 text-amber-300 border border-amber-400/30">Judge
+                                    Active</span>
                                 <span id="judge-session-expiry" class="text-xs text-slate-400"></span>
                             </div>
                             <h3 id="judge-welcome-name" class="text-lg font-bold text-white mt-1"></h3>
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
-                            <select id="judge-category-select" onchange="renderJudgeScoringTable()" class="input-night px-3.5 py-2 rounded-xl text-sm font-medium"></select>
-                            <button onclick="handleJudgeLogout()" class="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold hover:bg-rose-500/30 transition flex items-center gap-1.5">
+                            <select id="judge-category-select" onchange="renderJudgeScoringTable()"
+                                class="input-night px-3.5 py-2 rounded-xl text-sm font-medium"></select>
+                            <button onclick="handleJudgeLogout()"
+                                class="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold hover:bg-rose-500/30 transition flex items-center gap-1.5">
                                 <i data-lucide="log-out" class="w-4 h-4"></i> ออกจากระบบ
                             </button>
                         </div>
@@ -603,14 +833,17 @@
                     <div class="glass-card rounded-3xl p-6 relative overflow-hidden">
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                             <div>
-                                <h4 class="text-lg font-bold gold-gradient-text">ตารางกรอกคะแนนเรียลไทม์ (Auto-save)</h4>
-                                <p class="text-xs text-slate-400">บันทึกคะแนนอัตโนมัติลง Supabase พร้อมคำนวณคะแนนดิบรวมทันที</p>
+                                <h4 class="text-lg font-bold gold-gradient-text">ตารางกรอกคะแนนเรียลไทม์ (Auto-save)
+                                </h4>
+                                <p class="text-xs text-slate-400">บันทึกคะแนนอัตโนมัติลง Supabase
+                                    พร้อมคำนวณคะแนนดิบรวมทันที</p>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span id="autosave-indicator" class="text-xs text-emerald-400 flex items-center gap-1">
                                     <i data-lucide="check-circle" class="w-4 h-4"></i> พร้อมบันทึกอัตโนมัติ
                                 </span>
-                                <button id="btn-submit-lock-scores" onclick="submitAndLockJudgeScores()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-bold text-xs shadow-lg hover:brightness-110 transition flex items-center gap-1.5">
+                                <button id="btn-submit-lock-scores" onclick="submitAndLockJudgeScores()"
+                                    class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-bold text-xs shadow-lg hover:brightness-110 transition flex items-center gap-1.5">
                                     <i data-lucide="lock" class="w-4 h-4"></i> ยืนยันส่งคะแนนและล็อกตาราง
                                 </button>
                             </div>
@@ -618,12 +851,15 @@
 
                         <div id="judge-table-wrapper" class="overflow-x-auto"></div>
 
-                        <div id="judge-lock-overlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center">
-                            <div class="w-16 h-16 rounded-full bg-amber-400/20 border border-amber-400/50 flex items-center justify-center text-amber-300 mb-3">
+                        <div id="judge-lock-overlay"
+                            class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center">
+                            <div
+                                class="w-16 h-16 rounded-full bg-amber-400/20 border border-amber-400/50 flex items-center justify-center text-amber-300 mb-3">
                                 <i data-lucide="lock" class="w-8 h-8"></i>
                             </div>
                             <h4 class="text-xl font-bold text-amber-300">ส่งคะแนนเรียบร้อยแล้ว (ตารางถูกล็อก)</h4>
-                            <p id="judge-lock-status-desc" class="text-sm text-slate-300 max-w-md mt-1">คะแนนถูกส่งเข้าสู่ระบบแล้ว ไม่สามารถแก้ไขได้จนกว่าแอดมินจะกดส่งคืน</p>
+                            <p id="judge-lock-status-desc" class="text-sm text-slate-300 max-w-md mt-1">
+                                คะแนนถูกส่งเข้าสู่ระบบแล้ว ไม่สามารถแก้ไขได้จนกว่าแอดมินจะกดส่งคืน</p>
                         </div>
                     </div>
                 </div>
@@ -633,20 +869,24 @@
             <section id="view-admin" class="view-section hidden space-y-6">
                 <div id="admin-login-box" class="max-w-md mx-auto glass-card rounded-3xl p-6 sm:p-8">
                     <div class="text-center mb-6">
-                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-16 h-16 object-contain mx-auto mb-3 drop-shadow">
+                        <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo"
+                            class="w-16 h-16 object-contain mx-auto mb-3 drop-shadow">
                         <h2 class="text-xl font-bold gold-gradient-text">ผู้ดูแลระบบ (Admin Center)</h2>
                         <p class="text-xs text-slate-400 mt-1">บริหารจัดการข้อมูลการประกวดและออกเอกสารทางการ</p>
                     </div>
                     <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผู้ดูแลระบบ (Username)</label>
-                            <input type="text" id="admin-user" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="text" id="admin-user"
+                                class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
                         <div>
                             <label class="block text-xs text-slate-300 mb-1">รหัสผ่าน (Password)</label>
-                            <input type="password" id="admin-pass" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            <input type="password" id="admin-pass"
+                                class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
                         </div>
-                        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm hover:brightness-110 transition">
+                        <button type="submit"
+                            class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm hover:brightness-110 transition">
                             เข้าสู่ระบบแอดมิน
                         </button>
                     </form>
@@ -656,17 +896,13 @@
                     <div class="glass-card rounded-3xl p-5 border border-amber-400/30">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
                             <div class="flex items-center gap-3">
-                                <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="Logo" class="w-7 h-7 object-contain">
+                                <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="Logo"
+                                    class="w-7 h-7 object-contain">
                                 <span class="text-base font-bold gold-gradient-text">แผงควบคุมระบบการประกวด อวท.</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick="seedSampleDataDirectToSupabase()" class="text-xs text-amber-300 hover:text-amber-200 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-950/40 border border-amber-500/40 font-medium">
-                                    <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> ⚡ บันทึกข้อมูลตัวอย่างลง Supabase
-                                </button>
-                                <button onclick="openDbConfigModal()" class="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                                    <i data-lucide="database" class="w-3.5 h-3.5"></i> ตั้งค่า Supabase
-                                </button>
-                                <button onclick="handleAdminLogout()" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-950/40 border border-rose-900/60 ml-1">
+                                <button onclick="handleAdminLogout()"
+                                    class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-950/40 border border-rose-900/60 ml-1">
                                     <i data-lucide="log-out" class="w-3.5 h-3.5"></i> ออกจากระบบ
                                 </button>
                             </div>
@@ -674,35 +910,43 @@
 
                         <!-- 8 เมนูแอดมิน -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                            <button onclick="switchAdminMenu('overview')" data-admin-menu="overview" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center active">
+                            <button onclick="switchAdminMenu('overview')" data-admin-menu="overview"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center active">
                                 <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">สรุปผลคะแนน</span>
                             </button>
-                            <button onclick="switchAdminMenu('approve_scores')" data-admin-menu="approve_scores" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('approve_scores')" data-admin-menu="approve_scores"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="check-check" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">อนุมัติคะแนน</span>
                             </button>
-                            <button onclick="switchAdminMenu('publish')" data-admin-menu="publish" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('publish')" data-admin-menu="publish"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="megaphone" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">ประกาศผล</span>
                             </button>
-                            <button onclick="switchAdminMenu('criteria')" data-admin-menu="criteria" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('criteria')" data-admin-menu="criteria"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="sliders" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">จัดการเกณฑ์</span>
                             </button>
-                            <button onclick="switchAdminMenu('print')" data-admin-menu="print" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('print')" data-admin-menu="print"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="printer" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">ศูนย์พิมพ์ A4</span>
                             </button>
-                            <button onclick="switchAdminMenu('judges')" data-admin-menu="judges" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('judges')" data-admin-menu="judges"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="users-round" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">บัญชีกรรมการ</span>
                             </button>
-                            <button onclick="switchAdminMenu('news')" data-admin-menu="news" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('news')" data-admin-menu="news"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="newspaper" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">ข่าวสาร</span>
                             </button>
-                            <button onclick="switchAdminMenu('applications')" data-admin-menu="applications" class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                            <button onclick="switchAdminMenu('applications')" data-admin-menu="applications"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="file-check-2" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">จัดการใบสมัคร</span>
                             </button>
@@ -716,51 +960,63 @@
         </main>
 
         <!-- Footer -->
-        <footer class="mt-auto border-t border-slate-800/80 bg-slate-950/70 py-5 px-4 text-center text-xs text-slate-400 no-print">
+        <footer
+            class="mt-auto border-t border-slate-800/80 bg-slate-950/70 py-5 px-4 text-center text-xs text-slate-400 no-print">
             <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                    <img src="https://aftpsc.site/font_end/image/aft_logo.png" alt="AFT Logo" class="w-5 h-5 object-contain">
-                    <p>ระบบงานประเพณีลอยกระทงออนไลน์และระบบตัดสินการประกวด — อวท.</p>
+                    <p>ระบบงานประเพณีลอยกระทงออนไลน์และระบบตัดสินการประกวด — อวท.วิทยาลัยเทคโนโลยีพงษ์สวัสดิ์</p>
                 </div>
-                <p class="text-amber-300/80">รองรับเอกสารราชการ ฟอนต์ TH Sarabun PSK เลขไทย & Supabase Storage</p>
             </div>
         </footer>
     </div>
 
     <!-- Mobile Bottom Tab Bar -->
     <nav class="bottom-nav fixed bottom-0 inset-x-0 z-40 flex lg:hidden no-print">
-        <button onclick="switchTab('home')" data-bnav="home" class="bnav-btn active"><i data-lucide="waves" class="w-5 h-5"></i><span>ลอยกระทง</span></button>
-        <button onclick="switchTab('apply')" data-bnav="apply" class="bnav-btn"><i data-lucide="file-plus-2" class="w-5 h-5"></i><span>สมัคร</span></button>
-        <button onclick="switchTab('contestants')" data-bnav="contestants" class="bnav-btn"><i data-lucide="users" class="w-5 h-5"></i><span>ผู้เข้าประกวด</span></button>
-        <button onclick="switchTab('results')" data-bnav="results" class="bnav-btn"><i data-lucide="trophy" class="w-5 h-5"></i><span>ผลตัดสิน</span></button>
-        <button onclick="toggleMobileDrawer(true)" class="bnav-btn"><i data-lucide="layout-grid" class="w-5 h-5"></i><span>เมนูอื่น</span></button>
+        <button onclick="switchTab('home')" data-bnav="home" class="bnav-btn active"><i data-lucide="waves"
+                class="w-5 h-5"></i><span>ลอยกระทง</span></button>
+        <button onclick="switchTab('apply')" data-bnav="apply" class="bnav-btn"><i data-lucide="file-plus-2"
+                class="w-5 h-5"></i><span>สมัคร</span></button>
+        <button onclick="switchTab('contestants')" data-bnav="contestants" class="bnav-btn"><i data-lucide="users"
+                class="w-5 h-5"></i><span>ผู้เข้าประกวด</span></button>
+        <button onclick="switchTab('results')" data-bnav="results" class="bnav-btn"><i data-lucide="trophy"
+                class="w-5 h-5"></i><span>ผลตัดสิน</span></button>
+        <button onclick="toggleMobileDrawer(true)" class="bnav-btn"><i data-lucide="layout-grid"
+                class="w-5 h-5"></i><span>เมนูอื่น</span></button>
     </nav>
 
     <!-- Modal ตั้งค่าการเชื่อมต่อ Supabase -->
-    <div id="modal-db-config" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div id="modal-db-config"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
         <div class="glass-card max-w-lg w-full rounded-3xl p-6 space-y-4 border border-amber-400/40">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-bold gold-gradient-text">ตั้งค่าการเชื่อมต่อ Supabase</h3>
-                <button onclick="closeDbConfigModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeDbConfigModal()" class="text-slate-400 hover:text-white"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
             </div>
-            <p class="text-xs text-slate-300">กรอกค่า <code>SUPABASE_URL</code> และ <code>SUPABASE_ANON_KEY</code> จาก Supabase Project Settings เพื่อเชื่อมต่อฐานข้อมูลจริง</p>
+            <p class="text-xs text-slate-300">กรอกค่า <code>SUPABASE_URL</code> และ <code>SUPABASE_ANON_KEY</code> จาก
+                Supabase Project Settings เพื่อเชื่อมต่อฐานข้อมูลจริง</p>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">SUPABASE_URL</label>
-                    <input type="text" id="modal-sb-url" placeholder="https://xxxx.supabase.co" class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
+                    <input type="text" id="modal-sb-url" placeholder="https://xxxx.supabase.co"
+                        class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">SUPABASE_ANON_KEY</label>
-                    <input type="password" id="modal-sb-key" placeholder="eyJhbGci..." class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
+                    <input type="password" id="modal-sb-key" placeholder="eyJhbGci..."
+                        class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
                 </div>
                 <div class="pt-2 border-t border-slate-700">
-                    <label class="block text-xs text-slate-300 mb-1">GOOGLE_CLIENT_ID <span class="text-slate-500">(สำหรับอัปโหลดรูปเข้า Google Drive)</span></label>
-                    <input type="text" id="modal-google-client-id" placeholder="xxxx.apps.googleusercontent.com" class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
+                    <label class="block text-xs text-slate-300 mb-1">GOOGLE_CLIENT_ID <span
+                            class="text-slate-500">(สำหรับอัปโหลดรูปเข้า Google Drive)</span></label>
+                    <input type="text" id="modal-google-client-id" placeholder="xxxx.apps.googleusercontent.com"
+                        class="input-night w-full px-3.5 py-2 rounded-xl text-sm">
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeDbConfigModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-xs">ปิด</button>
-                <button onclick="saveRuntimeSupabaseConfig()" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">บันทึกและเชื่อมต่อทันที</button>
+                <button onclick="saveRuntimeSupabaseConfig()"
+                    class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">บันทึกและเชื่อมต่อทันที</button>
             </div>
         </div>
     </div>
@@ -773,8 +1029,9 @@
         //  GOOGLE DRIVE (เก็บเฉพาะรูปภาพ) — ใช้ Google Identity Services + Drive REST API
         //  ไม่ใช้ Google Apps Script
         // =====================================================================
-        const DRIVE_FOLDER_ID = '19cEbure1PEvDbPjDlJK758TP5TEwUQv8';   // โฟลเดอร์ปลายทางใน Google Drive
-        const GOOGLE_CLIENT_ID_CONST = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // ← ใส่ OAuth Client ID (หรือกรอกในหน้า "ตั้งค่า" ก็ได้)
+        const DRIVE_FOLDER_ID = '19cEbure1PEvDbPjDlJK758TP5TEwUQv8'; // โฟลเดอร์ปลายทางใน Google Drive
+        const GOOGLE_CLIENT_ID_CONST =
+        'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // ← ใส่ OAuth Client ID (หรือกรอกในหน้า "ตั้งค่า" ก็ได้)
         const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
         // true = ถ้าอัปโหลดเข้า Drive ไม่ได้ จะสำรองไปเก็บที่ Supabase Storage (ปิดเป็น false หากต้องการ Drive อย่างเดียว)
         const ALLOW_FALLBACK_TO_SUPABASE = true;
@@ -782,32 +1039,42 @@
         const USE_GOOGLE_DRIVE = false;
 
         function getGoogleClientId() {
-            return (localStorage.getItem('runtime_google_client_id') || (typeof window.GOOGLE_CLIENT_ID === 'string' ? window.GOOGLE_CLIENT_ID : '') || GOOGLE_CLIENT_ID_CONST || '').trim();
+            return (localStorage.getItem('runtime_google_client_id') || (typeof window.GOOGLE_CLIENT_ID === 'string' ?
+                window.GOOGLE_CLIENT_ID : '') || GOOGLE_CLIENT_ID_CONST || '').trim();
         }
+
         function isDriveConfigured() {
             const id = getGoogleClientId();
             return !!id && !id.includes('YOUR_GOOGLE_CLIENT_ID');
         }
 
-        let _driveToken = null, _driveTokenExp = 0;
+        let _driveToken = null,
+            _driveTokenExp = 0;
         // ต้องถูกเรียกจากการกระทำของผู้ใช้ (เช่น กดส่งฟอร์ม) เพื่อให้เบราว์เซอร์ไม่บล็อกป๊อปอัปล็อกอิน Google
         function getDriveToken() {
             return new Promise((resolve, reject) => {
                 if (_driveToken && Date.now() < _driveTokenExp) return resolve(_driveToken);
                 if (!isDriveConfigured()) return reject(new Error('ยังไม่ได้ตั้งค่า Google Client ID'));
-                if (!(window.google && google.accounts && google.accounts.oauth2)) return reject(new Error('โหลด Google Sign-In ไม่สำเร็จ'));
+                if (!(window.google && google.accounts && google.accounts.oauth2)) return reject(new Error(
+                    'โหลด Google Sign-In ไม่สำเร็จ'));
                 const client = google.accounts.oauth2.initTokenClient({
                     client_id: getGoogleClientId(),
                     scope: DRIVE_SCOPE,
                     callback: (resp) => {
-                        if (!resp || resp.error) return reject(new Error((resp && (resp.error_description || resp.error)) || 'ล็อกอิน Google ไม่สำเร็จ'));
+                        if (!resp || resp.error) return reject(new Error((resp && (resp
+                                .error_description || resp.error)) ||
+                            'ล็อกอิน Google ไม่สำเร็จ'));
                         _driveToken = resp.access_token;
-                        _driveTokenExp = Date.now() + ((Number(resp.expires_in) || 3600) - 60) * 1000;
+                        _driveTokenExp = Date.now() + ((Number(resp.expires_in) || 3600) - 60) *
+                            1000;
                         resolve(_driveToken);
                     },
-                    error_callback: (err) => reject(new Error(err && err.type === 'popup_closed' ? 'ปิดหน้าต่างล็อกอิน Google ก่อนเสร็จ' : 'ล็อกอิน Google ไม่สำเร็จ'))
+                    error_callback: (err) => reject(new Error(err && err.type === 'popup_closed' ?
+                        'ปิดหน้าต่างล็อกอิน Google ก่อนเสร็จ' : 'ล็อกอิน Google ไม่สำเร็จ'))
                 });
-                client.requestAccessToken({ prompt: _driveToken ? '' : 'select_account' });
+                client.requestAccessToken({
+                    prompt: _driveToken ? '' : 'select_account'
+                });
             });
         }
 
@@ -816,27 +1083,47 @@
             if (!blob) throw new Error('ไม่พบไฟล์รูป');
             const token = await getDriveToken();
             const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify({ name: fileName, parents: [DRIVE_FOLDER_ID], mimeType: 'image/jpeg' })], { type: 'application/json' }));
+            form.append('metadata', new Blob([JSON.stringify({
+                name: fileName,
+                parents: [DRIVE_FOLDER_ID],
+                mimeType: 'image/jpeg'
+            })], {
+                type: 'application/json'
+            }));
             form.append('file', blob);
-            const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id&supportsAllDrives=true', {
-                method: 'POST',
-                headers: { Authorization: 'Bearer ' + token },
-                body: form
-            });
+            const res = await fetch(
+                'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id&supportsAllDrives=true', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer ' + token
+                    },
+                    body: form
+                });
             if (!res.ok) {
                 if (res.status === 401) _driveToken = null;
                 const t = await res.text();
                 console.error('Drive upload failed:', res.status, t);
-                throw new Error(res.status === 404 ? 'ไม่มีสิทธิ์เขียนในโฟลเดอร์ Drive' : 'Drive ตอบกลับผิดพลาด (' + res.status + ')');
+                throw new Error(res.status === 404 ? 'ไม่มีสิทธิ์เขียนในโฟลเดอร์ Drive' : 'Drive ตอบกลับผิดพลาด (' +
+                    res.status + ')');
             }
-            const { id } = await res.json();
+            const {
+                id
+            } = await res.json();
             try {
                 await fetch(`https://www.googleapis.com/drive/v3/files/${id}/permissions?supportsAllDrives=true`, {
                     method: 'POST',
-                    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role: 'reader', type: 'anyone' })
+                    headers: {
+                        Authorization: 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        role: 'reader',
+                        type: 'anyone'
+                    })
                 });
-            } catch (e) { console.warn('ตั้งสิทธิ์แชร์รูปไม่สำเร็จ', e); }
+            } catch (e) {
+                console.warn('ตั้งสิทธิ์แชร์รูปไม่สำเร็จ', e);
+            }
             return `https://drive.google.com/uc?id=${id}`;
         }
 
@@ -857,21 +1144,65 @@
                 `https://drive.google.com/uc?export=view&id=${id}`
             ];
         }
+
         function imgSrc(url, width = 800) {
             return url ? imageCandidates(url, width)[0] : '';
         }
 
-        const KRATHONG_STYLES = [
-            { id: 'star_galaxy', name: 'ดาราจักรนพเก้า (Galaxy Star)', badge: 'แนวดวงดาว', color1: '#a855f7', color2: '#38bdf8', glow: '#f472b6' },
-            { id: 'star_zodiac', name: 'กลุ่มดาวจักรราศีทอง (Constellation)', badge: 'แนวดวงดาว', color1: '#fbbf24', color2: '#6366f1', glow: '#fde047' },
-            { id: 'celestial_moon', name: 'จันทราดาราฉาย (Celestial Moon)', badge: 'แนวดวงดาว', color1: '#38bdf8', color2: '#fef08a', glow: '#7dd3fc' },
-            { id: 'lotus_gold', name: 'บัวสุวรรณมาลี (Golden Lotus)', badge: 'กระทงดอกไม้', color1: '#f59e0b', color2: '#10b981', glow: '#fcd34d' },
-            { id: 'crystal_pearl', name: 'มุกดาพรรณราย (Crystal Pearl)', badge: 'กระทงดอกไม้', color1: '#ec4899', color2: '#14b8a6', glow: '#f9a8d4' },
-            { id: 'royal_swan', name: 'หงส์ทองล่องนที (Royal Swan)', badge: 'กระทงโบราณ', color1: '#eab308', color2: '#dc2626', glow: '#fde047' }
+        const KRATHONG_STYLES = [{
+                id: 'star_galaxy',
+                name: 'ดาราจักรนพเก้า (Galaxy Star)',
+                badge: 'แนวดวงดาว',
+                color1: '#a855f7',
+                color2: '#38bdf8',
+                glow: '#f472b6'
+            },
+            {
+                id: 'star_zodiac',
+                name: 'กลุ่มดาวจักรราศีทอง (Constellation)',
+                badge: 'แนวดวงดาว',
+                color1: '#fbbf24',
+                color2: '#6366f1',
+                glow: '#fde047'
+            },
+            {
+                id: 'celestial_moon',
+                name: 'จันทราดาราฉาย (Celestial Moon)',
+                badge: 'แนวดวงดาว',
+                color1: '#38bdf8',
+                color2: '#fef08a',
+                glow: '#7dd3fc'
+            },
+            {
+                id: 'lotus_gold',
+                name: 'บัวสุวรรณมาลี (Golden Lotus)',
+                badge: 'กระทงดอกไม้',
+                color1: '#f59e0b',
+                color2: '#10b981',
+                glow: '#fcd34d'
+            },
+            {
+                id: 'crystal_pearl',
+                name: 'มุกดาพรรณราย (Crystal Pearl)',
+                badge: 'กระทงดอกไม้',
+                color1: '#ec4899',
+                color2: '#14b8a6',
+                glow: '#f9a8d4'
+            },
+            {
+                id: 'royal_swan',
+                name: 'หงส์ทองล่องนที (Royal Swan)',
+                badge: 'กระทงโบราณ',
+                color1: '#eab308',
+                color2: '#dc2626',
+                glow: '#fde047'
+            }
         ];
 
         let appState = {
-            settings: { publish_results: false },
+            settings: {
+                publish_results: false
+            },
             krathongs: [],
             applications: [],
             criteria: [],
@@ -928,10 +1259,16 @@
                 error: 'border-rose-400/60 bg-rose-950/90 text-rose-200',
                 warning: 'border-amber-400/60 bg-amber-950/90 text-amber-200'
             };
-            const icons = { success: 'check-circle-2', error: 'alert-triangle', warning: 'info' };
+            const icons = {
+                success: 'check-circle-2',
+                error: 'alert-triangle',
+                warning: 'info'
+            };
             const el = document.createElement('div');
-            el.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-md transition-all duration-300 ${colors[type] || colors.success}`;
-            el.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-5 h-5 shrink-0"></i><span class="text-xs sm:text-sm font-medium">${message}</span>`;
+            el.className =
+                `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-md transition-all duration-300 ${colors[type] || colors.success}`;
+            el.innerHTML =
+                `<i data-lucide="${icons[type] || 'info'}" class="w-5 h-5 shrink-0"></i><span class="text-xs sm:text-sm font-medium">${message}</span>`;
             container.appendChild(el);
             lucide.createIcons();
             setTimeout(() => {
@@ -943,7 +1280,8 @@
 
         function handleImgError(imgEl, label = 'ไม่สามารถโหลดรูปภาพได้') {
             // ถ้าเป็นรูปจาก Drive ให้ลอง URL สำรองก่อน
-            const idMatch = imgEl && imgEl.src && (imgEl.src.match(/googleusercontent\.com\/d\/([\w-]{20,})/) || imgEl.src.match(/[?&]id=([\w-]{20,})/));
+            const idMatch = imgEl && imgEl.src && (imgEl.src.match(/googleusercontent\.com\/d\/([\w-]{20,})/) || imgEl
+                .src.match(/[?&]id=([\w-]{20,})/));
             if (idMatch) {
                 const tries = Number(imgEl.dataset.tries || 0);
                 const alt = [
@@ -957,15 +1295,21 @@
                 }
             }
             const wrapper = document.createElement('div');
-            wrapper.className = 'w-full h-full min-h-[140px] bg-slate-900 border border-slate-700 rounded-xl flex flex-col items-center justify-center p-3 text-center text-slate-400 text-xs';
-            wrapper.innerHTML = `<span class="text-amber-400 font-semibold mb-1">[ไม่มีรูปภาพ]</span><span>${label}</span>`;
+            wrapper.className =
+                'w-full h-full min-h-[140px] bg-slate-900 border border-slate-700 rounded-xl flex flex-col items-center justify-center p-3 text-center text-slate-400 text-xs';
+            wrapper.innerHTML =
+                `<span class="text-amber-400 font-semibold mb-1">[ไม่มีรูปภาพ]</span><span>${label}</span>`;
             if (imgEl && imgEl.parentNode) imgEl.parentNode.replaceChild(wrapper, imgEl);
         }
 
         // เข้ารหัสรูปให้เล็กที่สุด: WebP (เล็กกว่า JPEG ~30%) ถ้าเบราว์เซอร์เข้ารหัสไม่ได้ให้ใช้ JPEG
         function encodeCanvasSmall(canvas, quality) {
             return new Promise(resolve => {
-                const finish = (blob, type) => resolve({ blob, type, dataUrl: canvas.toDataURL(type, quality) });
+                const finish = (blob, type) => resolve({
+                    blob,
+                    type,
+                    dataUrl: canvas.toDataURL(type, quality)
+                });
                 canvas.toBlob(b => {
                     if (b && b.type === 'image/webp') return finish(b, 'image/webp');
                     canvas.toBlob(j => finish(j, 'image/jpeg'), 'image/jpeg', quality);
@@ -992,8 +1336,18 @@
                         ctx.fillStyle = '#ffffff';
                         ctx.fillRect(0, 0, width, height);
                         ctx.drawImage(img, 0, 0, width, height);
-                        encodeCanvasSmall(canvas, quality).then(({ blob, type, dataUrl }) => {
-                            resolve({ blob, type, dataUrl, sizeKB: Math.max(1, Math.round((blob ? blob.size : dataUrl.length) / 1024)) });
+                        encodeCanvasSmall(canvas, quality).then(({
+                            blob,
+                            type,
+                            dataUrl
+                        }) => {
+                            resolve({
+                                blob,
+                                type,
+                                dataUrl,
+                                sizeKB: Math.max(1, Math.round((blob ? blob.size :
+                                    dataUrl.length) / 1024))
+                            });
                         });
                     };
                     img.onerror = reject;
@@ -1031,20 +1385,27 @@
         // เก็บรูปที่ Supabase Storage (bucket: contest-media) — ไฟล์เล็กมาก (WebP) และแคชยาว 1 ปี
         async function storeImage(blob, dataUrl, nameBase, folder, allowDataUrl) {
             if (USE_GOOGLE_DRIVE) {
-                try { return await uploadBlobToDrive(blob, `${folder}_${nameBase}.jpg`); }
-                catch (e) { console.warn('Google Drive upload failed:', e); }
+                try {
+                    return await uploadBlobToDrive(blob, `${folder}_${nameBase}.jpg`);
+                } catch (e) {
+                    console.warn('Google Drive upload failed:', e);
+                }
             }
             if (sbClient && blob) {
                 try {
                     const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
                     const fileName = `${folder}/${nameBase}.${ext}`;
-                    const { error } = await sbClient.storage.from('contest-media').upload(fileName, blob, {
+                    const {
+                        error
+                    } = await sbClient.storage.from('contest-media').upload(fileName, blob, {
                         contentType: blob.type || 'image/webp',
                         cacheControl: '31536000',
                         upsert: false
                     });
                     if (error) throw error;
-                    const { data: pubData } = sbClient.storage.from('contest-media').getPublicUrl(fileName);
+                    const {
+                        data: pubData
+                    } = sbClient.storage.from('contest-media').getPublicUrl(fileName);
                     if (pubData && pubData.publicUrl) return pubData.publicUrl;
                 } catch (e) {
                     console.warn('Supabase storage upload failed:', e);
@@ -1090,10 +1451,16 @@
 
         async function loadKrathongsFromDB(showError = false) {
             if (!sbClient) return;
-            const { data, error } = await sbClient.from('krathongs').select('*').order('id', { ascending: false }).limit(60);
+            const {
+                data,
+                error
+            } = await sbClient.from('krathongs').select('*').order('id', {
+                ascending: false
+            }).limit(60);
             if (error) {
                 console.error('Supabase error [krathongs select]:', error);
-                if (showError) showToast('อ่านข้อมูลกระทงไม่ได้: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ SELECT)', 'error');
+                if (showError) showToast('อ่านข้อมูลกระทงไม่ได้: ' + error.message +
+                    ' (ตรวจสอบ RLS Policy แบบ SELECT)', 'error');
                 return;
             }
             appState.krathongs = data || [];
@@ -1110,20 +1477,39 @@
                 await loadKrathongsFromDB(true);
 
                 const [appRes, criRes, judRes, scoRes, subRes, newsRes, setRes] = await Promise.all([
-                    sbClient.from('applications').select('*').order('id', { ascending: true }),
-                    sbClient.from('criteria').select('*').order('order_index', { ascending: true }),
-                    sbClient.from('judges').select('*').order('id', { ascending: true }),
+                    sbClient.from('applications').select('*').order('id', {
+                        ascending: true
+                    }),
+                    sbClient.from('criteria').select('*').order('order_index', {
+                        ascending: true
+                    }),
+                    sbClient.from('judges').select('*').order('id', {
+                        ascending: true
+                    }),
                     sbClient.from('scores').select('*'),
                     sbClient.from('judge_submissions').select('*'),
-                    sbClient.from('news').select('*').order('is_pinned', { ascending: false }).order('id', { ascending: false }),
+                    sbClient.from('news').select('*').order('is_pinned', {
+                        ascending: false
+                    }).order('id', {
+                        ascending: false
+                    }),
                     sbClient.from('system_settings').select('*')
                 ]);
 
-                const failed = [['applications', appRes], ['criteria', criRes], ['judges', judRes], ['scores', scoRes], ['judge_submissions', subRes], ['news', newsRes], ['system_settings', setRes]]
+                const failed = [
+                        ['applications', appRes],
+                        ['criteria', criRes],
+                        ['judges', judRes],
+                        ['scores', scoRes],
+                        ['judge_submissions', subRes],
+                        ['news', newsRes],
+                        ['system_settings', setRes]
+                    ]
                     .filter(([, r]) => r.error);
                 if (failed.length) {
                     failed.forEach(([name, r]) => console.error('Supabase error [' + name + ']:', r.error));
-                    showToast('อ่านตาราง ' + failed.map(f => f[0]).join(', ') + ' ไม่ได้: ' + failed[0][1].error.message + ' (ตรวจสอบ RLS Policy)', 'error');
+                    showToast('อ่านตาราง ' + failed.map(f => f[0]).join(', ') + ' ไม่ได้: ' + failed[0][1].error
+                        .message + ' (ตรวจสอบ RLS Policy)', 'error');
                 }
 
                 if (appRes.data) appState.applications = appRes.data;
@@ -1153,15 +1539,13 @@
             }
             showLoader('กำลังบันทึกข้อมูลตัวอย่างเข้าสู่ตาราง Supabase...');
             try {
-                await sbClient.from('news').insert([
-                    {
-                        title: 'ประกาศรับสมัครการประกวดนางนพมาศ และกระทงประดิษฐ์ ประจำปีการศึกษา ๒๕๖๙',
-                        content: 'องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ขอเชิญชวนนักเรียน นักศึกษา ทุกระดับชั้น ปวช. และ ปวส. ส่งผลงานเข้าประกวด ชิงถ้วยเกียรติยศและทุนการศึกษา สามารถกรอกใบสมัครออนไลน์และสั่งพิมพ์ใบสมัครเพื่อยื่นได้ทันที',
-                        image_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
-                        is_pinned: true,
-                        is_published: true
-                    }
-                ]);
+                await sbClient.from('news').insert([{
+                    title: 'ประกาศรับสมัครการประกวดนางนพมาศ และกระทงประดิษฐ์ ประจำปีการศึกษา ๒๕๖๙',
+                    content: 'องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.) ขอเชิญชวนนักเรียน นักศึกษา ทุกระดับชั้น ปวช. และ ปวส. ส่งผลงานเข้าประกวด ชิงถ้วยเกียรติยศและทุนการศึกษา สามารถกรอกใบสมัครออนไลน์และสั่งพิมพ์ใบสมัครเพื่อยื่นได้ทันที',
+                    image_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+                    is_pinned: true,
+                    is_published: true
+                }]);
 
                 await loadAllDataFromBackend();
                 showToast('บันทึกข้อมูลตัวอย่างลง Supabase สำเร็จแล้ว', 'success');
@@ -1174,8 +1558,10 @@
         }
 
         function openDbConfigModal() {
-            document.getElementById('modal-sb-url').value = localStorage.getItem('runtime_sb_url') || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
-            document.getElementById('modal-sb-key').value = localStorage.getItem('runtime_sb_key') || (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '');
+            document.getElementById('modal-sb-url').value = localStorage.getItem('runtime_sb_url') || (
+                typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
+            document.getElementById('modal-sb-key').value = localStorage.getItem('runtime_sb_key') || (
+                typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '');
             document.getElementById('modal-google-client-id').value = isDriveConfigured() ? getGoogleClientId() : '';
             const m = document.getElementById('modal-db-config');
             m.classList.remove('hidden');
@@ -1196,7 +1582,8 @@
                 return;
             }
             const gcid = document.getElementById('modal-google-client-id').value.trim();
-            if (gcid) localStorage.setItem('runtime_google_client_id', gcid); else localStorage.removeItem('runtime_google_client_id');
+            if (gcid) localStorage.setItem('runtime_google_client_id', gcid);
+            else localStorage.removeItem('runtime_google_client_id');
             _driveToken = null;
             localStorage.setItem('runtime_sb_url', url);
             localStorage.setItem('runtime_sb_key', key);
@@ -1207,8 +1594,22 @@
             showToast('เชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
         }
 
-        // CANVAS สายน้ำและกระทง (แก้ไขระบบรูปภาพใหญ่และบันทึกลง DB)
         let riverCanvas, riverCtx, floatingSprites = [], riverTick = 0;
+        let riverW = 0, riverH = 0, riverDpr = 1, riverFontVersion = 0, riverEventsBound = false;
+        const RIVER_LANES = 6;
+        const RIVER_MARGIN = 320;        // ระยะนอกจอซ้าย/ขวา
+        const RIVER_SPACING = 440;       // ระยะห่างระหว่างกระทงในแถวเดียวกัน (กันซ้อน)
+        const RIVER_LANE_SPEEDS = [0.42, 0.55, 0.48, 0.62, 0.45, 0.58];
+        const RIVER_NAME_FONT = '600 17px "Kanit", "Sarabun", sans-serif';
+        const RIVER_WISH_FONT = '400 15px "Kanit", "Sarabun", sans-serif';
+        const RIVER_NAME_LH = 28;
+        const RIVER_WISH_LH = 24;
+        const RIVER_TEXT_MAX_W = 250;
+        let riverLaneCounts = new Array(RIVER_LANES).fill(0);
+        let riverLaneTravel = new Array(RIVER_LANES).fill(RIVER_MARGIN + 40);
+
+        const RIVER_WORD_SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', { granularity: 'word' }) : null;
+        const RIVER_GRAPHEME_SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', { granularity: 'grapheme' }) : null;
 
         let tempFloatAvatarBlob = null;
 
@@ -1219,7 +1620,8 @@
                 const img = new Image();
                 img.onload = () => {
                     const s = Math.min(img.naturalWidth, img.naturalHeight);
-                    const sx = (img.naturalWidth - s) / 2, sy = (img.naturalHeight - s) / 2;
+                    const sx = (img.naturalWidth - s) / 2,
+                        sy = (img.naturalHeight - s) / 2;
                     const out = Math.min(size, s);
                     const canvas = document.createElement('canvas');
                     canvas.width = canvas.height = out;
@@ -1227,9 +1629,15 @@
                     cctx.fillStyle = '#ffffff';
                     cctx.fillRect(0, 0, out, out);
                     cctx.drawImage(img, sx, sy, s, s, 0, 0, out, out);
-                    encodeCanvasSmall(canvas, quality).then(r => { URL.revokeObjectURL(url); resolve(r); });
+                    encodeCanvasSmall(canvas, quality).then(r => {
+                        URL.revokeObjectURL(url);
+                        resolve(r);
+                    });
                 };
-                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('อ่านไฟล์รูปไม่ได้')); };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('อ่านไฟล์รูปไม่ได้'));
+                };
                 img.src = url;
             });
         }
@@ -1260,6 +1668,7 @@
 
         // โหลดรูป avatar (มี cache + ลอง URL สำรอง) — ไม่ตั้ง crossOrigin เพราะเราแค่วาดลง Canvas ไม่อ่านพิกเซลกลับ
         const avatarImageCache = {};
+
         function loadAvatarImage(url) {
             if (!url) return null;
             if (avatarImageCache[url]) return avatarImageCache[url];
@@ -1267,71 +1676,255 @@
             const img = new Image();
             img.referrerPolicy = 'no-referrer';
             let i = 0;
-            img.onerror = () => { i++; if (i < cands.length) img.src = cands[i]; };
+            img.onerror = () => {
+                i++;
+                if (i < cands.length) img.src = cands[i];
+            };
             img.src = cands[0];
             avatarImageCache[url] = img;
             return img;
         }
 
+                // ================= ตัวช่วยข้อความภาษาไทย =================
+        function normalizeThaiText(text) {
+            let s = String(text == null ? '' : text);
+            try { s = s.normalize('NFC'); } catch (e) {}
+            s = s.replace(/[\u200B-\u200D\uFEFF]/g, '');                    // อักขระล่องหน
+            s = s.replace(/\u0E4D\u0E32/g, '\u0E33');                         // ํ + า → ำ
+            s = s.replace(/\u0E33([\u0E48-\u0E4B])/g, '$1\u0E33');            // น+ำ+้ → น+้+ำ (สายนำ้ → สายน้ำ)
+            s = s.replace(/([\u0E48-\u0E4C])([\u0E31\u0E34-\u0E37\u0E47])/g, '$2$1'); // วรรณยุกต์ก่อนสระบน → สลับให้ถูก
+            s = s.replace(/([\u0E48-\u0E4C])([\u0E38-\u0E3A])/g, '$2$1');     // วรรณยุกต์ก่อนสระล่าง → สลับให้ถูก
+            return s.replace(/\s+/g, ' ').trim();
+        }
+
+        function splitGraphemes(text) {
+            if (RIVER_GRAPHEME_SEG) return Array.from(RIVER_GRAPHEME_SEG.segment(text), s => s.segment);
+            return text.match(/[^\u0E31\u0E33-\u0E3A\u0E47-\u0E4E][\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]*|[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/gu) || [];
+        }
+
+        function splitWords(text) {
+            if (RIVER_WORD_SEG) return Array.from(RIVER_WORD_SEG.segment(text), s => s.segment);
+            return text.split(/(\s+)/).filter(Boolean);
+        }
+
+        // ตัดบรรทัดตามคำไทย ไม่ตัดกลางพยางค์ ไม่แยกสระ/วรรณยุกต์ออกจากพยัญชนะ และแสดงครบทุกตัวอักษร
+        function wrapCanvasText(ctx, text, maxWidth) {
+            const lines = [];
+            let line = '';
+            const pushLine = () => { if (line.trim()) lines.push(line.trim()); line = ''; };
+            splitWords(text).forEach(tok => {
+                const test = line + tok;
+                if (ctx.measureText(test).width <= maxWidth) { line = test; return; }
+                pushLine();
+                if (/^\s+$/.test(tok)) return;
+                if (ctx.measureText(tok).width <= maxWidth) { line = tok; return; }
+                splitGraphemes(tok).forEach(g => {
+                    if (line && ctx.measureText(line + g).width > maxWidth) pushLine();
+                    line += g;
+                });
+            });
+            pushLine();
+            return lines.length ? lines : [''];
+        }
+
+        function ensureRiverFonts() {
+            const bump = () => {
+                riverFontVersion++;
+                floatingSprites.forEach(sp => { sp._textLayout = null; });
+            };
+            if (!document.fonts || !document.fonts.load) return;
+            const sample = 'กขคน้ำที่ปู่เก๋ฤๅ ABC';
+            Promise.all([
+                document.fonts.load('600 17px "Kanit"', sample),
+                document.fonts.load('400 15px "Kanit"', sample),
+                document.fonts.load('700 40px "Kanit"', sample)
+            ]).catch(() => {}).finally(bump);
+            if (document.fonts.ready) document.fonts.ready.then(bump);
+        }
+
+        // ================= เต็มจอ =================
+        function getFsElement() {
+            return document.fullscreenElement || document.webkitFullscreenElement || null;
+        }
+
+        function isRiverFullscreen() {
+            const wrap = document.getElementById('river-wrap');
+            return !!wrap && (getFsElement() === wrap || wrap.classList.contains('river-fs-fallback'));
+        }
+
+        function toggleRiverFullscreen() {
+            const wrap = document.getElementById('river-wrap');
+            if (!wrap) return;
+            if (isRiverFullscreen()) { exitRiverFullscreen(); return; }
+            const req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+            if (req) {
+                try {
+                    const p = req.call(wrap);
+                    if (p && p.catch) p.catch(() => enableRiverFsFallback(wrap));
+                } catch (e) { enableRiverFsFallback(wrap); }
+            } else {
+                enableRiverFsFallback(wrap); // iPhone Safari ไม่รองรับ Fullscreen API
+            }
+        }
+
+        function enableRiverFsFallback(wrap) {
+            wrap.classList.add('river-fs-fallback');
+            document.body.classList.add('overflow-hidden');
+            updateRiverFsUI();
+        }
+
+        function exitRiverFullscreen() {
+            const wrap = document.getElementById('river-wrap');
+            if (getFsElement()) {
+                const ex = document.exitFullscreen || document.webkitExitFullscreen;
+                if (ex) { const p = ex.call(document); if (p && p.catch) p.catch(() => {}); }
+            }
+            if (wrap) wrap.classList.remove('river-fs-fallback');
+            document.body.classList.remove('overflow-hidden');
+            updateRiverFsUI();
+        }
+
+        function updateRiverFsUI() {
+            const wrap = document.getElementById('river-wrap');
+            const on = isRiverFullscreen();
+            const label = document.getElementById('river-fs-label');
+            const icon = document.getElementById('river-fs-icon');
+            const btn = document.getElementById('river-fs-btn');
+            if (label) label.textContent = on ? 'ออกจากเต็มจอ' : 'เต็มจอ';
+            if (btn) btn.title = on ? 'ออกจากเต็มจอ' : 'ขยายเต็มจอ';
+            if (icon) {
+                icon.innerHTML = on
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>'
+                    : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+            }
+            // ให้หน้าต่างขยายดูกระทง (lightbox) แสดงได้ขณะอยู่ในโหมดเต็มจอ
+            const lb = document.getElementById('krathong-lightbox');
+            if (lb && wrap) {
+                if (getFsElement() === wrap) { if (lb.parentElement !== wrap) wrap.appendChild(lb); }
+                else if (lb.parentElement === wrap) { document.body.appendChild(lb); }
+            }
+        }
+
+        // ================= สายน้ำ (Canvas) =================
         function initRiverCanvas() {
             riverCanvas = document.getElementById('river-canvas');
             if (!riverCanvas) return;
             riverCtx = riverCanvas.getContext('2d');
+
             const resize = () => {
                 const rect = riverCanvas.parentElement.getBoundingClientRect();
-                riverCanvas.width = rect.width;
-                riverCanvas.height = rect.height;
+                riverDpr = Math.min(window.devicePixelRatio || 1, 2);
+                riverW = Math.max(1, Math.round(rect.width));
+                riverH = Math.max(1, Math.round(rect.height));
+                riverCanvas.width = Math.round(riverW * riverDpr);
+                riverCanvas.height = Math.round(riverH * riverDpr);
+                riverCtx.setTransform(riverDpr, 0, 0, riverDpr, 0, 0);
+                floatingSprites.forEach(sp => { sp.baseY = riverH * (sp.laneRatio || 0.6); });
             };
             resize();
             window.addEventListener('resize', resize);
+            if (typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe(riverCanvas.parentElement);
 
             const hitTest = (ev) => {
                 const r = riverCanvas.getBoundingClientRect();
-                const px = (ev.clientX - r.left) * (riverCanvas.width / r.width);
-                const py = (ev.clientY - r.top) * (riverCanvas.height / r.height);
+                const px = (ev.clientX - r.left) * (riverW / r.width);
+                const py = (ev.clientY - r.top) * (riverH / r.height);
                 for (let i = floatingSprites.length - 1; i >= 0; i--) {
                     const h = floatingSprites[i]._hit;
                     if (h && px >= h.x && px <= h.x + h.w && py >= h.y && py <= h.y + h.h) return floatingSprites[i];
                 }
                 return null;
             };
-            riverCanvas.addEventListener('click', ev => { const sp = hitTest(ev); if (sp) openKrathongLightbox(sp); });
+            riverCanvas.addEventListener('click', ev => {
+                const sp = hitTest(ev);
+                if (sp) { openKrathongLightbox(sp); updateRiverFsUI(); }
+            });
             riverCanvas.addEventListener('mousemove', ev => { riverCanvas.style.cursor = hitTest(ev) ? 'pointer' : 'default'; });
+
+            if (!riverEventsBound) {
+                riverEventsBound = true;
+                const fsBtn = document.getElementById('river-fs-btn');
+                if (fsBtn) fsBtn.addEventListener('click', toggleRiverFullscreen);
+                document.addEventListener('fullscreenchange', updateRiverFsUI);
+                document.addEventListener('webkitfullscreenchange', updateRiverFsUI);
+                document.addEventListener('keydown', e => {
+                    const wrap = document.getElementById('river-wrap');
+                    if (e.key === 'Escape' && wrap && wrap.classList.contains('river-fs-fallback')) exitRiverFullscreen();
+                });
+            }
+
+            ensureRiverFonts();
             syncCanvasKrathongs();
             requestAnimationFrame(animateRiverCanvas);
         }
 
-        function syncCanvasKrathongs() {
-            const countEl = document.getElementById('krathong-count-badge');
-            if (countEl) countEl.textContent = appState.krathongs.length;
-            const w = riverCanvas ? riverCanvas.width : 1000;
-            const h = riverCanvas ? riverCanvas.height : 460;
+        function getRiverLaneLength(lane, w) {
+            return Math.max(w + RIVER_MARGIN * 2, (riverLaneCounts[lane] || 0) * RIVER_SPACING);
+        }
 
-            const total = appState.krathongs.length;
-            const virtualWidth = Math.max(w * 2.8, total * 180);
+        function animateRiverCanvas() {
+            if (!riverCtx || !riverCanvas) return;
+            riverTick++;
+            const w = riverW || riverCanvas.width;
+            const h = riverH || riverCanvas.height;
+            riverCtx.setTransform(riverDpr, 0, 0, riverDpr, 0, 0);
 
-            floatingSprites = appState.krathongs.map((item, idx) => {
-                const lane = idx % 6;
-                const laneRatio = 0.44 + lane * 0.08;
-                const baseSpeed = 0.35 + (idx % 3) * 0.12;
+            const skyGrad = riverCtx.createLinearGradient(0, 0, 0, h * 0.42);
+            skyGrad.addColorStop(0, '#090d16');
+            skyGrad.addColorStop(1, '#1e1b4b');
+            riverCtx.fillStyle = skyGrad;
+            riverCtx.fillRect(0, 0, w, h * 0.42);
 
-                // ดึงรูปมาจาก URL ที่เก็บไว้ใน Supabase
-                const avatarImg = loadAvatarImage(item.avatar_url);
+            const moonX = w * 0.82;
+            const moonY = h * 0.18;
+            const moonGlow = riverCtx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 85);
+            moonGlow.addColorStop(0, 'rgba(254, 240, 138, 0.95)');
+            moonGlow.addColorStop(0.4, 'rgba(251, 191, 36, 0.35)');
+            moonGlow.addColorStop(1, 'transparent');
+            riverCtx.fillStyle = moonGlow;
+            riverCtx.beginPath();
+            riverCtx.arc(moonX, moonY, 85, 0, Math.PI * 2);
+            riverCtx.fill();
 
-                return {
-                    ...item,
-                    x: (idx * 180 + 40) % virtualWidth,
-                    virtualWidth: virtualWidth,
-                    baseY: h * laneRatio,
-                    speed: baseSpeed,
-                    phase: idx * 1.3,
-                    scale: 0.65 + lane * 0.06,
-                    avatarImg: avatarImg
-                };
+            riverCtx.fillStyle = '#fef9c3';
+            riverCtx.beginPath();
+            riverCtx.arc(moonX, moonY, 28, 0, Math.PI * 2);
+            riverCtx.fill();
+
+            const waterGrad = riverCtx.createLinearGradient(0, h * 0.38, 0, h);
+            waterGrad.addColorStop(0, '#172554');
+            waterGrad.addColorStop(0.5, '#0f172a');
+            waterGrad.addColorStop(1, '#020617');
+            riverCtx.fillStyle = waterGrad;
+            riverCtx.fillRect(0, h * 0.38, w, h * 0.62);
+
+            for (let layer = 0; layer < 4; layer++) {
+                riverCtx.beginPath();
+                const waveY = h * (0.42 + layer * 0.14);
+                riverCtx.moveTo(0, waveY);
+                for (let x = 0; x <= w; x += 25) {
+                    const y = waveY + Math.sin(x * 0.015 + riverTick * 0.025 + layer) * 5;
+                    riverCtx.lineTo(x, y);
+                }
+                riverCtx.strokeStyle = layer % 2 === 0 ? 'rgba(251, 191, 36, 0.14)' : 'rgba(56, 189, 248, 0.14)';
+                riverCtx.lineWidth = 1.5;
+                riverCtx.stroke();
+            }
+
+            // ทุกแถวเดินหน้าพร้อมกัน → กระทงในแถวเดียวกันไม่แซง/ไม่ซ้อน และวนผ่านจอครบทุกใบ
+            for (let l = 0; l < RIVER_LANES; l++) riverLaneTravel[l] += RIVER_LANE_SPEEDS[l];
+
+            floatingSprites.forEach(sp => {
+                const L = getRiverLaneLength(sp.lane, w);
+                const pos = ((sp.slot + riverLaneTravel[sp.lane]) % L + L) % L;
+                sp.x = pos - RIVER_MARGIN;
+                if (sp.x >= -RIVER_MARGIN && sp.x <= w + RIVER_MARGIN) {
+                    drawKrathongSprite(riverCtx, sp, riverTick);
+                } else {
+                    sp._hit = null;
+                }
             });
-
-            // เรียงลำดับ Layer จากกระทงแถวหลังไปแถวหน้า
-            floatingSprites.sort((a, b) => a.baseY - b.baseY);
+            requestAnimationFrame(animateRiverCanvas);
         }
 
         function drawKrathongSprite(ctx, sp, tick) {
@@ -1381,30 +1974,34 @@
             ctx.quadraticCurveTo(-5, -28, flame * 0.4, -36);
             ctx.fill();
 
-            // --- กล่องข้อความ + รูปโปรไฟล์ (ขยายใหญ่) ---
-            const senderTxt = (sp.sender_name || 'ผู้ร่วมลอยกระทง');
-            const nameShort = senderTxt.length > 26 ? senderTxt.substring(0, 26) + '…' : senderTxt;
-            const wishRaw = sp.wish_text || '';
-            const wishShort = wishRaw.length > 30 ? wishRaw.substring(0, 30) + '…' : wishRaw;
+            // --- กล่องข้อความ + รูปโปรไฟล์ (แสดงข้อความครบ ไม่ตัดทิ้ง) ---
+            const senderTxt = normalizeThaiText(sp.sender_name || 'ผู้ร่วมลอยกระทง') || 'ผู้ร่วมลอยกระทง';
+            const wishTxt = normalizeThaiText(sp.wish_text || '');
 
             const hasPhoto = !!sp.avatarImg;
             const avatarSize = hasPhoto ? 120 : 64;
             const avatarRadius = avatarSize / 2;
             const paddingX = 12;
-            const boxHeight = avatarSize + 16;
+            const paddingY = 12;
             const textStartX = paddingX + avatarSize + 14;
 
-            ctx.font = '600 16px Kanit, sans-serif';
-            const nameWidth = ctx.measureText(nameShort).width;
-            ctx.font = '400 13px Kanit, sans-serif';
-            const wishWidth = ctx.measureText(wishShort).width;
-            const contentWidth = Math.max(nameWidth, wishWidth, 90);
-
-            const boxWidth = textStartX + contentWidth + 14;
+            if (!sp._textLayout || sp._textLayout.v !== riverFontVersion) {
+                ctx.font = RIVER_NAME_FONT;
+                const nameLines = wrapCanvasText(ctx, senderTxt, RIVER_TEXT_MAX_W);
+                const nameW = Math.max(...nameLines.map(l => ctx.measureText(l).width));
+                ctx.font = RIVER_WISH_FONT;
+                const wishLines = wishTxt ? wrapCanvasText(ctx, wishTxt, RIVER_TEXT_MAX_W) : [];
+                const wishW = wishLines.length ? Math.max(...wishLines.map(l => ctx.measureText(l).width)) : 0;
+                sp._textLayout = { v: riverFontVersion, nameLines, wishLines, contentWidth: Math.max(nameW, wishW, 90) };
+            }
+            const { nameLines, wishLines, contentWidth } = sp._textLayout;
+            const textBlockH = nameLines.length * RIVER_NAME_LH + (wishLines.length ? 4 + wishLines.length * RIVER_WISH_LH : 0);
+            const boxHeight = Math.max(avatarSize, textBlockH) + paddingY * 2;
+            const boxWidth = textStartX + contentWidth + 16;
             const bx = -boxWidth / 2;
             const by = -(boxHeight + 46);
 
-            // เก็บพื้นที่กล่อง (พิกัด Canvas) ไว้ใช้ตอนคลิกเพื่อขยายดู
+            // เก็บพื้นที่กล่องไว้ใช้ตอนคลิกเพื่อขยายดู
             sp._hit = {
                 x: sp.x + bx * sp.scale,
                 y: bobY + by * sp.scale,
@@ -1452,10 +2049,10 @@
                 ctx.fillRect(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarSize, avatarSize);
 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = `bold ${Math.round(avatarSize * 0.38)}px Kanit, sans-serif`;
+                ctx.font = `bold ${Math.round(avatarSize * 0.38)}px "Kanit", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                const initial = (senderTxt.trim()[0] || 'ก').toUpperCase();
+                const initial = (splitGraphemes(senderTxt)[0] || 'ก').toUpperCase();
                 ctx.fillText(initial, avatarCenterX, avatarCenterY + 2);
             }
             ctx.restore();
@@ -1467,17 +2064,63 @@
             ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
             ctx.stroke();
 
-            // --- ข้อความ ---
+            // --- ข้อความ (หลายบรรทัด เว้นระยะพอให้สระบน/ล่างไม่ถูกบัง) ---
             ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
+            ctx.textBaseline = 'middle';
+            let ty = by + (boxHeight - textBlockH) / 2;
             ctx.fillStyle = '#fbbf24';
-            ctx.font = '600 16px Kanit, sans-serif';
-            ctx.fillText(nameShort, bx + textStartX, avatarCenterY - 4);
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '400 13px Kanit, sans-serif';
-            ctx.fillText(wishShort, bx + textStartX, avatarCenterY + 20);
+            ctx.font = RIVER_NAME_FONT;
+            nameLines.forEach(line => {
+                ctx.fillText(line, bx + textStartX, ty + RIVER_NAME_LH / 2);
+                ty += RIVER_NAME_LH;
+            });
+            if (wishLines.length) {
+                ty += 4;
+                ctx.fillStyle = '#e2e8f0';
+                ctx.font = RIVER_WISH_FONT;
+                wishLines.forEach(line => {
+                    ctx.fillText(line, bx + textStartX, ty + RIVER_WISH_LH / 2);
+                    ty += RIVER_WISH_LH;
+                });
+            }
 
             ctx.restore();
+        }
+
+        function syncCanvasKrathongs() {
+            const list = (typeof appState !== 'undefined' && appState && Array.isArray(appState.krathongs)) ? appState.krathongs : [];
+            const countEl = document.getElementById('krathong-count-badge');
+            if (countEl) countEl.textContent = list.length;
+            const h = riverH || (riverCanvas ? riverCanvas.height : 460);
+
+            riverLaneCounts = new Array(RIVER_LANES).fill(0);
+
+            floatingSprites = list.map((item, idx) => {
+                const lane = idx % RIVER_LANES;
+                const slotIndex = Math.floor(idx / RIVER_LANES);
+                riverLaneCounts[lane]++;
+                const laneRatio = 0.44 + lane * 0.08;
+
+                // ดึงรูปมาจาก URL ที่เก็บไว้ใน Supabase
+                const avatarImg = loadAvatarImage(item.avatar_url);
+
+                return {
+                    ...item,
+                    lane: lane,
+                    laneRatio: laneRatio,
+                    slot: slotIndex * RIVER_SPACING + lane * 150,
+                    x: -RIVER_MARGIN,
+                    baseY: h * laneRatio,
+                    speed: RIVER_LANE_SPEEDS[lane],
+                    phase: idx * 1.3,
+                    scale: 0.72 + lane * 0.05,
+                    avatarImg: avatarImg,
+                    _textLayout: null
+                };
+            });
+
+            // เรียงลำดับ Layer จากกระทงแถวหลังไปแถวหน้า
+            floatingSprites.sort((a, b) => a.baseY - b.baseY);
         }
 
         // คลิกที่กล่องกระทงบน Canvas เพื่อดูรูป/คำอธิษฐานแบบเต็ม
@@ -1486,16 +2129,19 @@
             if (old) old.remove();
             const overlay = document.createElement('div');
             overlay.id = 'krathong-lightbox';
-            overlay.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4 cursor-pointer';
+            overlay.className =
+                'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4 cursor-pointer';
             overlay.onclick = () => overlay.remove();
             const card = document.createElement('div');
-            card.className = 'glass-card rounded-3xl border border-amber-400/50 p-5 max-w-md w-full text-center space-y-3';
+            card.className =
+                'glass-card rounded-3xl border border-amber-400/50 p-5 max-w-md w-full text-center space-y-3';
             card.onclick = ev => ev.stopPropagation();
             if (sp.avatar_url) {
                 const img = document.createElement('img');
                 img.src = imgSrc(sp.avatar_url, 1000);
                 img.referrerPolicy = 'no-referrer';
-                img.className = 'w-64 h-64 max-w-full mx-auto object-cover rounded-2xl bg-slate-900 border border-amber-400/40';
+                img.className =
+                    'w-64 h-64 max-w-full mx-auto object-cover rounded-2xl bg-slate-900 border border-amber-400/40';
                 img.onerror = () => handleImgError(img);
                 card.appendChild(img);
             }
@@ -1513,69 +2159,7 @@
             document.body.appendChild(overlay);
         }
 
-        function animateRiverCanvas() {
-            if (!riverCtx || !riverCanvas) return;
-            riverTick++;
-            const w = riverCanvas.width;
-            const h = riverCanvas.height;
-
-            const skyGrad = riverCtx.createLinearGradient(0, 0, 0, h * 0.42);
-            skyGrad.addColorStop(0, '#090d16');
-            skyGrad.addColorStop(1, '#1e1b4b');
-            riverCtx.fillStyle = skyGrad;
-            riverCtx.fillRect(0, 0, w, h * 0.42);
-
-            const moonX = w * 0.82;
-            const moonY = h * 0.18;
-            const moonGlow = riverCtx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 85);
-            moonGlow.addColorStop(0, 'rgba(254, 240, 138, 0.95)');
-            moonGlow.addColorStop(0.4, 'rgba(251, 191, 36, 0.35)');
-            moonGlow.addColorStop(1, 'transparent');
-            riverCtx.fillStyle = moonGlow;
-            riverCtx.beginPath();
-            riverCtx.arc(moonX, moonY, 85, 0, Math.PI * 2);
-            riverCtx.fill();
-
-            riverCtx.fillStyle = '#fef9c3';
-            riverCtx.beginPath();
-            riverCtx.arc(moonX, moonY, 28, 0, Math.PI * 2);
-            riverCtx.fill();
-
-            const waterGrad = riverCtx.createLinearGradient(0, h * 0.38, 0, h);
-            waterGrad.addColorStop(0, '#172554');
-            waterGrad.addColorStop(0.5, '#0f172a');
-            waterGrad.addColorStop(1, '#020617');
-            riverCtx.fillStyle = waterGrad;
-            riverCtx.fillRect(0, h * 0.38, w, h * 0.62);
-
-            for (let layer = 0; layer < 4; layer++) {
-                riverCtx.beginPath();
-                const waveY = h * (0.42 + layer * 0.14);
-                riverCtx.moveTo(0, waveY);
-                for (let x = 0; x <= w; x += 25) {
-                    const y = waveY + Math.sin(x * 0.015 + riverTick * 0.025 + layer) * 5;
-                    riverCtx.lineTo(x, y);
-                }
-                riverCtx.strokeStyle = layer % 2 === 0 ? 'rgba(251, 191, 36, 0.14)' : 'rgba(56, 189, 248, 0.14)';
-                riverCtx.lineWidth = 1.5;
-                riverCtx.stroke();
-            }
-
-            floatingSprites.forEach(sp => {
-                sp.x += sp.speed;
-                const vW = sp.virtualWidth || (w * 2.8);
-                if (sp.x > vW) {
-                    sp.x = -320;
-                }
-                // เรนเดอร์เฉพาะกระทงที่อยู่ในพื้นที่มองเห็นเพื่อประสิทธิภาพสูงสุด
-                if (sp.x >= -320 && sp.x <= w + 320) {
-                    drawKrathongSprite(riverCtx, sp, riverTick);
-                } else {
-                    sp._hit = null;
-                }
-            });
-            requestAnimationFrame(animateRiverCanvas);
-        }
+        
 
         function renderKrathongStyleSelector() {
             const grid = document.getElementById('krathong-style-grid');
@@ -1616,8 +2200,10 @@
                 // ถ้าแนบรูปมา → อัปโหลดเข้า Google Drive (ทุกคนจะมองเห็นรูปเพราะเปิดสิทธิ์ดูแบบลิงก์)
                 if (tempFloatAvatarBlob) {
                     const nameBase = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-                    driveImageUrl = await storeImage(tempFloatAvatarBlob, tempFloatAvatarUrl, nameBase, 'krathong', false);
-                    if (!driveImageUrl) showToast('ปล่อยกระทงต่อได้ แต่ไม่มีรูป เนื่องจากอัปโหลดรูปไม่สำเร็จ', 'warning');
+                    driveImageUrl = await storeImage(tempFloatAvatarBlob, tempFloatAvatarUrl, nameBase, 'krathong',
+                        false);
+                    if (!driveImageUrl) showToast('ปล่อยกระทงต่อได้ แต่ไม่มีรูป เนื่องจากอัปโหลดรูปไม่สำเร็จ',
+                        'warning');
                 }
 
                 // สร้าง Object บันทึกลง Supabase
@@ -1629,7 +2215,9 @@
                     avatar_url: driveImageUrl // เก็บลิงก์ที่ได้จาก Google Drive
                 };
 
-                const { error } = await sbClient.from('krathongs').insert([newKrathong]);
+                const {
+                    error
+                } = await sbClient.from('krathongs').insert([newKrathong]);
                 if (error) {
                     console.error('Supabase error [krathongs insert]:', error);
                     showToast('บันทึกกระทงไม่สำเร็จ: ' + error.message, 'error');
@@ -1696,12 +2284,14 @@
                 fNop.classList.remove('hidden');
                 fTeam.classList.add('hidden');
                 bNop.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950';
-                bTeam.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
+                bTeam.className =
+                    'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
             } else {
                 fTeam.classList.remove('hidden');
                 fNop.classList.add('hidden');
                 bTeam.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950';
-                bNop.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
+                bNop.className =
+                'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white';
             }
         }
 
@@ -1747,7 +2337,9 @@
             };
 
             if (sbClient) {
-                const { data } = await sbClient.from('applications').insert([newApp]).select();
+                const {
+                    data
+                } = await sbClient.from('applications').insert([newApp]).select();
                 if (data && data[0]) newApp.id = data[0].id;
             } else {
                 newApp.id = Date.now();
@@ -1776,7 +2368,10 @@
                 const nm = document.getElementById(`tm-name-${i}`).value.trim();
                 const sid = document.getElementById(`tm-sid-${i}`).value.trim();
                 if (nm || sid) {
-                    members.push({ name: ensurePrefixInName(pfx, nm), student_id: sid });
+                    members.push({
+                        name: ensurePrefixInName(pfx, nm),
+                        student_id: sid
+                    });
                 }
             }
 
@@ -1808,7 +2403,9 @@
             };
 
             if (sbClient) {
-                const { data } = await sbClient.from('applications').insert([newApp]).select();
+                const {
+                    data
+                } = await sbClient.from('applications').insert([newApp]).select();
                 if (data && data[0]) newApp.id = data[0].id;
             } else {
                 newApp.id = Date.now();
@@ -1841,7 +2438,9 @@
             setPrintOrientation('portrait');
 
             const dateObj = new Date(app.created_at || Date.now());
-            const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+            const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
+                'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+            ];
             const dayTh = toThaiNum(dateObj.getDate());
             const monthTh = thaiMonths[dateObj.getMonth()];
             const yearTh = toThaiNum(dateObj.getFullYear() + 543);
@@ -1969,7 +2568,8 @@
             });
 
             if (matches.length === 0) {
-                box.innerHTML = `<div class="p-6 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm">ไม่พบข้อมูลใบสมัครของรหัสนักศึกษา <strong>${sid}</strong></div>`;
+                box.innerHTML =
+                    `<div class="p-6 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm">ไม่พบข้อมูลใบสมัครของรหัสนักศึกษา <strong>${sid}</strong></div>`;
                 return;
             }
 
@@ -2026,8 +2626,11 @@
             ['all', 'noppamas', 'team'].forEach(k => {
                 const btn = document.getElementById(`filter-cont-${k}`);
                 if (!btn) return;
-                const match = (k === 'all' && type === 'all') || (k === 'noppamas' && type === 'noppamas') || (k === 'team' && type === 'krathong_team');
-                btn.className = match ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-400 text-slate-950' : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300';
+                const match = (k === 'all' && type === 'all') || (k === 'noppamas' && type === 'noppamas') || (
+                    k === 'team' && type === 'krathong_team');
+                btn.className = match ?
+                    'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-400 text-slate-950' :
+                    'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300';
             });
             renderPublicContestants();
         }
@@ -2036,11 +2639,13 @@
             const grid = document.getElementById('public-contestants-grid');
             if (!grid) return;
             let approved = appState.applications.filter(a => a.status === 'APPROVED');
-            if (currentContestantFilter !== 'all') approved = approved.filter(a => a.contest_type === currentContestantFilter);
+            if (currentContestantFilter !== 'all') approved = approved.filter(a => a.contest_type ===
+                currentContestantFilter);
             approved.sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
 
             if (approved.length === 0) {
-                grid.innerHTML = `<div class="col-span-3 glass-card rounded-2xl p-8 text-center text-sm text-slate-400">ยังไม่มีรายชื่อผู้เข้าประกวดที่อนุมัติในหมวดหมู่นี้</div>`;
+                grid.innerHTML =
+                    `<div class="col-span-3 glass-card rounded-2xl p-8 text-center text-sm text-slate-400">ยังไม่มีรายชื่อผู้เข้าประกวดที่อนุมัติในหมวดหมู่นี้</div>`;
                 return;
             }
 
@@ -2068,7 +2673,8 @@
             const container = document.getElementById('public-criteria-container');
             if (!container) return;
             const renderBox = (type, label) => {
-                const list = appState.criteria.filter(c => c.contest_type === type).sort((a, b) => a.order_index - b.order_index);
+                const list = appState.criteria.filter(c => c.contest_type === type).sort((a, b) => a.order_index - b
+                    .order_index);
                 const total = list.reduce((sum, item) => sum + Number(item.max_score || 0), 0);
                 return `
                     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3">
@@ -2087,7 +2693,8 @@
                     </div>
                 `;
             };
-            container.innerHTML = renderBox('noppamas', '👑 เกณฑ์การประกวดนางนพมาศ (บุคคล)') + renderBox('krathong_team', '🪷 เกณฑ์การประกวดกระทงประดิษฐ์ (ทีม)');
+            container.innerHTML = renderBox('noppamas', '👑 เกณฑ์การประกวดนางนพมาศ (บุคคล)') + renderBox(
+                'krathong_team', '🪷 เกณฑ์การประกวดกระทงประดิษฐ์ (ทีม)');
         }
 
         function computeCategoryRankings(contestType) {
@@ -2099,7 +2706,8 @@
 
             const rows = contestants.map(c => {
                 const rawTotal = appState.scores
-                    .filter(sc => Number(sc.application_id) === Number(c.id) && catCriteriaIds.includes(Number(sc.criteria_id)))
+                    .filter(sc => Number(sc.application_id) === Number(c.id) && catCriteriaIds.includes(Number(
+                        sc.criteria_id)))
                     .reduce((sum, s) => sum + Number(s.score || 0), 0);
                 return {
                     ...c,
@@ -2110,7 +2718,10 @@
             });
 
             rows.sort((a, b) => b.rawTotal - a.rawTotal);
-            return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+            return rows.map((r, i) => ({
+                ...r,
+                rank: i + 1
+            }));
         }
 
         function renderPublicResults() {
@@ -2154,7 +2765,8 @@
                     </div>
                 `;
             };
-            wrap.innerHTML = renderCard('noppamas', '👑 ผลการประกวดนางนพมาศ') + renderCard('krathong_team', '🪷 ผลการประกวดกระทงประดิษฐ์');
+            wrap.innerHTML = renderCard('noppamas', '👑 ผลการประกวดนางนพมาศ') + renderCard('krathong_team',
+                '🪷 ผลการประกวดกระทงประดิษฐ์');
         }
 
         function handleJudgeLogin(e) {
@@ -2166,7 +2778,10 @@
                 showToast('ชื่อผู้ใช้หรือรหัสผ่านกรรมการไม่ถูกต้อง', 'error');
                 return;
             }
-            activeJudgeSession = { judge: found, expiresAt: Date.now() + 8 * 60 * 60 * 1000 };
+            activeJudgeSession = {
+                judge: found,
+                expiresAt: Date.now() + 8 * 60 * 60 * 1000
+            };
             localStorage.setItem('judge_session_v1', JSON.stringify(activeJudgeSession));
             renderJudgeView();
             showToast(`ยินดีต้อนรับ ${found.full_name}`, 'success');
@@ -2185,7 +2800,7 @@
                 try {
                     const parsed = JSON.parse(raw);
                     if (Date.now() < parsed.expiresAt) activeJudgeSession = parsed;
-                } catch(e) {}
+                } catch (e) {}
             }
 
             const loginBox = document.getElementById('judge-login-box');
@@ -2204,8 +2819,10 @@
 
             const sel = document.getElementById('judge-category-select');
             const options = [];
-            if (j.assigned_type === 'all' || j.assigned_type === 'noppamas') options.push(`<option value="noppamas">👑 นางนพมาศ (บุคคล)</option>`);
-            if (j.assigned_type === 'all' || j.assigned_type === 'krathong_team') options.push(`<option value="krathong_team">🪷 กระทงประดิษฐ์ (ทีม)</option>`);
+            if (j.assigned_type === 'all' || j.assigned_type === 'noppamas') options.push(
+                `<option value="noppamas">👑 นางนพมาศ (บุคคล)</option>`);
+            if (j.assigned_type === 'all' || j.assigned_type === 'krathong_team') options.push(
+                `<option value="krathong_team">🪷 กระทงประดิษฐ์ (ทีม)</option>`);
             if (!sel.innerHTML || !sel.value) sel.innerHTML = options.join('');
             renderJudgeScoringTable();
         }
@@ -2214,10 +2831,13 @@
             if (!activeJudgeSession) return;
             const j = activeJudgeSession.judge;
             const cat = document.getElementById('judge-category-select').value || 'noppamas';
-            const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b.order_index);
-            const contestants = appState.applications.filter(a => a.contest_type === cat && a.status === 'APPROVED').sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
+            const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b
+                .order_index);
+            const contestants = appState.applications.filter(a => a.contest_type === cat && a.status === 'APPROVED')
+                .sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
 
-            const sub = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j.id) && s.contest_type === cat);
+            const sub = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j.id) && s.contest_type ===
+                cat);
             const isLocked = sub && (sub.status === 'SUBMITTED' || sub.status === 'APPROVED');
             const lockOverlay = document.getElementById('judge-lock-overlay');
             if (isLocked) lockOverlay.classList.remove('hidden');
@@ -2225,7 +2845,8 @@
 
             const wrapper = document.getElementById('judge-table-wrapper');
             if (contestants.length === 0) {
-                wrapper.innerHTML = `<div class="p-8 text-center text-sm text-slate-400">ยังไม่มีผู้เข้าประกวดที่ได้รับการอนุมัติในหมวดหมู่นี้</div>`;
+                wrapper.innerHTML =
+                    `<div class="p-8 text-center text-sm text-slate-400">ยังไม่มีผู้เข้าประกวดที่ได้รับการอนุมัติในหมวดหมู่นี้</div>`;
                 return;
             }
 
@@ -2253,24 +2874,46 @@
                                     </td>
                                 `;
                             }).join('');
-                            return `
-                                <tr>
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center">
-                                                <img src="${imgSrc(con.photo_url)}" onerror="handleImgError(this)" class="w-full h-full object-contain">
-                                            </div>
-                                            <div>
-                                                <span class="text-xs font-bold text-amber-400">#${con.contestant_number || '-'}</span>
-                                                <p class="font-semibold text-white">${getDisplayName(con)}</p>
-                                                <p class="text-[11px] text-slate-400">${con.department} (${con.edu_level})</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    ${cells}
-                                    <td class="p-3 text-right font-extrabold text-emerald-400" id="raw-total-${j.id}-${con.id}">${total.toFixed(1)}</td>
-                                </tr>
-                            `;
+                            return ` <
+                tr >
+                <
+                td class = "p-3" >
+                <
+                div class = "flex items-center gap-3" >
+                <
+                div class =
+                "w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center" >
+                <
+                img src = "${imgSrc(con.photo_url)}"
+            onerror = "handleImgError(this)"
+            class = "w-full h-full object-contain" >
+                <
+                /div> <
+                div >
+                <
+                span class = "text-xs font-bold text-amber-400" > #$ {
+                    con.contestant_number || '-'
+                } < /span> <
+                p class = "font-semibold text-white" > $ {
+                    getDisplayName(con)
+                } < /p> <
+                p class = "text-[11px] text-slate-400" > $ {
+                    con.department
+                }($ {
+                    con.edu_level
+                }) < /p> <
+                /div> <
+                /div> <
+                /td>
+            $ {
+                cells
+            } <
+            td class = "p-3 text-right font-extrabold text-emerald-400"
+            id = "raw-total-${j.id}-${con.id}" > $ {
+                    total.toFixed(1)
+                } < /td> <
+                /tr>
+            `;
                         }).join('')}
                     </tbody>
                 </table>
@@ -2279,15 +2922,25 @@
 
         async function handleLiveScoreInput(judgeId, appId, criteriaId, maxScore, inputEl) {
             let num = parseFloat(inputEl.value) || 0;
-            if (num > maxScore) { num = maxScore; inputEl.value = maxScore; }
-            const ex = appState.scores.find(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(appId) && Number(s.criteria_id) === Number(criteriaId));
+            if (num > maxScore) {
+                num = maxScore;
+                inputEl.value = maxScore;
+            }
+            const ex = appState.scores.find(s => Number(s.judge_id) === Number(judgeId) && Number(s
+                .application_id) === Number(appId) && Number(s.criteria_id) === Number(criteriaId));
             if (ex) ex.score = num;
-            else appState.scores.push({ judge_id: judgeId, application_id: appId, criteria_id: criteriaId, score: num });
+            else appState.scores.push({
+                judge_id: judgeId,
+                application_id: appId,
+                criteria_id: criteriaId,
+                score: num
+            });
 
             const cat = document.getElementById('judge-category-select').value;
             const catCriIds = appState.criteria.filter(c => c.contest_type === cat).map(c => Number(c.id));
             const newTotal = appState.scores
-                .filter(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(appId) && catCriIds.includes(Number(s.criteria_id)))
+                .filter(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(appId) &&
+                    catCriIds.includes(Number(s.criteria_id)))
                 .reduce((sum, s) => sum + Number(s.score || 0), 0);
 
             const totalCell = document.getElementById(`raw-total-${judgeId}-${appId}`);
@@ -2300,7 +2953,9 @@
                     criteria_id: criteriaId,
                     score: num,
                     updated_at: new Date().toISOString()
-                }], { onConflict: 'judge_id,application_id,criteria_id' });
+                }], {
+                    onConflict: 'judge_id,application_id,criteria_id'
+                });
             }
         }
 
@@ -2308,9 +2963,14 @@
             if (!activeJudgeSession) return;
             const j = activeJudgeSession.judge;
             const cat = document.getElementById('judge-category-select').value;
-            const ex = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j.id) && s.contest_type === cat);
+            const ex = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j.id) && s
+                .contest_type === cat);
             if (ex) ex.status = 'SUBMITTED';
-            else appState.judge_submissions.push({ judge_id: j.id, contest_type: cat, status: 'SUBMITTED' });
+            else appState.judge_submissions.push({
+                judge_id: j.id,
+                contest_type: cat,
+                status: 'SUBMITTED'
+            });
 
             if (sbClient) {
                 await sbClient.from('judge_submissions').upsert([{
@@ -2318,7 +2978,9 @@
                     contest_type: cat,
                     status: 'SUBMITTED',
                     updated_at: new Date().toISOString()
-                }], { onConflict: 'judge_id,contest_type' });
+                }], {
+                    onConflict: 'judge_id,contest_type'
+                });
             }
             renderJudgeScoringTable();
             showToast('ส่งคะแนนและล็อกตารางเรียบร้อยแล้ว', 'success');
@@ -2433,22 +3095,44 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#e2e8f0' } } },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    },
                     scales: {
-                        x: { ticks: { color: '#cbd5e1' } },
-                        y: { ticks: { color: '#cbd5e1' }, beginAtZero: true }
+                        x: {
+                            ticks: {
+                                color: '#cbd5e1'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#cbd5e1'
+                            },
+                            beginAtZero: true
+                        }
                     }
                 }
             });
         }
 
         function renderAdminMenuApproveScores(container) {
-            const cats = [{ key: 'noppamas', label: '👑 นางนพมาศ' }, { key: 'krathong_team', label: '🪷 กระทงประดิษฐ์' }];
+            const cats = [{
+                key: 'noppamas',
+                label: '👑 นางนพมาศ'
+            }, {
+                key: 'krathong_team',
+                label: '🪷 กระทงประดิษฐ์'
+            }];
             let rowsHtml = '';
             appState.judges.forEach(j => {
                 cats.forEach(c => {
                     if (j.assigned_type !== 'all' && j.assigned_type !== c.key) return;
-                    const sub = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j.id) && s.contest_type === c.key);
+                    const sub = appState.judge_submissions.find(s => Number(s.judge_id) === Number(j
+                        .id) && s.contest_type === c.key);
                     const st = sub ? sub.status : 'DRAFT';
                     rowsHtml += `
                         <tr class="border-b border-slate-800">
@@ -2478,11 +3162,23 @@
         }
 
         async function updateJudgeSubmissionStatus(judgeId, contestType, status) {
-            const ex = appState.judge_submissions.find(s => Number(s.judge_id) === Number(judgeId) && s.contest_type === contestType);
+            const ex = appState.judge_submissions.find(s => Number(s.judge_id) === Number(judgeId) && s
+                .contest_type === contestType);
             if (ex) ex.status = status;
-            else appState.judge_submissions.push({ judge_id: judgeId, contest_type: contestType, status });
+            else appState.judge_submissions.push({
+                judge_id: judgeId,
+                contest_type: contestType,
+                status
+            });
             if (sbClient) {
-                await sbClient.from('judge_submissions').upsert([{ judge_id: judgeId, contest_type: contestType, status, updated_at: new Date().toISOString() }], { onConflict: 'judge_id,contest_type' });
+                await sbClient.from('judge_submissions').upsert([{
+                    judge_id: judgeId,
+                    contest_type: contestType,
+                    status,
+                    updated_at: new Date().toISOString()
+                }], {
+                    onConflict: 'judge_id,contest_type'
+                });
             }
             switchAdminMenu('approve_scores');
             showToast(`ปรับสถานะเป็น ${status} เรียบร้อย`, 'success');
@@ -2508,7 +3204,11 @@
         async function togglePublishResults() {
             appState.settings.publish_results = !appState.settings.publish_results;
             if (sbClient) {
-                await sbClient.from('system_settings').upsert([{ setting_key: 'publish_results', value_bool: appState.settings.publish_results, updated_at: new Date().toISOString() }]);
+                await sbClient.from('system_settings').upsert([{
+                    setting_key: 'publish_results',
+                    value_bool: appState.settings.publish_results,
+                    updated_at: new Date().toISOString()
+                }]);
             }
             renderPublicResults();
             switchAdminMenu('publish');
@@ -2560,9 +3260,16 @@
             const cType = document.getElementById('cri-type').value;
             const title = document.getElementById('cri-title').value.trim();
             const max = parseFloat(document.getElementById('cri-max').value);
-            const newCri = { contest_type: cType, title, max_score: max, order_index: appState.criteria.length + 1 };
+            const newCri = {
+                contest_type: cType,
+                title,
+                max_score: max,
+                order_index: appState.criteria.length + 1
+            };
             if (sbClient) {
-                const { data } = await sbClient.from('criteria').insert([newCri]).select();
+                const {
+                    data
+                } = await sbClient.from('criteria').insert([newCri]).select();
                 if (data && data[0]) newCri.id = data[0].id;
             } else {
                 newCri.id = Date.now();
@@ -2635,12 +3342,16 @@
             const cat = document.getElementById('print-center-cat').value;
             const judgeId = Number(document.getElementById('print-center-judge').value);
 
-            const catTitle = cat === 'noppamas' ? 'การประกวดนางนพมาศ (ประเภทบุคคล)' : 'การประกวดกระทงประดิษฐ์ (ประเภททีม ๕ คน)';
+            const catTitle = cat === 'noppamas' ? 'การประกวดนางนพมาศ (ประเภทบุคคล)' :
+                'การประกวดกระทงประดิษฐ์ (ประเภททีม ๕ คน)';
             const selectedJudgeObj = appState.judges.find(x => Number(x.id) === judgeId);
-            const judgeName = selectedJudgeObj ? selectedJudgeObj.full_name : '..........................................................';
+            const judgeName = selectedJudgeObj ? selectedJudgeObj.full_name :
+                '..........................................................';
 
-            const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b.order_index);
-            const contestants = appState.applications.filter(a => a.contest_type === cat && a.status === 'APPROVED').sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
+            const criteriaList = appState.criteria.filter(c => c.contest_type === cat).sort((a, b) => a.order_index - b
+                .order_index);
+            const contestants = appState.applications.filter(a => a.contest_type === cat && a.status === 'APPROVED')
+                .sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
             const printArea = document.getElementById('print-area');
 
             if (docType === 'blank_landscape') {
@@ -2713,14 +3424,23 @@
                                         sum += v;
                                         return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
                                     }).join('');
-                                    return `
-                                        <tr>
-                                            <td style="text-align:center; font-weight:bold;">#${toThaiNum(con.contestant_number)}</td>
-                                            <td>${getDisplayNameThai(con)}</td>
-                                            ${cols}
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(sum.toFixed(1))}</td>
-                                        </tr>
-                                    `;
+                                    return ` <
+                    tr >
+                    <
+                    td style = "text-align:center; font-weight:bold;" > #$ {
+                        toThaiNum(con.contestant_number)
+                    } < /td> <
+                    td > $ {
+                        getDisplayNameThai(con)
+                    } < /td>
+                $ {
+                    cols
+                } <
+                td style = "text-align:center; font-weight:bold;" > $ {
+                        toThaiNum(sum.toFixed(1))
+                    } < /td> <
+                    /tr>
+                `;
                                 }).join('')}
                             </tbody>
                         </table>
@@ -2764,14 +3484,23 @@
                                         grandTotal += jSum;
                                         return `<td style="text-align:center;">${toThaiNum(jSum.toFixed(1))}</td>`;
                                     }).join('');
-                                    return `
-                                        <tr>
-                                            <td style="text-align:center; font-weight:bold;">#${toThaiNum(con.contestant_number)}</td>
-                                            <td>${getDisplayNameThai(con)}</td>
-                                            ${jCols}
-                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(grandTotal.toFixed(1))}</td>
-                                        </tr>
-                                    `;
+                                    return ` <
+                    tr >
+                    <
+                    td style = "text-align:center; font-weight:bold;" > #$ {
+                        toThaiNum(con.contestant_number)
+                    } < /td> <
+                    td > $ {
+                        getDisplayNameThai(con)
+                    } < /td>
+                $ {
+                    jCols
+                } <
+                td style = "text-align:center; font-weight:bold;" > $ {
+                        toThaiNum(grandTotal.toFixed(1))
+                    } < /td> <
+                    /tr>
+                `;
                                 }).join('')}
                             </tbody>
                         </table>
@@ -2794,7 +3523,9 @@
             } else if (docType === 'winner_rank') {
                 setPrintOrientation('portrait');
                 const ranked = computeCategoryRankings(cat);
-                const rankTitles = ['รางวัลชนะเลิศ อันดับที่ ๑', 'รางวัลรองชนะเลิศ อันดับที่ ๑', 'รางวัลรองชนะเลิศ อันดับที่ ๒'];
+                const rankTitles = ['รางวัลชนะเลิศ อันดับที่ ๑', 'รางวัลรองชนะเลิศ อันดับที่ ๑',
+                    'รางวัลรองชนะเลิศ อันดับที่ ๒'
+                ];
                 printArea.innerHTML = `
                     <div class="print-page">
                         <div style="text-align:center;">
@@ -2887,9 +3618,17 @@
             const full_name = document.getElementById('jd-name').value.trim();
             const assigned_type = document.getElementById('jd-type').value;
 
-            const newJ = { username, password, full_name, position: 'กรรมการตัดสิน', assigned_type };
+            const newJ = {
+                username,
+                password,
+                full_name,
+                position: 'กรรมการตัดสิน',
+                assigned_type
+            };
             if (sbClient) {
-                const { data } = await sbClient.from('judges').insert([newJ]).select();
+                const {
+                    data
+                } = await sbClient.from('judges').insert([newJ]).select();
                 if (data && data[0]) newJ.id = data[0].id;
             } else {
                 newJ.id = Date.now();
@@ -2933,9 +3672,17 @@
             const is_pinned = document.getElementById('news-pin').checked;
             const image_url = await uploadCompressedImage('news-image', 'news');
 
-            const item = { title, content, image_url, is_pinned, is_published: true };
+            const item = {
+                title,
+                content,
+                image_url,
+                is_pinned,
+                is_published: true
+            };
             if (sbClient) {
-                const { data } = await sbClient.from('news').insert([item]).select();
+                const {
+                    data
+                } = await sbClient.from('news').insert([item]).select();
                 if (data && data[0]) item.id = data[0].id;
             } else {
                 item.id = Date.now();
@@ -2995,7 +3742,10 @@
             }
             app.status = 'APPROVED';
             if (sbClient) {
-                await sbClient.from('applications').update({ status: 'APPROVED', contestant_number: app.contestant_number }).eq('id', id);
+                await sbClient.from('applications').update({
+                    status: 'APPROVED',
+                    contestant_number: app.contestant_number
+                }).eq('id', id);
             }
             renderPublicContestants();
             switchAdminMenu('applications');
@@ -3008,7 +3758,10 @@
             app.status = 'REJECTED';
             app.contestant_number = null;
             if (sbClient) {
-                await sbClient.from('applications').update({ status: 'REJECTED', contestant_number: null }).eq('id', id);
+                await sbClient.from('applications').update({
+                    status: 'REJECTED',
+                    contestant_number: null
+                }).eq('id', id);
             }
             renderPublicContestants();
             switchAdminMenu('applications');
@@ -3027,8 +3780,10 @@
                 else btn.classList.remove('active');
             });
 
-            document.querySelectorAll('[data-bnav]').forEach(b => b.classList.toggle('active', b.getAttribute('data-bnav') === tabId));
-            document.querySelectorAll('[data-drawer]').forEach(b => b.classList.toggle('active', b.getAttribute('data-drawer') === tabId));
+            document.querySelectorAll('[data-bnav]').forEach(b => b.classList.toggle('active', b.getAttribute(
+                'data-bnav') === tabId));
+            document.querySelectorAll('[data-drawer]').forEach(b => b.classList.toggle('active', b.getAttribute(
+                'data-drawer') === tabId));
 
             if (tabId === 'contestants') renderPublicContestants();
             if (tabId === 'criteria') renderPublicCriteria();
@@ -3036,7 +3791,10 @@
             if (tabId === 'judge') renderJudgeView();
             if (tabId === 'admin') renderAdminWorkspace();
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
         function toggleMobileDrawer(open) {
@@ -3070,10 +3828,13 @@
             renderKrathongStyleSelector();
             initRiverCanvas();
             initSupabaseConnection();
-            setInterval(() => { if (document.visibilityState === 'visible') loadKrathongsFromDB(false); }, 20000);
+            setInterval(() => {
+                if (document.visibilityState === 'visible') loadKrathongsFromDB(false);
+            }, 20000);
             switchTab('home');
             lucide.createIcons();
         });
     </script>
 </body>
+
 </html>
