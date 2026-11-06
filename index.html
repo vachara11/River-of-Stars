@@ -344,6 +344,16 @@
     <!-- Official A4 Print Container -->
     <div id="print-area"></div>
 
+    <!-- Slip / QR image viewer -->
+    <div id="img-modal" class="no-print hidden fixed inset-0 z-[100] bg-black/80 items-center justify-center p-4"
+        onclick="closeImgModal()">
+        <div class="relative max-w-lg w-full" onclick="event.stopPropagation()">
+            <button onclick="closeImgModal()"
+                class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-amber-400 text-slate-950 font-bold">✕</button>
+            <img id="img-modal-img" src="" alt="" class="w-full max-h-[85vh] object-contain rounded-2xl bg-white">
+        </div>
+    </div>
+
     <!-- Main Shell -->
     <div id="app-shell" class="relative z-10 min-h-screen flex flex-col">
 
@@ -751,6 +761,8 @@
 
                     <!-- ฟอร์มจองบูท -->
                     <form id="form-apply-booth" onsubmit="submitBoothApplication(event)" class="mt-6 space-y-6 hidden">
+                        <input type="hidden" id="booth-edit-id" value="">
+                        <div id="booth-edit-banner" class="hidden p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-sm text-rose-200"></div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs text-slate-300 mb-1">รหัสประจำตัวผู้จอง <span
@@ -800,6 +812,13 @@
                                 </select>
                             </div>
                             <div>
+                                <label class="block text-xs text-slate-300 mb-1">ชื่อร้าน / ชื่อบูท <span
+                                        class="text-rose-400">*</span></label>
+                                <input type="text" id="booth-name" required maxlength="80"
+                                    placeholder="เช่น ร้านข้าวเหนียวหมูปิ้งน้องบัว"
+                                    class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                            </div>
+                            <div>
                                 <label class="block text-xs text-slate-300 mb-1">ประเภทของบูท <span
                                         class="text-rose-400">*</span></label>
                                 <select id="booth-type" required
@@ -833,8 +852,33 @@
                                     class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
                             </div>
                         </div>
-                        <div class="flex justify-end pt-2">
-                            <button type="submit"
+
+                        <!-- ส่วนชำระเงิน -->
+                        <div class="rounded-2xl border border-amber-400/30 bg-slate-900/60 p-4 sm:p-5">
+                            <h3 class="text-base font-bold text-amber-300 flex items-center gap-2 mb-3">
+                                <i data-lucide="qr-code" class="w-5 h-5"></i> ชำระค่าจองบูท
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div id="booth-pay-box" class="flex flex-col items-center text-center"></div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs text-slate-300">แนบสลิปการโอนเงิน <span
+                                            class="text-rose-400">*</span></label>
+                                    <input type="file" id="booth-slip" accept="image/*"
+                                        onchange="previewBoothSlip(this)"
+                                        class="input-night w-full px-3 py-2 rounded-xl text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                                    <div id="booth-slip-preview" class="hidden items-center gap-3"></div>
+                                    <p class="text-[11px] text-slate-400">สแกน QR Code ชำระเงิน แล้วอัปโหลดสลิปที่นี่
+                                        เจ้าหน้าที่จะตรวจสอบและอนุมัติให้</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-end gap-3 pt-2">
+                            <button type="button" id="booth-cancel-edit" onclick="cancelEditBooth()"
+                                class="hidden px-5 py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm">
+                                ยกเลิกการแก้ไข
+                            </button>
+                            <button type="submit" id="booth-submit-btn"
                                 class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-lg hover:brightness-110 transition flex items-center gap-2">
                                 <i data-lucide="check-circle-2" class="w-5 h-5"></i> ยืนยันส่งใบสมัครจองบูท
                             </button>
@@ -844,18 +888,18 @@
             </section>
 
             <!-- VIEW 3: ค้นหาใบสมัคร -->
+            
             <section id="view-search" class="view-section hidden space-y-6">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
                     <h2 class="text-2xl font-bold gold-gradient-text flex items-center gap-2">
                         <i data-lucide="search" class="w-6 h-6 text-amber-400"></i> ค้นหาและพิมพ์ใบสมัครย้อนหลัง
                     </h2>
-                    <p class="text-sm text-slate-300 mt-1">กรอกรหัสนักศึกษา (ตัวเลขเท่านั้น)
-                        เพื่อตรวจสอบสถานะและพิมพ์ใบสมัครทางการ</p>
+                    <p class="text-sm text-slate-300 mt-1">กรอกรหัสประจำตัว หรือ ชื่อ-นามสกุล
+                        เพื่อตรวจสอบสถานะ ดูสถานที่บูท แก้ไขข้อมูล และพิมพ์ใบสมัคร/ใบจองบูท</p>
                     <form onsubmit="handleSearchApplication(event)"
                         class="mt-5 flex flex-col sm:flex-row gap-3 max-w-xl">
-                        <input type="text" id="search-student-id" required pattern="^[0-9]+$"
-                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                            placeholder="กรอกรหัสนักศึกษา เช่น 6730201001"
+                        <input type="text" id="search-student-id" required
+                            placeholder="รหัสประจำตัว เช่น 6730201001 หรือ ชื่อ-นามสกุล"
                             class="input-night flex-1 px-4 py-3 rounded-xl text-sm">
                         <button type="submit"
                             class="px-6 py-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm hover:brightness-110 transition flex items-center justify-center gap-2">
@@ -1319,7 +1363,9 @@
             settings: {
                 publish_results: false,
                 applications_open: true,
-                loy_krathong_open: true
+                loy_krathong_open: true,
+                booth_qr_url: '',
+                booth_pay_note: ''
             },
             krathongs: [],
             applications: [],
@@ -1650,6 +1696,10 @@
                     if (openRow) appState.settings.applications_open = openRow.value_bool;
                     const loyOpenRow = setRes.data.find(r => r.setting_key === 'loy_krathong_open');
                     if (loyOpenRow) appState.settings.loy_krathong_open = loyOpenRow.value_bool;
+                    const qrRow = setRes.data.find(r => r.setting_key === 'booth_qr_url');
+                    if (qrRow) appState.settings.booth_qr_url = qrRow.value_text || '';
+                    const payNoteRow = setRes.data.find(r => r.setting_key === 'booth_pay_note');
+                    if (payNoteRow) appState.settings.booth_pay_note = payNoteRow.value_text || '';
                 }
 
                 updateSupabaseStatusBadge();
@@ -2608,11 +2658,75 @@
             });
         }
 
+        // ===== ระบบจองบูท: ชำระเงิน / สลิป / แก้ไข / พิมพ์ =====
+        const BOOTH_STATUS_TH = {
+            PENDING: 'รอตรวจสอบ',
+            APPROVED: 'อนุมัติแล้ว',
+            REJECTED: 'ไม่ผ่าน (แก้ไขได้)'
+        };
+
+        function boothStatusBadgeClass(st) {
+            return st === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' :
+                (st === 'REJECTED' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-400/20 text-amber-300');
+        }
+
+        function openImgModal(url) {
+            if (!url) return;
+            const m = document.getElementById('img-modal');
+            document.getElementById('img-modal-img').src = url.startsWith('data:') ? url : imgSrc(url, 1200);
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeImgModal() {
+            const m = document.getElementById('img-modal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        // แสดง QR Code ที่ Admin อัปโหลดไว้ ในหน้าจองบูท
+        function renderBoothPaymentBox() {
+            const box = document.getElementById('booth-pay-box');
+            if (!box) return;
+            const qr = appState.settings.booth_qr_url;
+            const note = appState.settings.booth_pay_note;
+            if (!qr) {
+                box.innerHTML = `<div class="text-sm text-slate-400 p-6 border border-dashed border-slate-600 rounded-2xl">ผู้ดูแลระบบยังไม่ได้อัปโหลด QR Code ชำระเงิน<br>กรุณาติดต่อเจ้าหน้าที่</div>`;
+            } else {
+                box.innerHTML = `
+                    <img src="${qr.startsWith('data:') ? qr : imgSrc(qr, 800)}" alt="QR Code ชำระเงิน" onclick="openImgModal('${qr.startsWith('data:') ? '' : qr}')"
+                        class="w-48 h-48 object-contain rounded-2xl bg-white p-2 border-2 border-amber-400/60 cursor-zoom-in">
+                    <p class="text-xs text-amber-300 mt-2 font-semibold">สแกนเพื่อชำระเงินค่าจองบูท</p>
+                    ${note ? `<p class="text-xs text-slate-300 mt-1 whitespace-pre-line">${escHtml(note)}</p>` : ''}
+                `;
+            }
+        }
+
+        async function previewBoothSlip(inputEl) {
+            const file = inputEl.files && inputEl.files[0];
+            const box = document.getElementById('booth-slip-preview');
+            if (!file) return;
+            showLoader('กำลังบีบอัดสลิป...');
+            try {
+                const compressed = await compressImageFile(file, 1000, 0.7);
+                compressedFilesCache[inputEl.id] = compressed;
+                box.classList.remove('hidden');
+                box.classList.add('flex');
+                box.innerHTML = `
+                    <img src="${compressed.dataUrl}" class="w-16 h-16 rounded-xl object-contain bg-slate-950 border border-amber-400/50">
+                    <div class="text-xs text-emerald-300"><p class="font-semibold">แนบสลิปแล้ว</p><p class="text-slate-400">ขนาด ${compressed.sizeKB} KB</p></div>`;
+            } catch (err) {
+                showToast('เกิดข้อผิดพลาดในการอ่านรูปสลิป', 'error');
+            } finally {
+                hideLoader();
+            }
+        }
+
         // ควบคุมช่องกรอกอุปกรณ์ไฟฟ้า
         function toggleBoothElec(val) {
             const wrap = document.getElementById('booth-elec-wrap');
             const input = document.getElementById('booth-elec-devices');
-            if(val === 'true') {
+            if (val === 'true') {
                 wrap.classList.remove('hidden');
                 input.setAttribute('required', 'true');
             } else {
@@ -2622,54 +2736,201 @@
             }
         }
 
-        // ฟังก์ชันส่งฟอร์มลง Database
+        function resetBoothFormState() {
+            document.getElementById('booth-edit-id').value = '';
+            const banner = document.getElementById('booth-edit-banner');
+            banner.classList.add('hidden');
+            banner.innerHTML = '';
+            document.getElementById('booth-cancel-edit').classList.add('hidden');
+            document.getElementById('booth-submit-btn').innerHTML =
+                '<i data-lucide="check-circle-2" class="w-5 h-5"></i> ยืนยันส่งใบสมัครจองบูท';
+            const prev = document.getElementById('booth-slip-preview');
+            prev.classList.add('hidden');
+            prev.classList.remove('flex');
+            prev.innerHTML = '';
+            delete compressedFilesCache['booth-slip'];
+            lucide.createIcons();
+        }
+
+        function cancelEditBooth() {
+            document.getElementById('form-apply-booth').reset();
+            toggleBoothElec('false');
+            resetBoothFormState();
+        }
+
+        // ผู้จองกดแก้ไขใบจองที่ Admin ตีกลับ (ไม่ผ่าน)
+        function startEditBooth(id) {
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (!b) return;
+            if (b.status !== 'REJECTED') {
+                showToast('แก้ไขได้เฉพาะใบจองที่ไม่ผ่านการตรวจสอบ', 'warning');
+                return;
+            }
+            switchTab('apply');
+            switchApplyType('booth');
+            const f = document.getElementById('form-apply-booth');
+            f.reset();
+            delete compressedFilesCache['booth-slip'];
+            document.getElementById('booth-edit-id').value = b.id;
+            document.getElementById('booth-booker-id').value = b.booker_id || '';
+            document.getElementById('booth-prefix').value = b.prefix_name || 'นาย';
+            const nameOnly = String(b.full_name || '').replace(new RegExp('^' + (b.prefix_name || '') + '\\s*'), '');
+            document.getElementById('booth-fullname').value = nameOnly;
+            document.getElementById('booth-phone').value = b.phone || '';
+            document.getElementById('booth-dept').value = b.department || '';
+            document.getElementById('booth-name').value = b.booth_name || '';
+            document.getElementById('booth-type').value = b.booth_type || 'ขายอาหาร/เครื่องดื่ม';
+            document.getElementById('booth-use-elec').value = b.use_electricity ? 'true' : 'false';
+            toggleBoothElec(b.use_electricity ? 'true' : 'false');
+            document.getElementById('booth-elec-devices').value = b.electrical_devices || '';
+            document.getElementById('booth-note').value = b.additional_note || '';
+
+            const banner = document.getElementById('booth-edit-banner');
+            banner.classList.remove('hidden');
+            banner.innerHTML = `<strong>⚠️ ใบจองนี้ไม่ผ่านการตรวจสอบ</strong><br>เหตุผล: ${escHtml(b.admin_note || 'ไม่ได้ระบุ')}<br><span class="text-xs text-slate-300">กรุณาแก้ไขข้อมูล / แนบสลิปใหม่ (ถ้าจำเป็น) แล้วกดส่งอีกครั้ง</span>`;
+            document.getElementById('booth-cancel-edit').classList.remove('hidden');
+            document.getElementById('booth-submit-btn').innerHTML =
+                '<i data-lucide="send" class="w-5 h-5"></i> ส่งแก้ไขและขอตรวจสอบใหม่';
+            lucide.createIcons();
+        }
+
+        // ฟังก์ชันส่งฟอร์มลง Database (ทั้งจองใหม่ และแก้ไขหลังไม่ผ่าน)
         async function submitBoothApplication(e) {
             e.preventDefault();
+            const editId = document.getElementById('booth-edit-id').value;
+            const existing = editId ? appState.booth_applications.find(x => Number(x.id) === Number(editId)) : null;
+
             const bookerId = document.getElementById('booth-booker-id').value.trim();
             const prefix = document.getElementById('booth-prefix').value;
             const fullname = document.getElementById('booth-fullname').value.trim();
-            const phone = document.getElementById('booth-phone').value.trim(); // <--- เพิ่มบรรทัดนี้
+            const phone = document.getElementById('booth-phone').value.trim();
             const dept = document.getElementById('booth-dept').value;
+            const boothName = document.getElementById('booth-name').value.trim();
             const boothType = document.getElementById('booth-type').value;
             const useElec = document.getElementById('booth-use-elec').value === 'true';
             const elecDevices = document.getElementById('booth-elec-devices').value.trim();
             const note = document.getElementById('booth-note').value.trim();
 
-            showLoader('กำลังบันทึกใบสมัครจองบูท...');
+            // บังคับแนบสลิป (กรณีแก้ไขและไม่แนบใหม่ ใช้สลิปเดิมได้)
+            const hasNewSlip = !!compressedFilesCache['booth-slip'];
+            if (!hasNewSlip && !(existing && existing.slip_url)) {
+                showToast('กรุณาแนบสลิปการโอนเงินก่อนส่งใบจอง', 'error');
+                return;
+            }
+            if (!sbClient) {
+                showToast('ยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase ใบจองจึงไม่ถูกบันทึก', 'error');
+                return;
+            }
 
-            const newBoothApp = {
+            showLoader(existing ? 'กำลังบันทึกการแก้ไข...' : 'กำลังบันทึกใบสมัครจองบูท...');
+
+            let slipUrl = existing ? existing.slip_url : '';
+            if (hasNewSlip) {
+                const up = await uploadCompressedImage('booth-slip', 'booth-slips');
+                if (!up) {
+                    hideLoader();
+                    showToast('อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่', 'error');
+                    return;
+                }
+                slipUrl = up;
+            }
+
+            const payload = {
                 booker_id: bookerId,
                 prefix_name: prefix,
                 full_name: ensurePrefixInName(prefix, fullname),
-                phone: phone, // <--- เพิ่มบรรทัดนี้เพื่อส่งเข้า Database
+                phone: phone,
                 department: dept,
+                booth_name: boothName,
                 booth_type: boothType,
                 use_electricity: useElec,
                 electrical_devices: elecDevices,
                 additional_note: note,
+                slip_url: slipUrl,
+                slip_uploaded_at: new Date().toISOString(),
                 status: 'PENDING',
-                created_at: new Date().toISOString()
+                admin_note: ''
             };
 
-            if (sbClient) {
-                const { data, error } = await sbClient.from('booth_applications').insert([newBoothApp]).select();
+            if (existing) {
+                const { error } = await sbClient.from('booth_applications').update(payload).eq('id', existing.id);
+                if (error) {
+                    hideLoader();
+                    showToast('บันทึกการแก้ไขไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
+                    return;
+                }
+                Object.assign(existing, payload);
+                showToast('ส่งข้อมูลแก้ไขแล้ว รอเจ้าหน้าที่ตรวจสอบอีกครั้ง', 'success');
+            } else {
+                payload.created_at = new Date().toISOString();
+                const { data, error } = await sbClient.from('booth_applications').insert([payload]).select();
                 if (error) {
                     hideLoader();
                     showToast('เกิดข้อผิดพลาดในการจอง: ' + error.message, 'error');
                     return;
                 }
-                if (data && data[0]) newBoothApp.id = data[0].id;
-            } else {
-                hideLoader();
-                showToast('ยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase ใบจองจึงไม่ถูกบันทึก', 'error');
-                return;
+                if (data && data[0]) payload.id = data[0].id;
+                appState.booth_applications.unshift(payload);
+                showToast('ส่งใบจองบูทสำเร็จ! รอเจ้าหน้าที่ตรวจสอบสลิป', 'success');
             }
-            appState.booth_applications.unshift(newBoothApp);
 
             e.target.reset();
             toggleBoothElec('false');
+            resetBoothFormState();
             hideLoader();
-            showToast('ส่งใบสมัครจองบูทสำเร็จแล้ว!', 'success');
+        }
+
+        // พิมพ์ใบจองบูท (ใช้ได้ทั้งผู้จองและ Admin)
+        function printBoothForm(id) {
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (!b) return;
+            setPrintOrientation('portrait');
+            const d = new Date(b.created_at || Date.now());
+            const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
+                'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            const dateTh = `${toThaiNum(d.getDate())} ${thaiMonths[d.getMonth()]} พ.ศ. ${toThaiNum(d.getFullYear() + 543)}`;
+            const noTh = 'BT-' + toThaiNum(String(b.id).padStart(4, '0'));
+            const loc = (b.status === 'APPROVED' && b.booth_location) ? escHtml(b.booth_location) : 'รอการจัดสรรโดยเจ้าหน้าที่';
+            const row = (label, val) => `<tr><td style="width:32%; padding:4pt 6pt; border:1px solid #000; font-weight:bold;">${label}</td><td style="padding:4pt 6pt; border:1px solid #000;">${val}</td></tr>`;
+
+            document.getElementById('print-area').innerHTML = `
+                <div class="print-page">
+                    <div style="text-align:center;">
+                        ${getAoVorThorLogoSvg()}
+                        <div style="font-size:18pt; font-weight:bold;">องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</div>
+                        <div style="font-size:16pt; font-weight:bold;">ใบจองบูทกิจกรรม</div>
+                        <div style="font-size:15pt;">งานประเพณีลอยกระทง ประจำปีการศึกษา ๒๕๖๙</div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:10pt; font-size:15pt;">
+                        <div>เลขที่ใบจอง: <strong>${noTh}</strong></div>
+                        <div>วันที่จอง: ${dateTh}</div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; margin-top:8pt; font-size:15pt;">
+                        ${row('ชื่อร้าน / ชื่อบูท', `<strong>${escHtml(b.booth_name || '-')}</strong>`)}
+                        ${row('ผู้จอง', escHtml(b.full_name))}
+                        ${row('รหัสประจำตัวผู้จอง', toThaiNum(escHtml(b.booker_id)))}
+                        ${row('เบอร์โทรศัพท์', toThaiNum(escHtml(b.phone || '-')))}
+                        ${row('สาขาวิชา', escHtml(b.department))}
+                        ${row('ประเภทของบูท', escHtml(b.booth_type))}
+                        ${row('การใช้ไฟฟ้า', b.use_electricity ? 'ใช้ไฟฟ้า: ' + escHtml(b.electrical_devices || '-') : 'ไม่ใช้ไฟฟ้า')}
+                        ${row('หมายเหตุ', escHtml(b.additional_note || '-'))}
+                        ${row('สถานะการจอง', `<strong>${BOOTH_STATUS_TH[b.status] || b.status}</strong>`)}
+                        ${row('สถานที่ตั้งบูท', `<strong>${loc}</strong>`)}
+                    </table>
+                    ${b.slip_url ? `<div style="margin-top:10pt; font-size:14pt;"><strong>หลักฐานการชำระเงิน (สลิป)</strong><br>
+                        <img src="${b.slip_url.startsWith('data:') ? b.slip_url : imgSrc(b.slip_url, 600)}" style="max-height:70mm; max-width:60mm; object-fit:contain; border:1px solid #000; margin-top:4pt;"></div>` : ''}
+                    <div style="display:flex; justify-content:space-between; margin-top:24pt; page-break-inside:avoid; font-size:15pt;">
+                        <div style="width:45%; text-align:center; line-height:1.5;">
+                            <div>ลงชื่อ..................................................ผู้จอง</div>
+                            <div style="margin-top:6pt;">( ${escHtml(b.full_name)} )</div>
+                        </div>
+                        <div style="width:45%; text-align:center; line-height:1.5;">
+                            <div>ลงชื่อ..................................................เจ้าหน้าที่</div>
+                            <div style="margin-top:6pt;">(..................................................)</div>
+                        </div>
+                    </div>
+                </div>`;
+            setTimeout(() => window.print(), 250);
         }
 
         function getAoVorThorLogoSvg() {
@@ -2816,23 +3077,60 @@
 
         function handleSearchApplication(e) {
             if (e && e.preventDefault) e.preventDefault();
-            const sid = document.getElementById('search-student-id').value.trim();
+            const q = document.getElementById('search-student-id').value.trim();
             const box = document.getElementById('search-results-box');
-            if (!sid) return;
+            if (!q) return;
+            const ql = q.toLowerCase();
+            const isNum = /^[0-9]+$/.test(q);
 
             const matches = appState.applications.filter(app => {
-                if (app.student_id === sid) return true;
-                if (Array.isArray(app.team_members)) return app.team_members.some(m => m.student_id === sid);
+                if (isNum) {
+                    if (app.student_id === q) return true;
+                    if (Array.isArray(app.team_members)) return app.team_members.some(m => m.student_id === q);
+                    return false;
+                }
+                if (String(app.full_name || '').toLowerCase().includes(ql)) return true;
+                if (Array.isArray(app.team_members)) return app.team_members.some(m => String(m.name || '').toLowerCase().includes(ql));
                 return false;
             });
 
-            if (matches.length === 0) {
+            const boothMatches = (appState.booth_applications || []).filter(b =>
+                isNum ? String(b.booker_id) === q : String(b.full_name || '').toLowerCase().includes(ql) || String(b.booth_name || '').toLowerCase().includes(ql));
+
+            if (matches.length === 0 && boothMatches.length === 0) {
                 box.innerHTML =
-                    `<div class="p-6 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm">ไม่พบข้อมูลใบสมัครของรหัสนักศึกษา <strong>${sid}</strong></div>`;
+                    `<div class="p-6 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-sm">ไม่พบข้อมูลของ <strong>${escHtml(q)}</strong></div>`;
                 return;
             }
 
-            box.innerHTML = matches.map(app => `
+            const boothCards = boothMatches.map(b => `
+                <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30 space-y-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs px-2.5 py-0.5 rounded-md bg-fuchsia-900 text-fuchsia-200">🎪 จองบูทกิจกรรม</span>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${boothStatusBadgeClass(b.status)}">${BOOTH_STATUS_TH[b.status] || escHtml(b.status)}</span>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-bold text-white">${escHtml(b.booth_name || '-')}</h4>
+                        <p class="text-xs text-slate-300">${escHtml(b.full_name)} | รหัส: ${escHtml(b.booker_id)} | ${escHtml(b.department)} | ${escHtml(b.booth_type)}</p>
+                    </div>
+                    ${b.status === 'APPROVED' ? `
+                        <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/40 text-sm text-emerald-200">
+                            📍 สถานที่ตั้งบูทของคุณ: <strong>${escHtml(b.booth_location || 'เจ้าหน้าที่ยังไม่ได้ระบุสถานที่')}</strong>
+                        </div>` : ''}
+                    ${b.status === 'REJECTED' ? `
+                        <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/40 text-sm text-rose-200">
+                            ❌ ไม่ผ่านการตรวจสอบ — เหตุผล: ${escHtml(b.admin_note || 'ไม่ได้ระบุ')}
+                        </div>` : ''}
+                    ${b.status === 'PENDING' ? `<p class="text-xs text-amber-300">⏳ รอเจ้าหน้าที่ตรวจสอบสลิปการโอนเงิน</p>` : ''}
+                    <div class="flex flex-wrap gap-2">
+                        ${b.status === 'REJECTED' ? `<button onclick="startEditBooth(${b.id})" class="px-4 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5"><i data-lucide="pencil" class="w-4 h-4"></i> แก้ไขข้อมูล / ส่งใหม่</button>` : ''}
+                        ${b.slip_url ? `<button onclick="openImgModal('${b.slip_url.startsWith('data:') ? '' : b.slip_url}')" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 font-bold text-xs">ดูสลิป</button>` : ''}
+                        <button onclick="printBoothForm(${b.id})" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:brightness-110 transition flex items-center gap-1.5"><i data-lucide="printer" class="w-4 h-4"></i> พิมพ์ใบจองบูท</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const appCards = matches.map(app => `
                 <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
@@ -2848,6 +3146,8 @@
                     </button>
                 </div>
             `).join('');
+
+            box.innerHTML = boothCards + appCards;
             lucide.createIcons();
         }
 
@@ -4185,51 +4485,165 @@
         }
 
         function renderAdminMenuBooths(container) {
-            const list = appState.booth_applications || [];
-            const stBadge = st => st === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' : (st === 'REJECTED' ?
-                'bg-rose-500/20 text-rose-300' : 'bg-amber-400/20 text-amber-300');
+            const q = (window.__boothAdminQuery || '').trim().toLowerCase();
+            const all = appState.booth_applications || [];
+            const list = q ? all.filter(b =>
+                String(b.booker_id).includes(q) ||
+                String(b.full_name || '').toLowerCase().includes(q) ||
+                String(b.booth_name || '').toLowerCase().includes(q)) : all;
+            const qr = appState.settings.booth_qr_url;
             container.innerHTML = `
-                <div class="space-y-4">
+                <div class="space-y-5">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h3 class="text-xl font-bold gold-gradient-text">🎪 จัดการใบจองบูทกิจกรรม (${list.length} รายการ)</h3>
+                        <h3 class="text-xl font-bold gold-gradient-text">🎪 จัดการใบจองบูทกิจกรรม (${list.length}/${all.length} รายการ)</h3>
                         <button onclick="reloadBoothApplications()" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 font-bold text-xs flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-4 h-4"></i> รีเฟรชข้อมูล</button>
                     </div>
+
+                    <!-- QR ชำระเงิน -->
+                    <div class="rounded-2xl border border-amber-400/30 bg-slate-900/60 p-4 grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 items-start">
+                        <div class="text-center">
+                            ${qr ? `<img src="${qr.startsWith('data:') ? qr : imgSrc(qr, 400)}" class="w-36 h-36 object-contain rounded-xl bg-white p-1.5 mx-auto" alt="QR">`
+                                 : `<div class="w-36 h-36 rounded-xl border border-dashed border-slate-600 flex items-center justify-center text-xs text-slate-500 mx-auto">ยังไม่มี QR</div>`}
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="font-bold text-amber-300 text-sm">QR Code ชำระเงิน (แสดงในหน้าจองบูท)</h4>
+                            <input type="file" id="admin-booth-qr" accept="image/*" onchange="previewAdminQr(this)"
+                                class="input-night w-full px-3 py-2 rounded-xl text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                            <textarea id="admin-booth-pay-note" rows="2" placeholder="ข้อความประกอบ เช่น ค่าจองบูท 300 บาท / ชื่อบัญชี ..."
+                                class="input-night w-full px-3 py-2 rounded-xl text-xs">${escHtml(appState.settings.booth_pay_note || '')}</textarea>
+                            <button onclick="saveBoothQr()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs">บันทึก QR / ข้อความ</button>
+                        </div>
+                    </div>
+
+                    <!-- ค้นหา -->
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="admin-booth-search" value="${escHtml(window.__boothAdminQuery || '')}"
+                            placeholder="ค้นหาด้วยรหัสประจำตัวผู้จอง / ชื่อ-นามสกุล / ชื่อบูท"
+                            onkeydown="if(event.key==='Enter'){adminBoothSearch()}"
+                            class="input-night flex-1 px-4 py-2.5 rounded-xl text-sm">
+                        <button onclick="adminBoothSearch()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm">ค้นหา</button>
+                        ${q ? `<button onclick="window.__boothAdminQuery='';switchAdminMenu('booths')" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-sm">ล้าง</button>` : ''}
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs sm:text-sm">
                             <thead>
                                 <tr class="border-b border-slate-700 text-amber-300">
-                                    <th class="py-2.5 px-3">ผู้จอง</th>
+                                    <th class="py-2.5 px-3">ชื่อบูท / ผู้จอง</th>
                                     <th class="py-2.5 px-3">รหัส / เบอร์โทร</th>
-                                    <th class="py-2.5 px-3">สาขาวิชา</th>
-                                    <th class="py-2.5 px-3">ประเภทบูท</th>
-                                    <th class="py-2.5 px-3">ไฟฟ้า</th>
-                                    <th class="py-2.5 px-3">หมายเหตุ</th>
+                                    <th class="py-2.5 px-3">สาขา / ประเภท</th>
+                                    <th class="py-2.5 px-3">ไฟฟ้า / หมายเหตุ</th>
+                                    <th class="py-2.5 px-3">สลิป</th>
                                     <th class="py-2.5 px-3">สถานะ</th>
+                                    <th class="py-2.5 px-3">สถานที่ตั้งบูท</th>
                                     <th class="py-2.5 px-3 text-right">การจัดการ</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
                                 ${list.length ? list.map(b => `
-                                    <tr>
-                                        <td class="py-3 px-3 font-semibold text-white">${escHtml(b.full_name)}</td>
+                                    <tr class="align-top">
+                                        <td class="py-3 px-3"><div class="font-bold text-amber-200">${escHtml(b.booth_name || '-')}</div><div class="font-semibold text-white">${escHtml(b.full_name)}</div></td>
                                         <td class="py-3 px-3 text-slate-300">${escHtml(b.booker_id)}<br><span class="text-slate-400">${escHtml(b.phone || '-')}</span></td>
-                                        <td class="py-3 px-3">${escHtml(b.department)}</td>
-                                        <td class="py-3 px-3">${escHtml(b.booth_type)}</td>
-                                        <td class="py-3 px-3">${b.use_electricity ? '⚡ ใช้: ' + escHtml(b.electrical_devices || '-') : 'ไม่ใช้'}</td>
-                                        <td class="py-3 px-3 text-slate-300">${escHtml(b.additional_note || '-')}</td>
-                                        <td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${stBadge(b.status)}">${escHtml(b.status || 'PENDING')}</span></td>
-                                        <td class="py-3 px-3 text-right space-x-1.5 whitespace-nowrap">
-                                            <button onclick="updateBoothStatus(${b.id}, 'APPROVED')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
-                                            <button onclick="updateBoothStatus(${b.id}, 'REJECTED')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
-                                            <button onclick="deleteBooth(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-rose-300 font-bold text-xs">ลบ</button>
+                                        <td class="py-3 px-3">${escHtml(b.department)}<br><span class="text-slate-400">${escHtml(b.booth_type)}</span></td>
+                                        <td class="py-3 px-3 text-slate-300">${b.use_electricity ? '⚡ ' + escHtml(b.electrical_devices || '-') : 'ไม่ใช้ไฟฟ้า'}<br><span class="text-slate-400">${escHtml(b.additional_note || '')}</span></td>
+                                        <td class="py-3 px-3">${b.slip_url ? `<img src="${b.slip_url.startsWith('data:') ? b.slip_url : imgSrc(b.slip_url, 200)}" onclick="adminOpenSlip(${b.id})" class="w-14 h-14 object-cover rounded-lg border border-amber-400/40 cursor-zoom-in" alt="สลิป">` : '<span class="text-rose-300 text-xs">ไม่มีสลิป</span>'}</td>
+                                        <td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${boothStatusBadgeClass(b.status)}">${BOOTH_STATUS_TH[b.status] || escHtml(b.status || 'PENDING')}</span>
+                                            ${b.status === 'REJECTED' && b.admin_note ? `<div class="text-[11px] text-rose-300 mt-1">เหตุผล: ${escHtml(b.admin_note)}</div>` : ''}</td>
+                                        <td class="py-3 px-3">
+                                            <input type="text" id="booth-loc-${b.id}" value="${escHtml(b.booth_location || '')}" placeholder="เช่น โซน A ล็อก 12"
+                                                class="input-night w-36 px-2.5 py-1.5 rounded-lg text-xs">
+                                            <button onclick="saveBoothLocation(${b.id})" class="mt-1 px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 text-xs font-bold">บันทึกที่ตั้ง</button>
+                                        </td>
+                                        <td class="py-3 px-3 text-right space-y-1.5">
+                                            <div class="space-x-1 whitespace-nowrap">
+                                                <button onclick="updateBoothStatus(${b.id}, 'APPROVED')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
+                                                <button onclick="updateBoothStatus(${b.id}, 'REJECTED')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ไม่ผ่าน</button>
+                                            </div>
+                                            <div class="space-x-1 whitespace-nowrap">
+                                                <button onclick="printBoothForm(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">🖨 พิมพ์</button>
+                                                <button onclick="deleteBooth(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-rose-300 font-bold text-xs">ลบ</button>
+                                            </div>
                                         </td>
                                     </tr>
-                                `).join('') : '<tr><td colspan="8" class="py-6 text-center text-slate-500">ยังไม่มีใบจองบูท</td></tr>'}
+                                `).join('') : '<tr><td colspan="8" class="py-6 text-center text-slate-500">ไม่พบใบจองบูท</td></tr>'}
                             </tbody>
                         </table>
                     </div>
                 </div>
             `;
+        }
+
+        function adminBoothSearch() {
+            const el = document.getElementById('admin-booth-search');
+            window.__boothAdminQuery = el ? el.value : '';
+            switchAdminMenu('booths');
+        }
+
+        function adminOpenSlip(id) {
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (b && b.slip_url) openImgModal(b.slip_url);
+        }
+
+        async function previewAdminQr(inputEl) {
+            const file = inputEl.files && inputEl.files[0];
+            if (!file) return;
+            showLoader('กำลังเตรียมรูป QR...');
+            try {
+                compressedFilesCache['admin-booth-qr'] = await compressImageFile(file, 900, 0.85);
+                showToast('เลือกรูป QR แล้ว กดบันทึกเพื่อใช้งาน', 'success');
+            } catch (e) {
+                showToast('อ่านรูป QR ไม่สำเร็จ', 'error');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function saveBoothQr() {
+            const note = document.getElementById('admin-booth-pay-note').value.trim();
+            showLoader('กำลังบันทึก QR...');
+            let url = appState.settings.booth_qr_url;
+            if (compressedFilesCache['admin-booth-qr']) {
+                const up = await uploadCompressedImage('admin-booth-qr', 'booth-qr');
+                if (!up) {
+                    hideLoader();
+                    showToast('อัปโหลด QR ไม่สำเร็จ', 'error');
+                    return;
+                }
+                url = up;
+            }
+            if (sbClient) {
+                const { error } = await sbClient.from('system_settings').upsert([
+                    { setting_key: 'booth_qr_url', value_bool: true, value_text: url || '', updated_at: new Date().toISOString() },
+                    { setting_key: 'booth_pay_note', value_bool: true, value_text: note, updated_at: new Date().toISOString() }
+                ]);
+                if (error) {
+                    hideLoader();
+                    showToast('บันทึกไม่สำเร็จ: ' + error.message + ' (ต้องเพิ่มคอลัมน์ value_text ใน system_settings)', 'error');
+                    return;
+                }
+            }
+            appState.settings.booth_qr_url = url;
+            appState.settings.booth_pay_note = note;
+            delete compressedFilesCache['admin-booth-qr'];
+            renderBoothPaymentBox();
+            hideLoader();
+            switchAdminMenu('booths');
+            showToast('บันทึก QR Code ชำระเงินแล้ว', 'success');
+        }
+
+        async function saveBoothLocation(id) {
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (!b) return;
+            const val = document.getElementById('booth-loc-' + id).value.trim();
+            if (sbClient) {
+                const { error } = await sbClient.from('booth_applications').update({ booth_location: val }).eq('id', id);
+                if (error) {
+                    showToast('บันทึกที่ตั้งไม่สำเร็จ: ' + error.message, 'error');
+                    return;
+                }
+            }
+            b.booth_location = val;
+            showToast('บันทึกสถานที่ตั้งบูทแล้ว', 'success');
         }
 
         async function reloadBoothApplications() {
@@ -4256,20 +4670,26 @@
         async function updateBoothStatus(id, status) {
             const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
             if (!b) return;
+            const upd = { status };
+            if (status === 'REJECTED') {
+                const reason = prompt('ระบุเหตุผลที่ไม่ผ่าน (ผู้จองจะเห็นและแก้ไขข้อมูลได้):', b.admin_note || 'สลิปไม่ถูกต้อง / ยอดเงินไม่ตรง');
+                if (reason === null) return;
+                upd.admin_note = reason.trim() || 'ไม่ผ่านการตรวจสอบ';
+            } else {
+                upd.admin_note = '';
+                const locEl = document.getElementById('booth-loc-' + id);
+                if (locEl) upd.booth_location = locEl.value.trim();
+            }
             if (sbClient) {
-                const {
-                    error
-                } = await sbClient.from('booth_applications').update({
-                    status
-                }).eq('id', id);
+                const { error } = await sbClient.from('booth_applications').update(upd).eq('id', id);
                 if (error) {
                     showToast('อัปเดตไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
                     return;
                 }
             }
-            b.status = status;
+            Object.assign(b, upd);
             switchAdminMenu('booths');
-            showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ปฏิเสธใบจองบูทแล้ว', status === 'APPROVED' ?
+            showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ตีกลับใบจองแล้ว ผู้จองสามารถแก้ไขได้', status === 'APPROVED' ?
                 'success' : 'warning');
         }
 
@@ -4437,6 +4857,7 @@
             renderPublicCriteria();
             renderPublicResults();
             updateApplyViewVisibility();
+            renderBoothPaymentBox();
             checkLoyKrathongStatus(); // <--- เพิ่มตรงนี้
             if (currentTab === 'judge') renderJudgeView();
             if (currentTab === 'admin') renderAdminWorkspace();
