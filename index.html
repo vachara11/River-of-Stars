@@ -1020,7 +1020,7 @@
                         </div>
 
                         <!-- 8 เมนูแอดมิน -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                        <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5">
                             <button onclick="switchAdminMenu('overview')" data-admin-menu="overview"
                                 class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center active">
                                 <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
@@ -1060,6 +1060,11 @@
                                 class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="file-check-2" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">จัดการใบสมัคร</span>
+                            </button>
+                            <button onclick="switchAdminMenu('booths')" data-admin-menu="booths"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                                <i data-lucide="store" class="w-5 h-5"></i>
+                                <span class="text-xs leading-tight">จองบูท</span>
                             </button>
                         </div>
                     </div>
@@ -1322,7 +1327,8 @@
             judges: [],
             scores: [],
             judge_submissions: [],
-            news: []
+            news: [],
+            booth_applications: []
         };
 
         let currentTab = 'home';
@@ -1589,7 +1595,7 @@
             try {
                 await loadKrathongsFromDB(true);
 
-                const [appRes, criRes, judRes, scoRes, subRes, newsRes, setRes] = await Promise.all([
+                const [appRes, criRes, judRes, scoRes, subRes, newsRes, setRes, boothRes] = await Promise.all([
                     sbClient.from('applications').select('*').order('id', {
                         ascending: true
                     }),
@@ -1606,7 +1612,10 @@
                     }).order('id', {
                         ascending: false
                     }),
-                    sbClient.from('system_settings').select('*')
+                    sbClient.from('system_settings').select('*'),
+                    sbClient.from('booth_applications').select('*').order('id', {
+                        ascending: false
+                    })
                 ]);
 
                 const failed = [
@@ -1616,7 +1625,8 @@
                         ['scores', scoRes],
                         ['judge_submissions', subRes],
                         ['news', newsRes],
-                        ['system_settings', setRes]
+                        ['system_settings', setRes],
+                        ['booth_applications', boothRes]
                     ]
                     .filter(([, r]) => r.error);
                 if (failed.length) {
@@ -1631,6 +1641,7 @@
                 if (scoRes.data) appState.scores = scoRes.data;
                 if (subRes.data) appState.judge_submissions = subRes.data;
                 if (newsRes.data) appState.news = newsRes.data;
+                if (boothRes.data) appState.booth_applications = boothRes.data;
 
                 if (setRes.data && setRes.data.length > 0) {
                     const pubRow = setRes.data.find(r => r.setting_key === 'publish_results');
@@ -2641,13 +2652,19 @@
             };
 
             if (sbClient) {
-                const { error } = await sbClient.from('booth_applications').insert([newBoothApp]);
+                const { data, error } = await sbClient.from('booth_applications').insert([newBoothApp]).select();
                 if (error) {
                     hideLoader();
                     showToast('เกิดข้อผิดพลาดในการจอง: ' + error.message, 'error');
                     return;
                 }
+                if (data && data[0]) newBoothApp.id = data[0].id;
+            } else {
+                hideLoader();
+                showToast('ยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase ใบจองจึงไม่ถูกบันทึก', 'error');
+                return;
             }
+            appState.booth_applications.unshift(newBoothApp);
 
             e.target.reset();
             toggleBoothElec('false');
@@ -3310,6 +3327,7 @@
             else if (menuKey === 'judges') renderAdminMenuJudges(container);
             else if (menuKey === 'news') renderAdminMenuNews(container);
             else if (menuKey === 'applications') renderAdminMenuApplications(container);
+            else if (menuKey === 'booths') renderAdminMenuBooths(container);
 
             lucide.createIcons();
         }
@@ -4152,6 +4170,123 @@
                     </div>
                 </div>
             `;
+        }
+
+
+        // ===== แอดมิน: จัดการใบจองบูท =====
+        function escHtml(v) {
+            return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            } [c]));
+        }
+
+        function renderAdminMenuBooths(container) {
+            const list = appState.booth_applications || [];
+            const stBadge = st => st === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' : (st === 'REJECTED' ?
+                'bg-rose-500/20 text-rose-300' : 'bg-amber-400/20 text-amber-300');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-xl font-bold gold-gradient-text">🎪 จัดการใบจองบูทกิจกรรม (${list.length} รายการ)</h3>
+                        <button onclick="reloadBoothApplications()" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 font-bold text-xs flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-4 h-4"></i> รีเฟรชข้อมูล</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700 text-amber-300">
+                                    <th class="py-2.5 px-3">ผู้จอง</th>
+                                    <th class="py-2.5 px-3">รหัส / เบอร์โทร</th>
+                                    <th class="py-2.5 px-3">สาขาวิชา</th>
+                                    <th class="py-2.5 px-3">ประเภทบูท</th>
+                                    <th class="py-2.5 px-3">ไฟฟ้า</th>
+                                    <th class="py-2.5 px-3">หมายเหตุ</th>
+                                    <th class="py-2.5 px-3">สถานะ</th>
+                                    <th class="py-2.5 px-3 text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                ${list.length ? list.map(b => `
+                                    <tr>
+                                        <td class="py-3 px-3 font-semibold text-white">${escHtml(b.full_name)}</td>
+                                        <td class="py-3 px-3 text-slate-300">${escHtml(b.booker_id)}<br><span class="text-slate-400">${escHtml(b.phone || '-')}</span></td>
+                                        <td class="py-3 px-3">${escHtml(b.department)}</td>
+                                        <td class="py-3 px-3">${escHtml(b.booth_type)}</td>
+                                        <td class="py-3 px-3">${b.use_electricity ? '⚡ ใช้: ' + escHtml(b.electrical_devices || '-') : 'ไม่ใช้'}</td>
+                                        <td class="py-3 px-3 text-slate-300">${escHtml(b.additional_note || '-')}</td>
+                                        <td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${stBadge(b.status)}">${escHtml(b.status || 'PENDING')}</span></td>
+                                        <td class="py-3 px-3 text-right space-x-1.5 whitespace-nowrap">
+                                            <button onclick="updateBoothStatus(${b.id}, 'APPROVED')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
+                                            <button onclick="updateBoothStatus(${b.id}, 'REJECTED')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
+                                            <button onclick="deleteBooth(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-rose-300 font-bold text-xs">ลบ</button>
+                                        </td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="8" class="py-6 text-center text-slate-500">ยังไม่มีใบจองบูท</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function reloadBoothApplications() {
+            if (!sbClient) {
+                showToast('ยังไม่ได้เชื่อมต่อ Supabase', 'error');
+                return;
+            }
+            const {
+                data,
+                error
+            } = await sbClient.from('booth_applications').select('*').order('id', {
+                ascending: false
+            });
+            if (error) {
+                console.error('booth_applications select error:', error);
+                showToast('อ่านใบจองบูทไม่ได้: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ SELECT)', 'error');
+                return;
+            }
+            appState.booth_applications = data || [];
+            switchAdminMenu('booths');
+            showToast('รีเฟรชข้อมูลบูทแล้ว', 'success');
+        }
+
+        async function updateBoothStatus(id, status) {
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (!b) return;
+            if (sbClient) {
+                const {
+                    error
+                } = await sbClient.from('booth_applications').update({
+                    status
+                }).eq('id', id);
+                if (error) {
+                    showToast('อัปเดตไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
+                    return;
+                }
+            }
+            b.status = status;
+            switchAdminMenu('booths');
+            showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ปฏิเสธใบจองบูทแล้ว', status === 'APPROVED' ?
+                'success' : 'warning');
+        }
+
+        async function deleteBooth(id) {
+            if (!confirm('ยืนยันลบใบจองบูทนี้?')) return;
+            if (sbClient) {
+                const {
+                    error
+                } = await sbClient.from('booth_applications').delete().eq('id', id);
+                if (error) {
+                    showToast('ลบไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ DELETE)', 'error');
+                    return;
+                }
+            }
+            appState.booth_applications = appState.booth_applications.filter(x => Number(x.id) !== Number(id));
+            switchAdminMenu('booths');
+            showToast('ลบใบจองบูทแล้ว', 'warning');
         }
 
         async function toggleApplicationsOpen() {
