@@ -1523,13 +1523,13 @@
             });
         }
 
-        async function previewCompressedImage(inputEl, previewContainerId) {
+        async function previewCompressedImage(inputEl, previewContainerId, maxWidth = 400, quality = 0.55) {
             const file = inputEl.files && inputEl.files[0];
             const box = document.getElementById(previewContainerId);
             if (!file) return;
             showLoader('กำลังบีบอัดไฟล์รูปภาพ...');
             try {
-                const compressed = await compressImageFile(file);
+                const compressed = await compressImageFile(file, maxWidth, quality);
                 compressedFilesCache[inputEl.id] = compressed;
                 box.classList.remove('hidden');
                 box.classList.add('flex');
@@ -3435,53 +3435,28 @@
                             }).join('');
                             
                             // แสดงรูปภาพเฉพาะนางนพมาศ (ถ้าเป็นกระทงทีม จะไม่สร้างกล่องรูปภาพ)
-                            const photoHtml = con.contest_type === 'noppamas' ? ` <
-                div class =
-                "w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center" >
-                <
-                img src = "${imgSrc(con.photo_url)}"
-            onerror = "handleImgError(this)"
-            class = "w-full h-full object-contain" >
-                <
-                /div>
-            ` : '';
+                            const photoHtml = con.contest_type === 'noppamas' ? `
+                                <div class="w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center">
+                                    <img src="${imgSrc(con.photo_url)}" onerror="handleImgError(this)" class="w-full h-full object-contain">
+                                </div>
+                            ` : '';
 
-                            return ` <
-            tr >
-                <
-                td class = "p-3" >
-                <
-                div class = "flex items-center gap-3" >
-                $ {
-                    photoHtml
-                } <
-                div >
-                <
-                span class = "text-xs font-bold text-amber-400" > $ {
-                    con.contestant_number || '-'
-                } < /span> <
-            p class = "font-semibold text-white" > $ {
-                getDisplayName(con)
-            } < /p> <
-            p class = "text-[11px] text-slate-400" > $ {
-                    con.department
-                }($ {
-                    con.edu_level
-                }) < /p> < /
-                div > <
-                /div> < /
-                td >
-                $ {
-                    cells
-                } <
-                td class = "p-3 text-right font-extrabold text-emerald-400"
-            id = "raw-total-${j.id}-${con.id}" >
-                $ {
-                    total.toFixed(1)
-                } <
-                /td> < /
-                tr >
-                `;
+                            return `
+                                <tr>
+                                    <td class="p-3">
+                                        <div class="flex items-center gap-3">
+                                            ${photoHtml}
+                                            <div>
+                                                <span class="text-xs font-bold text-amber-400">${con.contestant_number || '-'}</span>
+                                                <p class="font-semibold text-white">${getDisplayName(con)}</p>
+                                                <p class="text-[11px] text-slate-400">${con.department} (${con.edu_level})</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    ${cells}
+                                    <td class="p-3 text-right font-extrabold text-emerald-400" id="raw-total-${j.id}-${con.id}">${total.toFixed(1)}</td>
+                                </tr>
+                            `;
                         }).join('')}
                     </tbody>
                 </table>
@@ -3781,26 +3756,16 @@
                                 total += val;
                                 return `<td class="p-2.5 text-center font-mono text-slate-300">${val > 0 ? val : '-'}</td>`;
                             }).join('');
-                            return ` <
-                tr class = "hover:bg-slate-800/30" >
-                <
-                td class = "p-3" >
-                <
-                span class = "text-xs font-bold text-amber-400 mr-2" > $ {
-                    con.contestant_number || '-'
-                } < /span> <
-            span class = "font-medium text-white" > $ {
-                    getDisplayName(con)
-                } < /span> < /
-                td >
-                $ {
-                    cells
-                } <
-                td class = "p-3 text-right font-bold text-emerald-400" > $ {
-                    total.toFixed(1)
-                } < /td> < /
-                tr >
-                `;
+                            return `
+                                <tr class="hover:bg-slate-800/30">
+                                    <td class="p-3">
+                                        <span class="text-xs font-bold text-amber-400 mr-2">${con.contestant_number || '-'}</span>
+                                        <span class="font-medium text-white">${getDisplayName(con)}</span>
+                                    </td>
+                                    ${cells}
+                                    <td class="p-3 text-right font-bold text-emerald-400">${total.toFixed(1)}</td>
+                                </tr>
+                            `;
                         }).join('')}
                     </tbody>
                 </table>
@@ -3943,37 +3908,46 @@
         }
 
 
+        let editingCriterionId = null;
+
         function renderAdminMenuCriteria(container) {
+            const ed = editingCriterionId ? appState.criteria.find(c => Number(c.id) === Number(editingCriterionId)) : null;
+            if (editingCriterionId && !ed) editingCriterionId = null;
             container.innerHTML = `
                 <div class="space-y-6">
                     <h3 class="text-xl font-bold gold-gradient-text">📋 จัดการเกณฑ์การตัดสิน</h3>
-                    <form onsubmit="handleAddCriterion(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                    ${ed ? `<div class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs text-amber-200">✏️ กำลังแก้ไขเกณฑ์: <strong>${escHtml(ed.title)}</strong></div>` : ''}
+                    <form onsubmit="handleAddCriterion(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-slate-900/80 p-4 rounded-2xl border ${ed ? 'border-amber-400/60' : 'border-slate-800'}">
                         <div class="sm:col-span-3">
                             <select id="cri-type" class="input-night w-full px-3 py-2 rounded-xl text-xs">
-                                <option value="noppamas">👑 นางนพมาศ</option>
-                                <option value="krathong_team">🪷 กระทงประดิษฐ์</option>
+                                <option value="noppamas" ${ed && ed.contest_type === 'noppamas' ? 'selected' : ''}>👑 นางนพมาศ</option>
+                                <option value="krathong_team" ${ed && ed.contest_type === 'krathong_team' ? 'selected' : ''}>🪷 กระทงประดิษฐ์</option>
                             </select>
                         </div>
-                        <div class="sm:col-span-5">
-                            <input type="text" id="cri-title" required placeholder="ชื่อเกณฑ์การตัดสิน..." class="input-night w-full px-3 py-2 rounded-xl text-xs">
+                        <div class="sm:col-span-4">
+                            <input type="text" id="cri-title" required value="${ed ? escHtml(ed.title) : ''}" placeholder="ชื่อเกณฑ์การตัดสิน..." class="input-night w-full px-3 py-2 rounded-xl text-xs">
                         </div>
                         <div class="sm:col-span-2">
-                            <input type="number" id="cri-max" required min="1" max="100" placeholder="คะแนนเต็ม" class="input-night w-full px-3 py-2 rounded-xl text-xs">
+                            <input type="number" id="cri-max" required min="1" max="100" value="${ed ? ed.max_score : ''}" placeholder="คะแนนเต็ม" class="input-night w-full px-3 py-2 rounded-xl text-xs">
                         </div>
-                        <div class="sm:col-span-2">
-                            <button type="submit" class="w-full py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">+ เพิ่มเกณฑ์</button>
+                        <div class="sm:col-span-3 flex gap-2">
+                            <button type="submit" class="flex-1 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">${ed ? '💾 บันทึกการแก้ไข' : '+ เพิ่มเกณฑ์'}</button>
+                            ${ed ? `<button type="button" onclick="cancelEditCriterion()" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">ยกเลิก</button>` : ''}
                         </div>
                     </form>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs sm:text-sm">
-                            <thead><tr class="border-b border-slate-700 text-amber-300"><th class="py-2 px-3">หมวดหมู่</th><th class="py-2 px-3">เกณฑ์</th><th class="py-2 px-3">คะแนนเต็ม</th><th class="py-2 px-3 text-right">ลบ</th></tr></thead>
+                            <thead><tr class="border-b border-slate-700 text-amber-300"><th class="py-2 px-3">หมวดหมู่</th><th class="py-2 px-3">เกณฑ์</th><th class="py-2 px-3">คะแนนเต็ม</th><th class="py-2 px-3 text-right">จัดการ</th></tr></thead>
                             <tbody>
                                 ${appState.criteria.length ? appState.criteria.map(c => `
-                                    <tr class="border-b border-slate-800">
+                                    <tr class="border-b border-slate-800 ${Number(c.id) === Number(editingCriterionId) ? 'bg-amber-400/10' : ''}">
                                         <td class="py-2.5 px-3">${c.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์'}</td>
-                                        <td class="py-2.5 px-3 text-white">${c.title}</td>
+                                        <td class="py-2.5 px-3 text-white">${escHtml(c.title)}</td>
                                         <td class="py-2.5 px-3 font-bold text-amber-300">${c.max_score}</td>
-                                        <td class="py-2.5 px-3 text-right"><button onclick="handleDeleteCriterion(${c.id})" class="text-rose-400 text-xs">ลบ</button></td>
+                                        <td class="py-2.5 px-3 text-right space-x-3 whitespace-nowrap">
+                                            <button onclick="startEditCriterion(${c.id})" class="text-amber-300 text-xs font-semibold">✏️ แก้ไข</button>
+                                            <button onclick="handleDeleteCriterion(${c.id})" class="text-rose-400 text-xs">ลบ</button>
+                                        </td>
                                     </tr>
                                 `).join('') : '<tr><td colspan="4" class="py-4 text-center text-slate-500">ยังไม่มีเกณฑ์การตัดสิน</td></tr>'}
                             </tbody>
@@ -3983,11 +3957,49 @@
             `;
         }
 
+        function startEditCriterion(id) {
+            editingCriterionId = Number(id);
+            switchAdminMenu('criteria');
+            const t = document.getElementById('cri-title');
+            if (t) {
+                t.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                t.focus();
+            }
+        }
+
+        function cancelEditCriterion() {
+            editingCriterionId = null;
+            switchAdminMenu('criteria');
+        }
+
         async function handleAddCriterion(e) {
             e.preventDefault();
             const cType = document.getElementById('cri-type').value;
             const title = document.getElementById('cri-title').value.trim();
             const max = parseFloat(document.getElementById('cri-max').value);
+
+            // โหมดแก้ไข: บันทึกทับเกณฑ์เดิม
+            if (editingCriterionId) {
+                const ex = appState.criteria.find(c => Number(c.id) === Number(editingCriterionId));
+                if (ex) {
+                    const upd = { contest_type: cType, title, max_score: max };
+                    if (sbClient) {
+                        const { error } = await sbClient.from('criteria').update(upd).eq('id', ex.id);
+                        if (error) {
+                            showToast('แก้ไขเกณฑ์ไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
+                            return;
+                        }
+                    }
+                    Object.assign(ex, upd);
+                    editingCriterionId = null;
+                    switchAdminMenu('criteria');
+                    renderPublicCriteria();
+                    showToast('บันทึกการแก้ไขเกณฑ์แล้ว', 'success');
+                    return;
+                }
+                editingCriterionId = null;
+            }
+
             const newCri = {
                 contest_type: cType,
                 title,
@@ -4009,6 +4021,8 @@
         }
 
         async function handleDeleteCriterion(id) {
+            if (!confirm('ยืนยันลบเกณฑ์นี้?')) return;
+            if (Number(editingCriterionId) === Number(id)) editingCriterionId = null;
             appState.criteria = appState.criteria.filter(c => Number(c.id) !== Number(id));
             if (sbClient) await sbClient.from('criteria').delete().eq('id', id);
             switchAdminMenu('criteria');
@@ -4153,23 +4167,14 @@
                                         return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
                                     }).join('');
                                     
-                                    return ` <
-                    tr >
-                    <
-                    td style = "text-align:center; font-weight:bold;" > $ {
-                        toThaiNum(con.contestant_number)
-                    } < /td> <
-                td > $ {
-                    getDisplayNameThai(con)
-                } < /td>
-                $ {
-                    cols
-                } <
-                td style = "text-align:center; font-weight:bold;" > $ {
-                        toThaiNum(sum.toFixed(1))
-                    } < /td> < /
-                    tr >
-                    `;
+                                    return `
+                                        <tr>
+                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
+                                            <td>${getDisplayNameThai(con)}</td>
+                                            ${cols}
+                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(sum.toFixed(1))}</td>
+                                        </tr>
+                                    `;
                                 }).join('')}
                             </tbody>
                         </table>
@@ -4224,23 +4229,14 @@
                                         return `<td style="text-align:center;">${toThaiNum(jSum.toFixed(1))}</td>`;
                                     }).join('');
                                     
-                                    return ` <
-                    tr >
-                    <
-                    td style = "text-align:center; font-weight:bold;" > $ {
-                        toThaiNum(con.contestant_number)
-                    } < /td> <
-                td > $ {
-                    getDisplayNameThai(con)
-                } < /td>
-                $ {
-                    jCols
-                } <
-                td style = "text-align:center; font-weight:bold;" > $ {
-                        toThaiNum(grandTotal.toFixed(1))
-                    } < /td> < /
-                    tr >
-                    `;
+                                    return `
+                                        <tr>
+                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
+                                            <td>${getDisplayNameThai(con)}</td>
+                                            ${jCols}
+                                            <td style="text-align:center; font-weight:bold;">${toThaiNum(grandTotal.toFixed(1))}</td>
+                                        </tr>
+                                    `;
                                 }).join('')}
                             </tbody>
                         </table>
@@ -4307,38 +4303,86 @@
             setTimeout(() => window.print(), 150);
         }
 
+        let editingJudgeId = null;
+        const revealedJudgePw = new Set();
+
+        function toggleJudgePw(id) {
+            const k = String(id);
+            if (revealedJudgePw.has(k)) revealedJudgePw.delete(k);
+            else revealedJudgePw.add(k);
+            const cell = document.getElementById('jd-pw-cell-' + id);
+            const j = appState.judges.find(x => String(x.id) === k);
+            if (cell && j) {
+                const on = revealedJudgePw.has(k);
+                cell.textContent = on ? (j.password || '') : '••••••••';
+            }
+            const btn = document.getElementById('jd-pw-btn-' + id);
+            if (btn) btn.innerHTML = `<i data-lucide="${revealedJudgePw.has(k) ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        }
+
         function renderAdminMenuJudges(container) {
+            const ed = editingJudgeId ? appState.judges.find(j => Number(j.id) === Number(editingJudgeId)) : null;
+            if (editingJudgeId && !ed) editingJudgeId = null;
             container.innerHTML = `
                 <div class="space-y-6">
                     <h3 class="text-xl font-bold gold-gradient-text">👥 จัดการบัญชีกรรมการ</h3>
-                    <form onsubmit="handleAddJudge(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
-                        <input type="text" id="jd-user" required placeholder="Username" class="input-night px-3 py-2 rounded-xl text-xs">
-                        <input type="text" id="jd-pass" required placeholder="Password" class="input-night px-3 py-2 rounded-xl text-xs">
-                        <input type="text" id="jd-name" required placeholder="ชื่อ-นามสกุลกรรมการ" class="input-night px-3 py-2 rounded-xl text-xs">
+                    ${ed ? `<div class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs text-amber-200">✏️ กำลังแก้ไขบัญชี: <strong>${escHtml(ed.full_name)}</strong> — เว้นช่องรหัสผ่านว่างไว้ หากไม่ต้องการเปลี่ยนรหัส</div>` : ''}
+                    <form onsubmit="handleAddJudge(event)" class="grid grid-cols-1 sm:grid-cols-6 gap-3 bg-slate-900/80 p-4 rounded-2xl border ${ed ? 'border-amber-400/60' : 'border-slate-800'}">
+                        <input type="text" id="jd-user" required value="${ed ? escHtml(ed.username) : ''}" placeholder="Username" class="input-night px-3 py-2 rounded-xl text-xs">
+                        <input type="text" id="jd-pass" ${ed ? '' : 'required'} placeholder="${ed ? 'รหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน)' : 'Password'}" class="input-night px-3 py-2 rounded-xl text-xs">
+                        <input type="text" id="jd-name" required value="${ed ? escHtml(ed.full_name) : ''}" placeholder="ชื่อ-นามสกุลกรรมการ" class="input-night px-3 py-2 rounded-xl text-xs">
                         <select id="jd-type" class="input-night px-3 py-2 rounded-xl text-xs">
-                            <option value="all">ทุกหมวดหมู่</option>
-                            <option value="noppamas">เฉพาะนางนพมาศ</option>
-                            <option value="krathong_team">เฉพาะกระทงประดิษฐ์</option>
+                            <option value="all" ${ed && ed.assigned_type === 'all' ? 'selected' : ''}>ทุกหมวดหมู่</option>
+                            <option value="noppamas" ${ed && ed.assigned_type === 'noppamas' ? 'selected' : ''}>เฉพาะนางนพมาศ</option>
+                            <option value="krathong_team" ${ed && ed.assigned_type === 'krathong_team' ? 'selected' : ''}>เฉพาะกระทงประดิษฐ์</option>
                         </select>
-                        <button type="submit" class="py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">+ เพิ่มกรรมการ</button>
+                        <button type="submit" class="py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">${ed ? '💾 บันทึกการแก้ไข' : '+ เพิ่มกรรมการ'}</button>
+                        ${ed ? `<button type="button" onclick="cancelEditJudge()" class="py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">ยกเลิก</button>` : '<span></span>'}
                     </form>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs sm:text-sm">
-                            <thead><tr class="border-b border-slate-700 text-amber-300"><th class="py-2 px-3">Username</th><th class="py-2 px-3">ชื่อ-นามสกุล</th><th class="py-2 px-3">หมวดหมู่</th><th class="py-2 px-3 text-right">ลบ</th></tr></thead>
+                            <thead><tr class="border-b border-slate-700 text-amber-300"><th class="py-2 px-3">Username</th><th class="py-2 px-3">รหัสผ่าน</th><th class="py-2 px-3">ชื่อ-นามสกุล</th><th class="py-2 px-3">หมวดหมู่</th><th class="py-2 px-3 text-right">จัดการ</th></tr></thead>
                             <tbody>
                                 ${appState.judges.length ? appState.judges.map(j => `
-                                    <tr class="border-b border-slate-800">
-                                        <td class="py-2.5 px-3 font-mono text-amber-300">${j.username}</td>
-                                        <td class="py-2.5 px-3 text-white">${j.full_name}</td>
-                                        <td class="py-2.5 px-3">${j.assigned_type}</td>
-                                        <td class="py-2.5 px-3 text-right"><button onclick="handleDeleteJudge(${j.id})" class="text-rose-400 text-xs">ลบ</button></td>
+                                    <tr class="border-b border-slate-800 ${Number(j.id) === Number(editingJudgeId) ? 'bg-amber-400/10' : ''}">
+                                        <td class="py-2.5 px-3 font-mono text-amber-300">${escHtml(j.username)}</td>
+                                        <td class="py-2.5 px-3">
+                                            <div class="flex items-center gap-2">
+                                                <span id="jd-pw-cell-${j.id}" class="font-mono text-slate-200">${revealedJudgePw.has(String(j.id)) ? escHtml(j.password || '') : '••••••••'}</span>
+                                                <button type="button" id="jd-pw-btn-${j.id}" onclick="toggleJudgePw(${j.id})" aria-label="แสดง/ซ่อนรหัสผ่าน" class="p-1 rounded-lg bg-slate-800 text-amber-300 hover:bg-slate-700">
+                                                    <i data-lucide="${revealedJudgePw.has(String(j.id)) ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-white">${escHtml(j.full_name)}</td>
+                                        <td class="py-2.5 px-3">${escHtml(j.assigned_type)}</td>
+                                        <td class="py-2.5 px-3 text-right space-x-3 whitespace-nowrap">
+                                            <button onclick="startEditJudge(${j.id})" class="text-amber-300 text-xs font-semibold">✏️ แก้ไข / เปลี่ยนรหัส</button>
+                                            <button onclick="handleDeleteJudge(${j.id})" class="text-rose-400 text-xs">ลบ</button>
+                                        </td>
                                     </tr>
-                                `).join('') : '<tr><td colspan="4" class="py-4 text-center text-slate-500">ยังไม่มีรายชื่อกรรมการ</td></tr>'}
+                                `).join('') : '<tr><td colspan="5" class="py-4 text-center text-slate-500">ยังไม่มีรายชื่อกรรมการ</td></tr>'}
                             </tbody>
                         </table>
                     </div>
                 </div>
             `;
+        }
+
+        function startEditJudge(id) {
+            editingJudgeId = Number(id);
+            switchAdminMenu('judges');
+            const u = document.getElementById('jd-user');
+            if (u) {
+                u.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                u.focus();
+            }
+        }
+
+        function cancelEditJudge() {
+            editingJudgeId = null;
+            switchAdminMenu('judges');
         }
 
         async function handleAddJudge(e) {
@@ -4348,6 +4392,42 @@
             const full_name = document.getElementById('jd-name').value.trim();
             const assigned_type = document.getElementById('jd-type').value;
 
+            // โหมดแก้ไขบัญชี
+            if (editingJudgeId) {
+                const ex = appState.judges.find(j => Number(j.id) === Number(editingJudgeId));
+                if (ex) {
+                    const dup = appState.judges.find(j => j.username === username && Number(j.id) !== Number(ex.id));
+                    if (dup) {
+                        showToast('Username นี้ถูกใช้แล้ว กรุณาใช้ชื่ออื่น', 'error');
+                        return;
+                    }
+                    const upd = { username, full_name, assigned_type };
+                    if (password) upd.password = password;
+                    if (sbClient) {
+                        const { error } = await sbClient.from('judges').update(upd).eq('id', ex.id);
+                        if (error) {
+                            showToast('แก้ไขบัญชีไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
+                            return;
+                        }
+                    }
+                    Object.assign(ex, upd);
+                    // อัปเดต session ของกรรมการที่กำลังล็อกอินอยู่ (ถ้าเป็นคนเดียวกัน)
+                    if (activeJudgeSession && Number(activeJudgeSession.judge.id) === Number(ex.id)) {
+                        activeJudgeSession.judge = { ...ex };
+                        localStorage.setItem('judge_session_v1', JSON.stringify(activeJudgeSession));
+                    }
+                    editingJudgeId = null;
+                    switchAdminMenu('judges');
+                    showToast(password ? 'บันทึกการแก้ไขและเปลี่ยนรหัสผ่านแล้ว' : 'บันทึกการแก้ไขบัญชีแล้ว', 'success');
+                    return;
+                }
+                editingJudgeId = null;
+            }
+
+            if (!password) {
+                showToast('กรุณากรอกรหัสผ่าน', 'error');
+                return;
+            }
             const newJ = {
                 username,
                 password,
@@ -4369,30 +4449,127 @@
         }
 
         async function handleDeleteJudge(id) {
+            if (!confirm('ยืนยันลบบัญชีกรรมการนี้?')) return;
+            if (Number(editingJudgeId) === Number(id)) editingJudgeId = null;
             appState.judges = appState.judges.filter(j => Number(j.id) !== Number(id));
             if (sbClient) await sbClient.from('judges').delete().eq('id', id);
             switchAdminMenu('judges');
             showToast('ลบบัญชีกรรมการแล้ว', 'warning');
         }
 
+        let editingNewsId = null;
+        let newsRemoveImage = false;
+
         function renderAdminMenuNews(container) {
+            const ed = editingNewsId ? appState.news.find(n => Number(n.id) === Number(editingNewsId)) : null;
+            if (editingNewsId && !ed) editingNewsId = null;
+            const showOldImg = ed && ed.image_url && !newsRemoveImage;
+            const list = appState.news || [];
             container.innerHTML = `
                 <div class="space-y-6">
                     <h3 class="text-xl font-bold gold-gradient-text">📰 จัดการข่าวประชาสัมพันธ์</h3>
-                    <form onsubmit="handleAddNews(event)" class="space-y-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                    ${ed ? `<div class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs text-amber-200">✏️ กำลังแก้ไขข่าว: <strong>${escHtml(ed.title)}</strong></div>` : ''}
+                    <form onsubmit="handleAddNews(event)" class="space-y-3 bg-slate-900/80 p-4 rounded-2xl border ${ed ? 'border-amber-400/60' : 'border-slate-800'}">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input type="text" id="news-title" required placeholder="หัวข้อข่าว..." class="input-night px-3.5 py-2 rounded-xl text-xs">
-                            <input type="file" id="news-image" accept="image/*" onchange="previewCompressedImage(this, 'news-img-preview')" class="input-night px-3 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                            <input type="text" id="news-title" required value="${ed ? escHtml(ed.title) : ''}" placeholder="หัวข้อข่าว..." class="input-night px-3.5 py-2 rounded-xl text-xs">
+                            <div>
+                                <input type="file" id="news-image" accept="image/jpeg,image/png,image/webp" onchange="previewCompressedImage(this, 'news-img-preview', 800, 0.78)" class="input-night w-full px-3 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                                <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">💡 แนะนำภาพอัตราส่วน <strong class="text-amber-300">16:9</strong> หรือ <strong class="text-amber-300">4:3</strong> — ขนาด <strong class="text-amber-300">1200×675 px</strong> หรือ <strong class="text-amber-300">800×600 px</strong> (ไฟล์ JPG, PNG, WebP) ระบบจะย่อให้กว้างไม่เกิน 800 px อัตโนมัติ</p>
+                            </div>
                         </div>
+                        ${showOldImg ? `
+                            <div id="news-old-img" class="flex items-center gap-3 p-2 rounded-xl bg-slate-950/60 border border-slate-800">
+                                <img src="${imgSrc(ed.image_url, 300)}" onerror="this.style.display='none'" class="w-24 h-16 object-cover rounded-lg border border-amber-400/40" alt="รูปเดิม">
+                                <div class="text-xs text-slate-300 flex-1">รูปเดิมของข่าว (เลือกไฟล์ใหม่เพื่อเปลี่ยนรูป)</div>
+                                <button type="button" onclick="removeNewsImage()" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold">🗑 ลบรูปเดิม</button>
+                            </div>` : (ed && ed.image_url && newsRemoveImage ? `<p class="text-xs text-rose-300">รูปเดิมจะถูกลบเมื่อกดบันทึก (หรือเลือกไฟล์ใหม่เพื่อแทนที่)</p>` : '')}
                         <div id="news-img-preview" class="hidden items-center gap-3"></div>
-                        <textarea id="news-content" required rows="2" placeholder="เนื้อหาข่าว..." class="input-night w-full px-3.5 py-2 rounded-xl text-xs"></textarea>
-                        <div class="flex justify-between items-center">
-                            <label class="text-xs text-amber-300 flex items-center gap-1.5"><input type="checkbox" id="news-pin"> 📌 ปักหมุดหน้าแรก</label>
-                            <button type="submit" class="px-5 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">+ เผยแพร่ข่าว</button>
+                        <textarea id="news-content" required rows="3" placeholder="เนื้อหาข่าว..." class="input-night w-full px-3.5 py-2 rounded-xl text-xs">${ed ? escHtml(ed.content) : ''}</textarea>
+                        <div class="flex flex-wrap justify-between items-center gap-3">
+                            <label class="text-xs text-amber-300 flex items-center gap-1.5"><input type="checkbox" id="news-pin" ${ed && ed.is_pinned ? 'checked' : ''}> 📌 ปักหมุดหน้าแรก</label>
+                            <div class="flex gap-2">
+                                ${ed ? `<button type="button" onclick="cancelEditNews()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">ยกเลิก</button>` : ''}
+                                <button type="submit" class="px-5 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">${ed ? '💾 บันทึกการแก้ไข' : '+ เผยแพร่ข่าว'}</button>
+                            </div>
                         </div>
                     </form>
+
+                    <div class="space-y-3">
+                        <h4 class="font-bold text-amber-300 text-sm">รายการข่าวทั้งหมด (${list.length} รายการ)</h4>
+                        ${list.length ? list.map(n => `
+                            <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-slate-900/80 border ${Number(n.id) === Number(editingNewsId) ? 'border-amber-400/60' : 'border-slate-800'}">
+                                <div class="sm:w-40 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
+                                    ${n.image_url ? `<img src="${imgSrc(n.image_url, 400)}" onerror="handleImgError(this)" class="w-full h-full object-cover" alt="">` : `<span class="text-xs text-slate-500">ไม่มีรูป</span>`}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                                        ${n.is_pinned ? `<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-400/20 text-amber-300">📌 ปักหมุด</span>` : ''}
+                                        ${n.is_published === false ? `<span class="px-2 py-0.5 rounded text-[11px] bg-slate-700 text-slate-300">ซ่อนอยู่</span>` : ''}
+                                    </div>
+                                    <h5 class="font-bold text-white text-sm">${escHtml(n.title)}</h5>
+                                    <p class="text-xs text-slate-300 mt-1 line-clamp-3 whitespace-pre-line">${escHtml(n.content)}</p>
+                                </div>
+                                <div class="flex sm:flex-col gap-2 shrink-0">
+                                    <button onclick="startEditNews(${n.id})" class="px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">✏️ แก้ไข</button>
+                                    <button onclick="deleteNews(${n.id})" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">🗑 ลบ</button>
+                                </div>
+                            </div>
+                        `).join('') : `<div class="p-6 text-center text-sm text-slate-500 rounded-2xl border border-dashed border-slate-700">ยังไม่มีข่าวประชาสัมพันธ์</div>`}
+                    </div>
                 </div>
             `;
+        }
+
+        function startEditNews(id) {
+            editingNewsId = Number(id);
+            newsRemoveImage = false;
+            delete compressedFilesCache['news-image'];
+            switchAdminMenu('news');
+            const t = document.getElementById('news-title');
+            if (t) {
+                t.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                t.focus();
+            }
+        }
+
+        function cancelEditNews() {
+            editingNewsId = null;
+            newsRemoveImage = false;
+            delete compressedFilesCache['news-image'];
+            switchAdminMenu('news');
+        }
+
+        function removeNewsImage() {
+            newsRemoveImage = true;
+            // คงค่าที่กรอกไว้ก่อน re-render
+            const keep = {
+                title: document.getElementById('news-title').value,
+                content: document.getElementById('news-content').value,
+                pin: document.getElementById('news-pin').checked
+            };
+            switchAdminMenu('news');
+            document.getElementById('news-title').value = keep.title;
+            document.getElementById('news-content').value = keep.content;
+            document.getElementById('news-pin').checked = keep.pin;
+        }
+
+        async function deleteNews(id) {
+            if (!confirm('ยืนยันลบข่าวนี้ออกจากระบบ?')) return;
+            if (sbClient) {
+                const { error } = await sbClient.from('news').delete().eq('id', id);
+                if (error) {
+                    showToast('ลบข่าวไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ DELETE)', 'error');
+                    return;
+                }
+            }
+            appState.news = appState.news.filter(n => Number(n.id) !== Number(id));
+            if (Number(editingNewsId) === Number(id)) {
+                editingNewsId = null;
+                newsRemoveImage = false;
+            }
+            renderPublicNews();
+            switchAdminMenu('news');
+            showToast('ลบข่าวแล้ว', 'warning');
         }
 
         async function handleAddNews(e) {
@@ -4400,27 +4577,72 @@
             const title = document.getElementById('news-title').value.trim();
             const content = document.getElementById('news-content').value.trim();
             const is_pinned = document.getElementById('news-pin').checked;
-            const image_url = await uploadCompressedImage('news-image', 'news');
+            const hasNewImg = !!compressedFilesCache['news-image'];
 
-            const item = {
-                title,
-                content,
-                image_url,
-                is_pinned,
-                is_published: true
-            };
-            if (sbClient) {
-                const {
-                    data
-                } = await sbClient.from('news').insert([item]).select();
-                if (data && data[0]) item.id = data[0].id;
-            } else {
-                item.id = Date.now();
+            showLoader(editingNewsId ? 'กำลังบันทึกการแก้ไขข่าว...' : 'กำลังเผยแพร่ข่าว...');
+            try {
+                let newUrl = '';
+                if (hasNewImg) {
+                    newUrl = await uploadCompressedImage('news-image', 'news');
+                    if (!newUrl) {
+                        showToast('อัปโหลดรูปข่าวไม่สำเร็จ', 'error');
+                        return;
+                    }
+                }
+
+                // โหมดแก้ไข
+                const ex = editingNewsId ? appState.news.find(n => Number(n.id) === Number(editingNewsId)) : null;
+                if (ex) {
+                    const upd = { title, content, is_pinned };
+                    if (hasNewImg) upd.image_url = newUrl;
+                    else if (newsRemoveImage) upd.image_url = '';
+                    if (sbClient) {
+                        const { error } = await sbClient.from('news').update(upd).eq('id', ex.id);
+                        if (error) {
+                            showToast('แก้ไขข่าวไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
+                            return;
+                        }
+                    }
+                    Object.assign(ex, upd);
+                    appState.news.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0) || Number(b.id) - Number(a.id));
+                    editingNewsId = null;
+                    newsRemoveImage = false;
+                    delete compressedFilesCache['news-image'];
+                    renderPublicNews();
+                    switchAdminMenu('news');
+                    showToast('บันทึกการแก้ไขข่าวแล้ว', 'success');
+                    return;
+                }
+
+                const item = {
+                    title,
+                    content,
+                    image_url: newUrl,
+                    is_pinned,
+                    is_published: true
+                };
+                if (sbClient) {
+                    const {
+                        data,
+                        error
+                    } = await sbClient.from('news').insert([item]).select();
+                    if (error) {
+                        showToast('เผยแพร่ข่าวไม่สำเร็จ: ' + error.message, 'error');
+                        return;
+                    }
+                    if (data && data[0]) item.id = data[0].id;
+                } else {
+                    item.id = Date.now();
+                }
+                appState.news.unshift(item);
+                appState.news.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0) || Number(b.id) - Number(a.id));
+                delete compressedFilesCache['news-image'];
+                renderPublicNews();
+                switchAdminMenu('news');
+                showToast('เผยแพร่ข่าวสารแล้ว', 'success');
+            } finally {
+                hideLoader();
             }
-            appState.news.unshift(item);
-            renderPublicNews();
-            switchAdminMenu('news');
-            showToast('เผยแพร่ข่าวสารแล้ว', 'success');
         }
 
         function renderAdminMenuApplications(container) {
