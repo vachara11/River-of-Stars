@@ -20,6 +20,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Supabase JS v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- html5-qrcode (สแกน QR/บาร์โค้ดด้วยกล้องมือถือ) -->
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Google Identity Services (OAuth สำหรับอัปโหลดรูปเข้า Google Drive โดยไม่ใช้ Apps Script) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- Config File -->
@@ -255,7 +257,7 @@
                 width: 100% !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-                font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', serif !important;
+                font-family: 'TH Sarabun PSK', 'THSarabunPSK', 'TH SarabunPSK', 'TH Sarabun New', 'Sarabun', serif !important;
                 font-size: 16pt !important;
                 line-height: 1.35 !important;
             }
@@ -1067,7 +1069,7 @@
                         </div>
 
                         <!-- 8 เมนูแอดมิน -->
-                        <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5">
+                        <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-10 gap-2.5">
                             <button onclick="switchAdminMenu('overview')" data-admin-menu="overview"
                                 class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center active">
                                 <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
@@ -1112,6 +1114,11 @@
                                 class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
                                 <i data-lucide="store" class="w-5 h-5"></i>
                                 <span class="text-xs leading-tight">จองบูท</span>
+                            </button>
+                            <button onclick="switchAdminMenu('checkin')" data-admin-menu="checkin"
+                                class="admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center">
+                                <i data-lucide="qr-code" class="w-5 h-5"></i>
+                                <span class="text-xs leading-tight">ลงทะเบียนหน้างาน</span>
                             </button>
                         </div>
                     </div>
@@ -3161,6 +3168,12 @@
                 <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/40 text-sm text-rose-200">
                     ❌ ใบสมัครนี้ถูกปฏิเสธ — เหตุผล: <strong>${escHtml(app.reject_reason || 'ไม่ได้ระบุ')}</strong>
                 </div>` : ''}
+            ${app.edit_requested ? `
+                <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/40 text-sm text-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>✏️ เจ้าหน้าที่ขอให้แก้ไขข้อมูล — เหตุผล: <strong>${escHtml(app.edit_reason || 'ไม่ได้ระบุ')}</strong></div>
+                    <button onclick="openEditApplicationModal(${app.id}, 'applicant')" class="shrink-0 px-4 py-2 rounded-xl bg-sky-400 text-slate-950 font-bold text-xs">แก้ไขข้อมูลตอนนี้</button>
+                </div>` : ''}
+            ${app.checked_in ? `<div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/40 text-sm text-emerald-200">✅ ลงทะเบียนหน้างานแล้ว</div>` : ''}
         </div>
     `).join('');
 
@@ -5092,12 +5105,19 @@ async function saveBoothLocation(id) {
                                 <td class="py-3 px-3">
                                     <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${appStatusBadgeClass(app.status)}">${escHtml(app.status)}</span>
                                     ${app.status === 'REJECTED' && app.reject_reason ? `<div class="text-[11px] text-rose-300 mt-1">เหตุผล: ${escHtml(app.reject_reason)}</div>` : ''}
+                                    ${app.edit_requested
+                    ? `<div class="text-[11px] text-sky-300 mt-1">✏️ รอผู้สมัครแก้ไข — เหตุผล: ${escHtml(app.edit_reason || '-')}</div>`
+                    : (app.edit_submitted_at ? `<div class="text-[11px] text-emerald-300 mt-1">✅ ผู้สมัครแก้ไขข้อมูลแล้ว</div>` : '')}
+                                    ${app.checked_in ? `<div class="text-[11px] text-emerald-300 mt-1">📍 ลงทะเบียนหน้างานแล้ว</div>` : ''}
                                 </td>
                                 <td class="py-3 px-3 text-right">
                                     <div class="flex flex-wrap justify-end gap-1.5">
                                         <button onclick="approveApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
                                         <button onclick="rejectApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
                                         <button onclick="openEditApplicationModal(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-bold text-xs">✏️ แก้ไข</button>
+                                        ${app.edit_requested
+                    ? `<button onclick="cancelEditRequest(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-sky-400/40 text-sky-300 font-bold text-xs">ยกเลิกคำขอแก้ไข</button>`
+                    : `<button onclick="requestApplicationEdit(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-200 font-bold text-xs">📝 ให้ผู้สมัครแก้ไข</button>`}
                                         <button onclick="printOfficialApplicationForm(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 font-bold text-xs">🖨️ พิมพ์</button>
                                         <button onclick="deleteApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 font-bold text-xs">🗑 ลบ</button>
                                     </div>
@@ -5185,9 +5205,14 @@ async function saveBoothLocation(id) {
             delete compressedFilesCache['app-edit-photo'];
         }
 
-        function openEditApplicationModal(id) {
+        function openEditApplicationModal(id, mode) {
             const app = appState.applications.find(a => Number(a.id) === Number(id));
             if (!app) return;
+            mode = mode || 'admin';
+            if (mode === 'applicant' && !app.edit_requested) {
+                showToast('ใบสมัครนี้ยังไม่ได้เปิดให้แก้ไข กรุณาติดต่อเจ้าหน้าที่', 'warning');
+                return;
+            }
             closeEditApplicationModal();
 
             const levels = ['ปวช.1', 'ปวช.2', 'ปวช.3', 'ปวส.1', 'ปวส.2'];
@@ -5258,11 +5283,15 @@ async function saveBoothLocation(id) {
             modal.id = 'admin-edit-app-modal';
             modal.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
             modal.innerHTML = `
-        <form onsubmit="saveEditApplication(event, ${app.id})" class="glass-card max-w-3xl w-full rounded-3xl p-6 space-y-4 border border-amber-400/40 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <form onsubmit="saveEditApplication(event, ${app.id}, '${mode}')" class="glass-card max-w-3xl w-full rounded-3xl p-6 space-y-4 border border-amber-400/40 max-h-[90vh] overflow-y-auto shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold gold-gradient-text">✏️ แก้ไขใบสมัคร ${isNop ? '(นางนพมาศ)' : '(กระทงประดิษฐ์ทีม)'}</h3>
                 <button type="button" onclick="closeEditApplicationModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">✕</button>
             </div>
+            ${mode === 'applicant' ? `
+            <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/40 text-sm text-sky-100">
+                📝 เจ้าหน้าที่ขอให้แก้ไขข้อมูล — เหตุผล: <strong>${escHtml(app.edit_reason || 'ไม่ได้ระบุ')}</strong>
+            </div>` : ''}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div class="${isNop ? '' : 'sm:col-span-1'}">
                     <label class="block text-xs text-slate-300 mb-1">สาขาวิชา</label>
@@ -5287,7 +5316,7 @@ async function saveBoothLocation(id) {
             document.body.appendChild(modal);
         }
 
-        async function saveEditApplication(e, id) {
+        async function saveEditApplication(e, id, mode) {
             e.preventDefault();
             const app = appState.applications.find(a => Number(a.id) === Number(id));
             if (!app) return;
@@ -5297,6 +5326,12 @@ async function saveBoothLocation(id) {
                 edu_level: document.getElementById('ea-level').value,
                 room_number: document.getElementById('ea-room').value.trim()
             };
+            if (mode === 'applicant') {
+                if (!app.edit_requested) { showToast('ใบสมัครนี้ไม่ได้เปิดให้แก้ไข', 'error'); return; }
+                upd.edit_requested = false;
+                upd.edit_submitted_at = new Date().toISOString();
+                if (app.status === 'REJECTED') upd.status = 'PENDING'; // ส่งกลับให้ตรวจใหม่
+            }
 
             showLoader('กำลังบันทึกการแก้ไข...');
             try {
@@ -5347,8 +5382,13 @@ async function saveBoothLocation(id) {
                 Object.assign(app, upd);
                 closeEditApplicationModal();
                 renderPublicContestants();
-                switchAdminMenu('applications');
-                showToast('บันทึกการแก้ไขใบสมัครแล้ว', 'success');
+                if (mode === 'applicant') {
+                    handleSearchApplication();
+                    showToast('ส่งข้อมูลที่แก้ไขเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบอีกครั้ง', 'success');
+                } else {
+                    switchAdminMenu('applications');
+                    showToast('บันทึกการแก้ไขใบสมัครแล้ว', 'success');
+                }
             } finally {
                 hideLoader();
             }
@@ -5427,10 +5467,10 @@ async function saveBoothLocation(id) {
 
 
 
-const STAFF_MENUS = ['criteria', 'print', 'news', 'applications', 'booths'];
+const STAFF_MENUS = ['criteria', 'print', 'news', 'applications', 'booths', 'checkin'];
 const ADMIN_ROLE_LABEL = {
     admin: 'ผู้ดูแลระบบ (เต็มสิทธิ์)',
-    staff: 'เจ้าหน้าที่ (ดูข้อมูลอย่างเดียว)'
+    staff: 'เจ้าหน้าที่ (ลงทะเบียนนางนพมาศได้)'
 };
 let editingAdminUserId = null;
 const revealedAdminUserPw = new Set();
@@ -5498,8 +5538,8 @@ function applyAdminRoleUI() {
         btn.className = 'admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center';
         btn.innerHTML = '<i data-lucide="key-round" class="w-5 h-5"></i><span class="text-xs leading-tight">จัดการสิทธิ์</span>';
         grid.appendChild(btn);
-        grid.classList.remove('lg:grid-cols-9');
-        grid.classList.add('lg:grid-cols-10');
+        grid.classList.remove('lg:grid-cols-10');
+        grid.classList.add('lg:grid-cols-11');
     }
 
     grid.querySelectorAll('[data-admin-menu]').forEach(b => {
@@ -5799,6 +5839,921 @@ async function deleteAdminUser(id) {
     renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
     showToast('ลบบัญชีแล้ว', 'warning');
 }
+
+
+
+// =====================================================================
+//  [เพิ่มใหม่] 1) ขอให้ผู้สมัครแก้ไขข้อมูล (แอดมินระบุเหตุผล → ผู้สมัครเห็นเหตุผลและแก้ไขเองได้)
+//  ต้องรันไฟล์ migration.sql ใน Supabase ก่อน (เพิ่มคอลัมน์ edit_requested, edit_reason ฯลฯ)
+// =====================================================================
+const EDIT_REASON_PRESETS = [
+    'ข้อมูลไม่ตรงกับบัตรนักศึกษา',
+    'รหัสนักศึกษาไม่ถูกต้อง',
+    'รูปถ่ายไม่ชัดเจน / ไม่เหมาะสม',
+    'ข้อมูลไม่ครบถ้วน',
+    'รายชื่อสมาชิกทีมไม่ถูกต้อง'
+];
+
+function closeEditReqModal() {
+    const m = document.getElementById('edit-req-modal');
+    if (m) m.remove();
+}
+
+function requestApplicationEdit(id) {
+    const app = appState.applications.find(a => Number(a.id) === Number(id));
+    if (!app) return;
+    closeEditReqModal();
+    const modal = document.createElement('div');
+    modal.id = 'edit-req-modal';
+    modal.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+    modal.innerHTML = `
+        <form onsubmit="submitEditRequest(event, ${app.id})" class="glass-card max-w-lg w-full rounded-3xl p-6 space-y-4 border border-sky-400/40 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold gold-gradient-text">📝 ขอให้ผู้สมัครแก้ไขข้อมูล</h3>
+                <button type="button" onclick="closeEditReqModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">✕</button>
+            </div>
+            <p class="text-sm text-slate-200">ผู้สมัคร: <strong class="text-white">${escHtml(getDisplayName(app))}</strong>
+                <span class="text-xs text-slate-400">(รหัส ${escHtml(app.student_id)})</span></p>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1.5">เลือกเหตุผลด่วน (หรือพิมพ์เองด้านล่าง)</label>
+                <div class="flex flex-wrap gap-1.5">
+                    ${EDIT_REASON_PRESETS.map(r => `<button type="button" data-t="${escHtml(r)}" onclick="document.getElementById('er-reason').value=this.dataset.t" class="px-2.5 py-1 rounded-full text-[11px] bg-sky-500/15 border border-sky-400/40 text-sky-200 hover:bg-sky-500/25">${escHtml(r)}</button>`).join('')}
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">เหตุผลที่ให้แก้ไข <span class="text-rose-400">*</span></label>
+                <textarea id="er-reason" rows="3" required class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm" placeholder="เช่น รหัสนักศึกษาไม่ตรงกับบัตร กรุณาตรวจสอบและแก้ไข">${escHtml(app.edit_reason || '')}</textarea>
+                <p class="text-[11px] text-slate-400 mt-1">ผู้สมัครจะเห็นเหตุผลนี้ที่หน้า "ตรวจสอบสถานะ" เมื่อค้นหาด้วยรหัสนักศึกษา และกดแก้ไขข้อมูลเองได้</p>
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeEditReqModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm">ยกเลิก</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-400 text-slate-950 font-bold text-sm">ส่งคำขอให้แก้ไข</button>
+            </div>
+        </form>`;
+    document.body.appendChild(modal);
+    setTimeout(() => { const t = document.getElementById('er-reason'); if (t) t.focus(); }, 50);
+}
+
+async function updateApplicationFields(id, upd, failMsg) {
+    if (sbClient) {
+        const { data, error } = await sbClient.from('applications').update(upd).eq('id', id).select();
+        if (error) {
+            console.error('update application error:', error);
+            const missing = /edit_requested|edit_reason|edit_requested_at|edit_submitted_at|checked_in|member_checkins/i.test(error.message || '');
+            showToast(failMsg + ': ' + error.message + (missing ? ' (ยังไม่ได้รัน migration.sql เพิ่มคอลัมน์ใน Supabase)' : ''), 'error');
+            return false;
+        }
+        if (!data || data.length === 0) {
+            showToast(failMsg + ': ฐานข้อมูลไม่อนุญาตให้แก้ไข (ตรวจสอบ RLS Policy แบบ UPDATE ของตาราง applications)', 'error');
+            return false;
+        }
+    }
+    const app = appState.applications.find(a => Number(a.id) === Number(id));
+    if (app) Object.assign(app, upd);
+    return true;
+}
+
+async function submitEditRequest(e, id) {
+    e.preventDefault();
+    const reason = document.getElementById('er-reason').value.trim();
+    if (!reason) { showToast('กรุณาระบุเหตุผลที่ให้แก้ไข', 'error'); return; }
+    showLoader('กำลังส่งคำขอ...');
+    try {
+        const ok = await updateApplicationFields(id, {
+            edit_requested: true,
+            edit_reason: reason,
+            edit_requested_at: new Date().toISOString(),
+            edit_submitted_at: null
+        }, 'ส่งคำขอไม่สำเร็จ');
+        if (!ok) return;
+        closeEditReqModal();
+        switchAdminMenu('applications');
+        showToast('เปิดให้ผู้สมัครแก้ไขข้อมูลแล้ว', 'success');
+    } finally {
+        hideLoader();
+    }
+}
+
+async function cancelEditRequest(id) {
+    if (!confirm('ยกเลิกคำขอให้แก้ไข? ผู้สมัครจะไม่สามารถแก้ไขข้อมูลได้อีก')) return;
+    showLoader('กำลังยกเลิก...');
+    try {
+        const ok = await updateApplicationFields(id, { edit_requested: false }, 'ยกเลิกไม่สำเร็จ');
+        if (!ok) return;
+        switchAdminMenu('applications');
+        showToast('ยกเลิกคำขอให้แก้ไขแล้ว', 'warning');
+    } finally {
+        hideLoader();
+    }
+}
+
+// =====================================================================
+//  [เพิ่มใหม่] 2) ลงทะเบียนหน้างานด้วยการสแกนรหัสนักศึกษา (QR / บาร์โค้ด)
+//   - เครื่องสแกน QR (แบบ USB/Bluetooth ที่ทำงานเหมือนคีย์บอร์ด) และกล้องมือถือ
+//   - มีเสียงพูดภาษาไทยแจ้งผล
+//   - ลงทะเบียนกระทง: ลงทะเบียนรายบุคคลของสมาชิกทุกคน แยกเป็นรายทีม (เฉพาะผู้ดูแลระบบ)
+//   - ลงทะเบียนนางนพมาศ: ผู้ดูแลระบบ + เจ้าหน้าที่
+//   - พิมพ์ใบลงทะเบียนแบบทางการ (ตรา อวท. / เลขไทย / TH Sarabun PSK)
+// =====================================================================
+const CK = {
+    tab: null,
+    scanner: null,
+    scanning: false,
+    facing: 'environment',
+    voice: true,
+    last: { raw: '', t: 0 },
+    busy: false,
+    filter: '',
+    log: [],
+    ac: null
+};
+
+function ckRole() { return getAdminRole() || 'admin'; }
+function ckAllowedTabs() { return ckRole() === 'admin' ? ['krathong_team', 'noppamas'] : ['noppamas']; }
+function ckTypeLabel(t) { return t === 'noppamas' ? 'นางนพมาศ' : 'กระทง'; }
+function ckActor() { return sessionStorage.getItem('admin_name') || ckRole(); }
+function ckHm(iso) { return iso ? new Date(iso).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : ''; }
+
+// ----- ข้อมูลสมาชิกทีม / สถานะการลงทะเบียนรายคน -----
+function ckMembers(app) {
+    const ms = Array.isArray(app.team_members) ? app.team_members.filter(m => m && (m.name || m.student_id)) : [];
+    return ms.length ? ms : [{ name: app.full_name, student_id: app.student_id }];
+}
+function ckMKey(m, i) { return m && m.student_id ? String(m.student_id) : 'm' + i; }
+function ckMap(app) {
+    return (app.member_checkins && typeof app.member_checkins === 'object') ? app.member_checkins : {};
+}
+// คืน {at, by} ถ้าสมาชิกคนที่ i ลงทะเบียนแล้ว (รองรับข้อมูลเดิมที่ลงทะเบียนทั้งทีมไว้ก่อนแล้ว)
+function ckMemberRec(app, i) {
+    const ms = ckMembers(app);
+    const m = ms[i];
+    if (!m) return null;
+    const map = ckMap(app);
+    if (map[ckMKey(m, i)]) return map[ckMKey(m, i)];
+    if (app.checked_in && Object.keys(map).length === 0) return { at: app.checked_in_at, by: app.checked_in_by };
+    return null;
+}
+function ckEffectiveMap(app) {
+    const out = {};
+    ckMembers(app).forEach((m, i) => { const r = ckMemberRec(app, i); if (r) out[ckMKey(m, i)] = r; });
+    return out;
+}
+function ckTeamCount(app) {
+    const ms = ckMembers(app);
+    return { done: ms.filter((m, i) => ckMemberRec(app, i)).length, total: ms.length };
+}
+function ckDone(app) {
+    if (app.contest_type === 'noppamas') return !!app.checked_in;
+    const c = ckTeamCount(app);
+    return c.total > 0 && c.done === c.total;
+}
+function ckMemberIdx(app, code) {
+    const i = ckMembers(app).findIndex(m => String(m.student_id) === String(code));
+    return i < 0 ? 0 : i;
+}
+
+// ----- เสียง -----
+function ckSpeak(text) {
+    if (!CK.voice || !('speechSynthesis' in window)) return;
+    try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'th-TH';
+        u.rate = 0.95;
+        const v = window.speechSynthesis.getVoices().find(x => /^th/i.test(x.lang));
+        if (v) u.voice = v;
+        window.speechSynthesis.speak(u);
+    } catch (e) { /* ไม่รองรับเสียงพูด */ }
+}
+
+function ckBeep(ok) {
+    try {
+        const C = window.AudioContext || window.webkitAudioContext;
+        if (!C) return;
+        CK.ac = CK.ac || new C();
+        const o = CK.ac.createOscillator(), g = CK.ac.createGain();
+        o.type = 'sine';
+        o.frequency.value = ok ? 880 : 220;
+        g.gain.value = 0.08;
+        o.connect(g); g.connect(CK.ac.destination);
+        o.start();
+        o.stop(CK.ac.currentTime + (ok ? 0.12 : 0.35));
+    } catch (e) { }
+}
+
+function ckTeamSpeak(app) {
+    return `ทีมสาขา${app.department || ''} ${app.edu_level || ''} ห้อง ${app.room_number || ''}`;
+}
+
+// ----- ค้นหาผู้สมัครจากรหัสที่สแกน -----
+function ckExtractCodes(raw) {
+    const s = String(raw || '').trim();
+    const codes = [];
+    if (/^\d+$/.test(s)) codes.push(s);
+    else (s.match(/\d{5,}/g) || []).forEach(c => codes.push(c));
+    if (!codes.length && s) codes.push(s);
+    return codes;
+}
+
+function ckMatchApp(a, type, code) {
+    if (a.contest_type !== type) return false;
+    if (String(a.student_id) === code) return true;
+    return Array.isArray(a.team_members) && a.team_members.some(m => String(m.student_id) === code);
+}
+
+function ckFind(type, raw) {
+    const codes = ckExtractCodes(raw);
+    for (const c of codes) {
+        const list = appState.applications.filter(a => ckMatchApp(a, type, c));
+        if (list.length) return { app: list.find(a => a.status === 'APPROVED') || list[0], code: c };
+    }
+    return { app: null, code: codes[0] || String(raw || '') };
+}
+
+function ckShowResult(kind, title, lines, number) {
+    const el = document.getElementById('ck-result');
+    if (!el) return;
+    const theme = {
+        ok: 'bg-emerald-500/15 border-emerald-400/60 text-emerald-100',
+        dup: 'bg-amber-500/15 border-amber-400/60 text-amber-100',
+        warn: 'bg-amber-500/15 border-amber-400/60 text-amber-100',
+        error: 'bg-rose-500/15 border-rose-400/60 text-rose-100',
+        idle: 'bg-slate-900/70 border-slate-700 text-slate-300'
+    }[kind] || '';
+    const icon = { ok: '✅', dup: '⚠️', warn: '⚠️', error: '❌', idle: '📷' }[kind];
+    el.innerHTML = `
+        <div class="p-5 rounded-2xl border ${theme} text-center space-y-1.5">
+            <div class="text-3xl">${icon}</div>
+            ${number ? `<div class="text-5xl font-extrabold gold-gradient-text">${escHtml(number)}</div>` : ''}
+            <div class="text-base font-bold">${escHtml(title)}</div>
+            ${(lines || []).filter(Boolean).map(l => `<div class="text-xs opacity-90">${escHtml(l)}</div>`).join('')}
+        </div>`;
+}
+
+function ckFeedback(kind, speech) {
+    ckBeep(kind === 'ok');
+    ckSpeak(speech);
+}
+
+// ตรวจสิทธิ์/สถานะใบสมัครก่อนลงทะเบียน (คืน true ถ้าผ่าน)
+function ckGuard(app) {
+    if (app.contest_type !== 'noppamas' && ckRole() !== 'admin') {
+        const m = 'สิทธิ์เจ้าหน้าที่ลงทะเบียนได้เฉพาะนางนพมาศ';
+        ckShowResult('error', m, []); ckFeedback('error', m);
+        return false;
+    }
+    if (app.status !== 'APPROVED') {
+        ckShowResult('warn', 'ใบสมัครยังไม่ได้รับการอนุมัติ', [getDisplayName(app)]);
+        ckFeedback('warn', 'ใบสมัครยังไม่ได้รับการอนุมัติ');
+        return false;
+    }
+    return true;
+}
+
+// ลงทะเบียนนางนพมาศ (รายบุคคล)
+async function ckRegisterNoppamas(app, source) {
+    if (!ckGuard(app)) return false;
+    if (app.checked_in) {
+        ckShowResult('dup', 'ลงทะเบียนไปแล้ว', [getDisplayName(app), app.checked_in_at ? `เมื่อเวลา ${ckHm(app.checked_in_at)} น.` : ''], app.contestant_number);
+        ckFeedback('dup', `${app.full_name} ลงทะเบียนไปแล้ว`);
+        return false;
+    }
+    const upd = { checked_in: true, checked_in_at: new Date().toISOString(), checked_in_by: ckActor() };
+    const ok = await updateApplicationFields(app.id, upd, 'ลงทะเบียนไม่สำเร็จ');
+    if (!ok) {
+        ckShowResult('error', 'บันทึกการลงทะเบียนไม่สำเร็จ', ['ดูรายละเอียดในข้อความแจ้งเตือน']);
+        ckFeedback('error', 'บันทึกการลงทะเบียนไม่สำเร็จ');
+        return false;
+    }
+    CK.log.unshift({ id: app.id, name: app.full_name, t: upd.checked_in_at });
+    CK.log = CK.log.slice(0, 8);
+    ckShowResult('ok', 'ลงทะเบียนนางนพมาศสำเร็จ', [app.full_name, `รหัส ${app.student_id}`], app.contestant_number);
+    ckFeedback('ok', `ลงทะเบียนนางนพมาศสำเร็จ หมายเลข ${app.contestant_number || ''} ${app.full_name}`);
+    ckRenderLists();
+    return true;
+}
+
+// ลงทะเบียนสมาชิกกระทงรายคน (idxList = ลำดับสมาชิกที่จะลงทะเบียน)
+async function ckRegisterMembers(app, idxList, source) {
+    if (!ckGuard(app)) return false;
+    const ms = ckMembers(app);
+    const todo = idxList.filter(i => ms[i] && !ckMemberRec(app, i));
+    if (!todo.length) {
+        const m = ms[idxList[0]] || {};
+        const rec = ckMemberRec(app, idxList[0]);
+        ckShowResult('dup', 'สมาชิกคนนี้ลงทะเบียนไปแล้ว', [m.name, rec && rec.at ? `เมื่อเวลา ${ckHm(rec.at)} น.` : ''], app.contestant_number);
+        ckFeedback('dup', `${m.name || 'สมาชิก'} ลงทะเบียนไปแล้ว`);
+        return false;
+    }
+    const now = new Date().toISOString();
+    const map = ckEffectiveMap(app);
+    todo.forEach(i => { map[ckMKey(ms[i], i)] = { at: now, by: ckActor() }; });
+    const allDone = ms.every((m, i) => map[ckMKey(m, i)]);
+    const upd = {
+        member_checkins: map,
+        checked_in: allDone,
+        checked_in_at: allDone ? now : (app.checked_in_at || null),
+        checked_in_by: ckActor()
+    };
+    const ok = await updateApplicationFields(app.id, upd, 'ลงทะเบียนไม่สำเร็จ');
+    if (!ok) {
+        ckShowResult('error', 'บันทึกการลงทะเบียนไม่สำเร็จ', ['ดูรายละเอียดในข้อความแจ้งเตือน']);
+        ckFeedback('error', 'บันทึกการลงทะเบียนไม่สำเร็จ');
+        return false;
+    }
+    const c = ckTeamCount(app);
+    const who = todo.length === 1 ? ms[todo[0]].name : `สมาชิก ${todo.length} คน`;
+    CK.log.unshift({ id: app.id, name: who, t: now });
+    CK.log = CK.log.slice(0, 8);
+    ckShowResult('ok', allDone ? 'ลงทะเบียนครบทั้งทีมแล้ว' : 'ลงทะเบียนสมาชิกสำเร็จ',
+        [who, getDisplayName(app), `ลงทะเบียนแล้ว ${c.done} / ${c.total} คน`], app.contestant_number);
+    ckFeedback('ok', `ลงทะเบียนกระทงสำเร็จ ${who} ทีมหมายเลข ${app.contestant_number || ''} ลงทะเบียนแล้ว ${c.done} จาก ${c.total} คน${allDone ? ' ครบทั้งทีมแล้ว' : ''}`);
+    ckRenderLists();
+    return true;
+}
+
+async function ckProcess(raw, source) {
+    raw = String(raw || '').trim();
+    if (!raw || CK.busy) return;
+    const now = Date.now();
+    if (CK.last.raw === raw && now - CK.last.t < 3000) return; // กันสแกนซ้ำรัว ๆ
+    CK.last = { raw, t: now };
+    CK.busy = true;
+    try {
+        const type = CK.tab;
+        if (!ckAllowedTabs().includes(type)) return;
+        const { app, code } = ckFind(type, raw);
+        if (!app) {
+            const other = type === 'noppamas' ? 'krathong_team' : 'noppamas';
+            const hit = ckFind(other, raw).app;
+            if (hit) {
+                const msg = `รหัสนี้สมัครประเภท${ckTypeLabel(other)} ไม่ใช่${ckTypeLabel(type)}`;
+                ckShowResult('warn', msg, [`รหัส ${code}`]);
+                ckFeedback('warn', msg);
+            } else {
+                ckShowResult('error', 'ไม่พบข้อมูลรหัสนี้ในระบบ', [`รหัส ${code}`]);
+                ckFeedback('error', 'ไม่พบข้อมูลรหัสนี้ในระบบ');
+            }
+            return;
+        }
+        if (type === 'noppamas') await ckRegisterNoppamas(app, source);
+        else await ckRegisterMembers(app, [ckMemberIdx(app, code)], source);
+    } finally {
+        CK.busy = false;
+    }
+}
+
+function ckSubmitInput(e) {
+    e.preventDefault();
+    const inp = document.getElementById('ck-input');
+    const v = inp.value;
+    inp.value = '';
+    ckProcess(v, 'input');
+    inp.focus();
+}
+
+function ckGetApp(id) { return appState.applications.find(a => Number(a.id) === Number(id)); }
+async function ckManual(id) { const a = ckGetApp(id); if (a) await ckRegisterNoppamas(a, 'manual'); }
+async function ckManualMember(id, idx) { const a = ckGetApp(id); if (a) await ckRegisterMembers(a, [idx], 'manual'); }
+async function ckManualTeam(id) {
+    const a = ckGetApp(id);
+    if (!a) return;
+    const all = ckMembers(a).map((m, i) => i);
+    if (await ckRegisterMembers(a, all, 'manual')) ckSpeak(`ลงทะเบียนทั้งทีมสำเร็จ หมายเลข ${a.contestant_number || ''}`);
+}
+
+async function ckUnregister(id) {
+    if (ckRole() !== 'admin') return;
+    const app = ckGetApp(id);
+    if (!app || !confirm(`ยกเลิกการลงทะเบียนของ "${getDisplayName(app)}" ?`)) return;
+    const upd = { checked_in: false, checked_in_at: null, checked_in_by: null };
+    if (app.contest_type !== 'noppamas') upd.member_checkins = {};
+    const ok = await updateApplicationFields(id, upd, 'ยกเลิกไม่สำเร็จ');
+    if (ok) { ckRenderLists(); showToast('ยกเลิกการลงทะเบียนแล้ว', 'warning'); }
+}
+
+async function ckUnregisterMember(id, idx) {
+    if (ckRole() !== 'admin') return;
+    const app = ckGetApp(id);
+    if (!app) return;
+    const m = ckMembers(app)[idx];
+    if (!m || !confirm(`ยกเลิกการลงทะเบียนของ "${m.name}" ?`)) return;
+    const map = ckEffectiveMap(app);
+    delete map[ckMKey(m, idx)];
+    const ok = await updateApplicationFields(id, { member_checkins: map, checked_in: false, checked_in_at: null }, 'ยกเลิกไม่สำเร็จ');
+    if (ok) { ckRenderLists(); showToast('ยกเลิกการลงทะเบียนแล้ว', 'warning'); }
+}
+
+// ----- กล้องมือถือ -----
+async function ckStartCamera() {
+    if (CK.scanning) return;
+    if (typeof Html5Qrcode === 'undefined') {
+        showToast('โหลดตัวสแกนกล้องไม่สำเร็จ (ตรวจสอบอินเทอร์เน็ต)', 'error');
+        return;
+    }
+    if (!window.isSecureContext) {
+        showToast('กล้องใช้งานได้เฉพาะเว็บ HTTPS เท่านั้น', 'error');
+        return;
+    }
+    const reader = document.getElementById('ck-reader');
+    if (!reader) return;
+    reader.classList.remove('hidden');
+    try {
+        const F = Html5QrcodeSupportedFormats;
+        CK.scanner = new Html5Qrcode('ck-reader', { formatsToSupport: [F.QR_CODE, F.CODE_128, F.CODE_39], verbose: false });
+        await CK.scanner.start(
+            { facingMode: CK.facing },
+            {
+                fps: 10,
+                qrbox: (w, h) => ({ width: Math.floor(w * 0.8), height: Math.floor(Math.min(w, h) * 0.7) })
+            },
+            txt => ckProcess(txt, 'camera'),
+            () => { }
+        );
+        CK.scanning = true;
+        ckSpeak('เปิดกล้องแล้ว พร้อมสแกน'); // ปลดล็อกเสียงบนมือถือด้วย
+    } catch (err) {
+        console.error('camera error:', err);
+        CK.scanning = false;
+        CK.scanner = null;
+        reader.classList.add('hidden');
+        showToast('เปิดกล้องไม่ได้: ' + (err && err.message ? err.message : err) + ' (ตรวจสอบสิทธิ์การใช้กล้องในเบราว์เซอร์)', 'error');
+    }
+    ckRenderControls();
+}
+
+async function ckStopScanner() {
+    const sc = CK.scanner;
+    CK.scanner = null;
+    CK.scanning = false;
+    if (sc) {
+        try { await sc.stop(); } catch (e) { }
+        try { sc.clear(); } catch (e) { }
+    }
+    const reader = document.getElementById('ck-reader');
+    if (reader) reader.classList.add('hidden');
+    ckRenderControls();
+}
+
+async function ckSwitchCamera() {
+    CK.facing = CK.facing === 'environment' ? 'user' : 'environment';
+    if (CK.scanning) {
+        await ckStopScanner();
+        await ckStartCamera();
+    } else {
+        ckRenderControls();
+    }
+}
+
+function ckToggleVoice() {
+    CK.voice = !CK.voice;
+    if (!CK.voice && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    ckRenderControls();
+    if (CK.voice) ckSpeak('เปิดเสียงพูดแล้ว');
+}
+
+function ckSetTab(t) {
+    if (!ckAllowedTabs().includes(t)) return;
+    CK.tab = t;
+    CK.filter = '';
+    const f = document.getElementById('ck-filter');
+    if (f) f.value = '';
+    ckRenderTabs();
+    ckRenderLists();
+    ckShowResult('idle', `พร้อมลงทะเบียน${ckTypeLabel(t)}`, [t === 'noppamas' ? 'สแกน QR รหัสนักศึกษา หรือพิมพ์รหัสแล้วกด Enter' : 'สแกนรหัสนักศึกษาของสมาชิกแต่ละคน ระบบจะลงทะเบียนรายบุคคลในทีมของตน']);
+    const inp = document.getElementById('ck-input');
+    if (inp) inp.focus();
+}
+
+function ckSetFilter(v) {
+    CK.filter = String(v || '').trim().toLowerCase();
+    ckRenderLists();
+}
+
+// ----- การแสดงผล -----
+function ckRenderTabs() {
+    const el = document.getElementById('ck-tabs');
+    if (!el) return;
+    el.innerHTML = ckAllowedTabs().map(t => `
+        <button onclick="ckSetTab('${t}')" class="px-5 py-2.5 rounded-xl text-sm font-bold transition ${CK.tab === t ? 'bg-amber-400 text-slate-950' : 'text-slate-300 hover:text-white'}">
+            ${t === 'noppamas' ? '👑 ลงทะเบียนนางนพมาศ' : '🪷 ลงทะเบียนกระทง (รายทีม)'}
+        </button>`).join('');
+    const note = document.getElementById('ck-role-note');
+    if (note) note.classList.toggle('hidden', ckRole() === 'admin');
+}
+
+function ckRenderControls() {
+    const el = document.getElementById('ck-controls');
+    if (!el) return;
+    el.innerHTML = `
+        ${CK.scanning
+            ? `<button onclick="ckStopScanner()" class="px-4 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-sm">⏹ ปิดกล้อง</button>`
+            : `<button onclick="ckStartCamera()" class="px-4 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-bold text-sm">📷 เปิดกล้องสแกน</button>`}
+        <button onclick="ckSwitchCamera()" class="px-3 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-sm">🔄 ${CK.facing === 'environment' ? 'กล้องหลัง' : 'กล้องหน้า'}</button>
+        <button onclick="ckToggleVoice()" class="px-3 py-2.5 rounded-xl text-sm ${CK.voice ? 'bg-amber-400/20 border border-amber-400/50 text-amber-200' : 'bg-slate-800 text-slate-400'}">${CK.voice ? '🔊 เสียงพูด: เปิด' : '🔇 เสียงพูด: ปิด'}</button>`;
+}
+
+function ckApproved(type) {
+    return appState.applications.filter(a => a.contest_type === type && a.status === 'APPROVED')
+        .sort((a, b) => Number(a.contestant_number || 9999) - Number(b.contestant_number || 9999));
+}
+
+function ckStatusBadge(rec) {
+    return rec
+        ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">✅ ลงทะเบียนแล้ว${rec.at ? ' ' + ckHm(rec.at) : ''}</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">ยังไม่ลงทะเบียน</span>`;
+}
+
+function ckRenderLists() {
+    const type = CK.tab;
+    const isNop = type === 'noppamas';
+    const all = ckApproved(type);
+    const isAdmin = ckRole() === 'admin';
+
+    // สถิติ
+    let done, total, extra = '';
+    if (isNop) {
+        done = all.filter(a => a.checked_in).length; total = all.length;
+    } else {
+        done = all.reduce((s, a) => s + ckTeamCount(a).done, 0);
+        total = all.reduce((s, a) => s + ckTeamCount(a).total, 0);
+        extra = ` • ครบทีมแล้ว ${all.filter(ckDone).length} / ${all.length} ทีม`;
+    }
+    const pct = total ? Math.round(done * 100 / total) : 0;
+    const stats = document.getElementById('ck-stats');
+    if (stats) stats.innerHTML = `
+        <div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-400/30">
+            <div class="flex flex-wrap items-center justify-between gap-1 text-sm mb-2">
+                <span class="text-slate-200">ลงทะเบียน${ckTypeLabel(type)}แล้ว <span class="text-slate-400 text-xs">${isNop ? 'คน' : 'คน (รายบุคคล)'}${extra}</span></span>
+                <strong class="text-amber-300">${done} / ${total} (${pct}%)</strong>
+            </div>
+            <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-emerald-400" style="width:${pct}%"></div></div>
+            <p class="text-[11px] text-slate-400 mt-2">แสดงเฉพาะผู้ที่ได้รับอนุมัติใบสมัครแล้ว</p>
+        </div>`;
+
+    // ล่าสุด
+    const log = document.getElementById('ck-log');
+    if (log) {
+        const items = CK.log.map(l => ({ l, a: ckGetApp(l.id) })).filter(x => x.a && x.a.contest_type === type);
+        log.innerHTML = items.length ? `
+            <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-700">
+                <h4 class="text-xs font-bold text-amber-300 mb-2">ลงทะเบียนล่าสุด</h4>
+                <ul class="space-y-1 text-xs text-slate-200">
+                    ${items.map(({ l, a }) => `<li class="flex justify-between gap-2"><span>${escHtml(a.contestant_number || '-')} • ${escHtml(l.name || getDisplayName(a))}</span><span class="text-slate-400">${ckHm(l.t)}</span></li>`).join('')}
+                </ul>
+            </div>` : '';
+    }
+
+    // ตาราง
+    const q = CK.filter;
+    const rows = all.filter(a => !q || [a.full_name, a.student_id, a.department, String(a.contestant_number || ''),
+        ...(Array.isArray(a.team_members) ? a.team_members.flatMap(m => [m.name, m.student_id]) : [])]
+        .some(v => String(v || '').toLowerCase().includes(q)));
+
+    const printBtn = id => `<button onclick="ckPrintSlip(${id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 text-xs font-bold">🖨️ ใบลงทะเบียน</button>`;
+    let body = '';
+    if (!rows.length) {
+        body = '<tr><td colspan="5" class="py-4 text-center text-slate-500">ไม่พบรายการ</td></tr>';
+    } else if (isNop) {
+        body = rows.map(a => `
+            <tr>
+                <td class="py-2.5 px-3 font-extrabold text-amber-300">${escHtml(a.contestant_number || '-')}</td>
+                <td class="py-2.5 px-3 text-white">${escHtml(a.full_name)}</td>
+                <td class="py-2.5 px-3 text-slate-300">${escHtml(a.student_id)}</td>
+                <td class="py-2.5 px-3">${ckStatusBadge(a.checked_in ? { at: a.checked_in_at } : null)}</td>
+                <td class="py-2.5 px-3 text-right"><div class="flex flex-wrap justify-end gap-1.5">
+                    ${a.checked_in
+                ? (isAdmin ? `<button onclick="ckUnregister(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 text-xs font-bold">ยกเลิก</button>` : '')
+                : `<button onclick="ckManual(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold">ลงทะเบียน</button>`}
+                    ${printBtn(a.id)}
+                </div></td>
+            </tr>`).join('');
+    } else {
+        body = rows.map(a => {
+            const c = ckTeamCount(a);
+            const head = `
+            <tr class="bg-slate-800/70">
+                <td class="py-2.5 px-3 font-extrabold text-amber-300">${escHtml(a.contestant_number || '-')}</td>
+                <td class="py-2.5 px-3 text-white font-bold" colspan="2">🪷 ทีม ${escHtml(getDisplayName(a))}</td>
+                <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${c.done === c.total ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-400/20 text-amber-300'}">${c.done} / ${c.total} คน</span></td>
+                <td class="py-2.5 px-3 text-right"><div class="flex flex-wrap justify-end gap-1.5">
+                    ${c.done < c.total ? `<button onclick="ckManualTeam(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold">ลงทะเบียนทั้งทีม</button>` : ''}
+                    ${printBtn(a.id)}
+                </div></td>
+            </tr>`;
+            const mem = ckMembers(a).map((m, i) => {
+                const rec = ckMemberRec(a, i);
+                return `
+            <tr>
+                <td class="py-2 px-3 text-slate-500 text-right">${i + 1}</td>
+                <td class="py-2 px-3 text-slate-100">${escHtml(m.name || '-')}${i === 0 ? ' <span class="text-[10px] text-amber-300">(หัวหน้า)</span>' : ''}</td>
+                <td class="py-2 px-3 text-slate-300">${escHtml(m.student_id || '-')}</td>
+                <td class="py-2 px-3">${ckStatusBadge(rec)}</td>
+                <td class="py-2 px-3 text-right">${rec
+                        ? (isAdmin ? `<button onclick="ckUnregisterMember(${a.id}, ${i})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 text-xs font-bold">ยกเลิก</button>` : '')
+                        : `<button onclick="ckManualMember(${a.id}, ${i})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/90 text-slate-950 text-xs font-bold">ลงทะเบียน</button>`}</td>
+            </tr>`;
+            }).join('');
+            return head + mem;
+        }).join('');
+    }
+    const tbl = document.getElementById('ck-table');
+    if (tbl) tbl.innerHTML = `
+        <table class="w-full text-left text-xs sm:text-sm">
+            <thead><tr class="border-b border-slate-700 text-amber-300">
+                <th class="py-2 px-3">${isNop ? 'หมายเลข' : 'ทีม / ลำดับ'}</th><th class="py-2 px-3">${isNop ? 'ชื่อ - นามสกุล' : 'ชื่อ - นามสกุล / สมาชิก'}</th>
+                <th class="py-2 px-3">รหัสนักศึกษา</th><th class="py-2 px-3">สถานะ</th><th class="py-2 px-3 text-right">ลงทะเบียน</th>
+            </tr></thead>
+            <tbody class="divide-y divide-slate-800">${body}</tbody>
+        </table>`;
+}
+
+function renderAdminMenuCheckin(container) {
+    const tabs = ckAllowedTabs();
+    if (!tabs.includes(CK.tab)) CK.tab = tabs[0];
+    container.innerHTML = `
+    <div id="ck-root" class="space-y-6">
+        <div>
+            <h3 class="text-xl font-bold gold-gradient-text">📷 ลงทะเบียนหน้างาน (สแกนรหัสนักศึกษา)</h3>
+            <p class="text-xs text-slate-300 mt-1">สแกน QR / บาร์โค้ดรหัสนักศึกษาด้วยเครื่องสแกน หรือกล้องมือถือ ระบบจะบันทึกและพูดแจ้งผลให้ทันที</p>
+            <p id="ck-role-note" class="hidden text-[11px] text-sky-300 mt-1">สิทธิ์เจ้าหน้าที่: ลงทะเบียนได้เฉพาะนางนพมาศ</p>
+        </div>
+        <div id="ck-tabs" class="inline-flex gap-1 p-1 rounded-xl bg-slate-900/80 border border-slate-700"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="space-y-3">
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-400/30 space-y-3">
+                    <h4 class="text-sm font-bold text-amber-300">① กล้องมือถือ</h4>
+                    <div id="ck-reader" class="hidden w-full rounded-xl overflow-hidden bg-black"></div>
+                    <div id="ck-controls" class="flex flex-wrap gap-2"></div>
+                </div>
+                <form onsubmit="ckSubmitInput(event)" class="p-4 rounded-2xl bg-slate-900/80 border border-amber-400/30 space-y-2">
+                    <h4 class="text-sm font-bold text-amber-300">② เครื่องสแกน QR Code / พิมพ์รหัส</h4>
+                    <div class="flex gap-2">
+                        <input id="ck-input" type="text" inputmode="numeric" autocomplete="off" autofocus
+                            placeholder="คลิกช่องนี้ไว้ แล้วยิงเครื่องสแกน (หรือพิมพ์รหัส + Enter)"
+                            class="input-night flex-1 px-3.5 py-2.5 rounded-xl text-sm">
+                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm">ตกลง</button>
+                    </div>
+                    <p class="text-[11px] text-slate-400">เครื่องสแกนแบบ USB/Bluetooth จะพิมพ์รหัสลงช่องนี้อัตโนมัติ แล้วกด Enter ให้เอง</p>
+                </form>
+            </div>
+            <div class="space-y-3">
+                <div id="ck-result"></div>
+                <div id="ck-log"></div>
+            </div>
+        </div>
+        <div id="ck-stats"></div>
+        <div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-400/30 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="flex-1">
+                <h4 class="text-sm font-bold text-amber-300">🖨️ พิมพ์ใบลงทะเบียน (แบบทางการ A4 • เลขไทย • TH Sarabun PSK)</h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">พิมพ์บัญชีรายชื่อทั้งหมดของประเภทที่เลือก หรือกดปุ่ม "ใบลงทะเบียน" ที่แถวของแต่ละราย/ทีม</p>
+            </div>
+            <select id="ck-print-scope" class="input-night px-3 py-2.5 rounded-xl text-sm">
+                <option value="all">ทั้งหมด</option>
+                <option value="done">เฉพาะที่ลงทะเบียนแล้ว</option>
+                <option value="pending">เฉพาะที่ยังไม่ลงทะเบียน</option>
+            </select>
+            <button onclick="ckPrintList()" class="px-4 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm">🖨️ พิมพ์บัญชีรายชื่อ</button>
+        </div>
+        <div class="space-y-2">
+            <input id="ck-filter" type="text" oninput="ckSetFilter(this.value)" placeholder="🔎 ค้นหาชื่อ / รหัสนักศึกษา / หมายเลข"
+                class="input-night w-full sm:w-80 px-3.5 py-2.5 rounded-xl text-sm">
+            <div id="ck-table" class="overflow-x-auto"></div>
+        </div>
+    </div>`;
+    ckRenderTabs();
+    ckRenderControls();
+    ckRenderLists();
+    ckShowResult('idle', `พร้อมลงทะเบียน${ckTypeLabel(CK.tab)}`, [CK.tab === 'noppamas' ? 'สแกน QR รหัสนักศึกษา หรือพิมพ์รหัสแล้วกด Enter' : 'สแกนรหัสนักศึกษาของสมาชิกแต่ละคน ระบบจะลงทะเบียนรายบุคคลในทีมของตน']);
+}
+
+// =====================================================================
+//  พิมพ์ใบลงทะเบียน (ทางการ) — ตรา อวท. / เลขไทยทั้งหมด / TH Sarabun PSK
+// =====================================================================
+const CK_TH_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+const CK_FONT = "'TH Sarabun PSK','THSarabunPSK','TH SarabunPSK','TH Sarabun New','Sarabun',serif";
+
+// ข้อความทุกส่วนที่พิมพ์ผ่านฟังก์ชันนี้ จะถูกแปลงเป็นเลขไทยและ escape HTML
+function T(v) { return escHtml(toThaiNum(v == null ? '' : v)); }
+function ckThDate(d) { d = new Date(d || Date.now()); return `${toThaiNum(d.getDate())} ${CK_TH_MONTHS[d.getMonth()]} พ.ศ. ${toThaiNum(d.getFullYear() + 543)}`; }
+function ckThTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return toThaiNum(String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0')) + ' น.';
+}
+function ckAcademicYear() { const d = new Date(); return toThaiNum(d.getFullYear() + 543 - (d.getMonth() < 4 ? 1 : 0)); }
+function ckContestName(type) { return type === 'noppamas' ? 'การประกวดนางนพมาศ' : 'การประกวดกระทงประดิษฐ์ (ประเภททีม)'; }
+
+function ckPrintHeader(title) {
+    return `
+        <div style="text-align:center;">
+            ${getAoVorThorLogoSvg()}
+            <div style="font-size:20pt; font-weight:bold; line-height:1.15;">องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</div>
+            <div style="font-size:16pt; line-height:1.2;">วิทยาลัยเทคโนโลยีพงษ์สวัสดิ์</div>
+            <div style="font-size:19pt; font-weight:bold; margin-top:5pt; line-height:1.2;">${title}</div>
+            <div style="font-size:16pt; line-height:1.25;">งานประเพณีลอยกระทง ประจำปีการศึกษา ${ckAcademicYear()}</div>
+            <div style="border-bottom:1.5pt solid #000; margin:5pt 0 6pt;"></div>
+        </div>`;
+}
+
+function ckSignBlock(left, right) {
+    const box = label => `
+        <div style="width:46%; text-align:center; line-height:1.5;">
+            <div>ลงชื่อ........................................................${label}</div>
+            <div>(........................................................)</div>
+            <div>วันที่ ........ เดือน ...................... พ.ศ. ${ckAcademicYear()}</div>
+        </div>`;
+    return `<div style="display:flex; justify-content:space-between; margin-top:22pt; page-break-inside:avoid;">${box(left)}${box(right)}</div>`;
+}
+
+function ckPrintHtml(inner) {
+    setPrintOrientation('portrait');
+    const area = document.getElementById('print-area');
+    area.innerHTML = `<div class="print-page" style="font-family:${CK_FONT}; font-size:16pt; line-height:1.3; color:#000;">${inner}</div>`;
+    const imgs = Array.from(area.querySelectorAll('img'));
+    const loaded = Promise.all(imgs.map(im => im.complete ? null : new Promise(r => { im.onload = im.onerror = r; })));
+    Promise.race([loaded, new Promise(r => setTimeout(r, 2500))]).then(() => setTimeout(() => window.print(), 120));
+}
+
+const CK_ROW = 'page-break-inside:avoid;';
+const CK_TD = 'padding:3pt 5pt;';
+
+function ckPrintList() {
+    const type = CK.tab;
+    if (!ckAllowedTabs().includes(type)) return;
+    const scope = (document.getElementById('ck-print-scope') || {}).value || 'all';
+    let apps = ckApproved(type);
+    if (scope === 'done') apps = apps.filter(a => type === 'noppamas' ? a.checked_in : ckTeamCount(a).done > 0);
+    if (scope === 'pending') apps = apps.filter(a => !ckDone(a));
+    if (!apps.length) { showToast('ไม่มีรายการให้พิมพ์ในเงื่อนไขที่เลือก', 'warning'); return; }
+
+    const scopeTxt = { all: 'ทั้งหมด', done: 'เฉพาะผู้ที่ลงทะเบียนแล้ว', pending: 'เฉพาะผู้ที่ยังไม่ลงทะเบียน' }[scope];
+    let table = '', summary = '';
+
+    if (type === 'noppamas') {
+        const done = apps.filter(a => a.checked_in).length;
+        table = `
+        <table class="print-table" style="width:100%;">
+            <thead><tr>
+                <th style="width:7%;">ลำดับ</th><th style="width:9%;">หมายเลข</th><th style="width:27%;">ชื่อ - นามสกุล</th>
+                <th style="width:15%;">รหัสนักศึกษา</th><th style="width:19%;">สาขาวิชา / ชั้น / ห้อง</th>
+                <th style="width:9%;">เวลา</th><th style="width:14%;">ลายมือชื่อ</th>
+            </tr></thead>
+            <tbody>
+            ${apps.map((a, i) => `<tr style="${CK_ROW} height:26pt;">
+                <td style="text-align:center;">${T(i + 1)}</td>
+                <td style="text-align:center; font-weight:bold;">${T(a.contestant_number || '')}</td>
+                <td>${T(a.full_name)}</td>
+                <td style="text-align:center;">${T(a.student_id)}</td>
+                <td>${T(a.department)} ${T(a.edu_level)}/${T(a.room_number)}</td>
+                <td style="text-align:center;">${a.checked_in ? T(ckThTime(a.checked_in_at)).replace(' น.', '') : ''}</td>
+                <td></td></tr>`).join('')}
+            </tbody>
+        </table>`;
+        summary = `รวมผู้เข้าประกวดทั้งสิ้น ${T(apps.length)} คน ลงทะเบียนแล้ว ${T(done)} คน ยังไม่ลงทะเบียน ${T(apps.length - done)} คน`;
+    } else {
+        let people = 0, doneP = 0;
+        const body = apps.map(a => {
+            const ms = ckMembers(a);
+            people += ms.length;
+            const c = ckTeamCount(a); doneP += c.done;
+            return `
+            <tr style="${CK_ROW}"><td colspan="5" style="background:#f3f4f6 !important; font-weight:bold;">
+                ทีมหมายเลข ${T(a.contestant_number || '-')} สาขาวิชา${T(a.department)} ระดับชั้น ${T(a.edu_level)} ห้อง ${T(a.room_number)}
+                (ลงทะเบียนแล้ว ${T(c.done)}/${T(c.total)} คน)</td></tr>
+            ${ms.map((m, i) => { const r = ckMemberRec(a, i); return `
+            <tr style="${CK_ROW} height:24pt;">
+                <td style="text-align:center;">${T(i + 1)}</td>
+                <td>${T(m.name || '')}${i === 0 ? ' (หัวหน้าทีม)' : ''}</td>
+                <td style="text-align:center;">${T(m.student_id || '')}</td>
+                <td style="text-align:center;">${r && r.at ? T(ckThTime(r.at)).replace(' น.', '') : ''}</td>
+                <td></td></tr>`; }).join('')}`;
+        }).join('');
+        table = `
+        <table class="print-table" style="width:100%;">
+            <thead><tr>
+                <th style="width:8%;">ลำดับ</th><th style="width:42%;">ชื่อ - นามสกุล</th><th style="width:18%;">รหัสนักศึกษา</th>
+                <th style="width:10%;">เวลา</th><th style="width:22%;">ลายมือชื่อ</th>
+            </tr></thead>
+            <tbody>${body}</tbody>
+        </table>`;
+        summary = `รวมทั้งสิ้น ${T(apps.length)} ทีม ผู้เข้าร่วม ${T(people)} คน ลงทะเบียนแล้ว ${T(doneP)} คน ยังไม่ลงทะเบียน ${T(people - doneP)} คน`;
+    }
+
+    ckPrintHtml(`
+        ${ckPrintHeader(`บัญชีรายชื่อผู้ลงทะเบียนเข้าร่วม${ckContestName(type)}`)}
+        <div style="display:flex; justify-content:space-between; font-size:15pt; margin-bottom:4pt;">
+            <span>ขอบเขตรายชื่อ: ${scopeTxt}</span>
+            <span>พิมพ์เมื่อวันที่ ${ckThDate()}</span>
+        </div>
+        ${table}
+        <div style="margin-top:8pt; font-weight:bold;">${summary}</div>
+        ${ckSignBlock('เจ้าหน้าที่ลงทะเบียน', 'ผู้ตรวจสอบ')}
+    `);
+}
+
+function ckPrintSlip(id) {
+    const a = ckGetApp(id);
+    if (!a) return;
+    if (a.contest_type !== 'noppamas' && ckRole() !== 'admin') {
+        showToast('สิทธิ์เจ้าหน้าที่พิมพ์ได้เฉพาะนางนพมาศ', 'warning');
+        return;
+    }
+    const isNop = a.contest_type === 'noppamas';
+    const docNo = `${T(String(a.id).slice(-4).padStart(4, '0'))}/${ckAcademicYear()}`;
+    let when = '', body = '';
+
+    if (isNop) {
+        const at = a.checked_in ? a.checked_in_at : null;
+        when = at
+            ? `เมื่อวันที่ ${ckThDate(at)} เวลา ${ckThTime(at)}`
+            : 'เมื่อวันที่ ........ เดือน ...................... พ.ศ. ........ เวลา ........ น.';
+        body = `
+        <div style="text-indent:36pt; text-align:justify; margin-top:10pt;">
+            ขอรับรองว่า <strong>${T(a.full_name)}</strong> รหัสนักศึกษา <strong>${T(a.student_id)}</strong>
+            ระดับชั้น <strong>${T(a.edu_level)}</strong> ห้อง <strong>${T(a.room_number)}</strong>
+            สาขาวิชา<strong>${T(a.department)}</strong> ได้มาลงทะเบียนเข้าร่วม${ckContestName('noppamas')}
+            งานประเพณีลอยกระทง ประจำปีการศึกษา ${ckAcademicYear()} ${when}
+            โดยมีหมายเลขประจำตัวผู้เข้าประกวด <strong>${T(a.contestant_number || '-')}</strong>
+        </div>
+        <div style="text-indent:36pt; margin-top:6pt;">สถานะการลงทะเบียน: <strong>${a.checked_in ? 'ลงทะเบียนแล้ว' : 'ยังไม่ลงทะเบียน'}</strong></div>`;
+    } else {
+        const ms = ckMembers(a);
+        const c = ckTeamCount(a);
+        body = `
+        <div style="text-indent:36pt; text-align:justify; margin-top:10pt;">
+            ขอรับรองว่าทีมกระทงประดิษฐ์ สาขาวิชา<strong>${T(a.department)}</strong> ระดับชั้น <strong>${T(a.edu_level)}</strong>
+            ห้อง <strong>${T(a.room_number)}</strong> หมายเลขประจำทีม <strong>${T(a.contestant_number || '-')}</strong>
+            ได้ลงทะเบียนเข้าร่วม${ckContestName('krathong_team')} งานประเพณีลอยกระทง ประจำปีการศึกษา ${ckAcademicYear()}
+            โดยมีสมาชิกลงทะเบียนแล้ว <strong>${T(c.done)}</strong> คน จากทั้งหมด <strong>${T(c.total)}</strong> คน ดังรายชื่อต่อไปนี้
+        </div>
+        <table class="print-table" style="width:100%; margin-top:8pt;">
+            <thead><tr>
+                <th style="width:8%;">ลำดับ</th><th style="width:40%;">ชื่อ - นามสกุล</th><th style="width:17%;">รหัสนักศึกษา</th>
+                <th style="width:15%;">วัน-เวลาลงทะเบียน</th><th style="width:20%;">ลายมือชื่อ</th>
+            </tr></thead>
+            <tbody>
+            ${ms.map((m, i) => { const r = ckMemberRec(a, i); return `
+                <tr style="${CK_ROW} height:28pt;">
+                    <td style="text-align:center;">${T(i + 1)}</td>
+                    <td>${T(m.name || '')}${i === 0 ? ' (หัวหน้าทีม)' : ''}</td>
+                    <td style="text-align:center;">${T(m.student_id || '')}</td>
+                    <td style="text-align:center; font-size:13pt;">${r && r.at ? `${T(ckThDate(r.at))}<br>${T(ckThTime(r.at))}` : ''}</td>
+                    <td></td></tr>`; }).join('')}
+            </tbody>
+        </table>`;
+    }
+
+    ckPrintHtml(`
+        ${ckPrintHeader(`ใบลงทะเบียนเข้าร่วม${ckContestName(a.contest_type)}`)}
+        <div style="display:flex; justify-content:space-between; font-size:15pt;">
+            <span>เลขที่ใบลงทะเบียน ${docNo}</span>
+            <span>วันที่ออกเอกสาร ${ckThDate()}</span>
+        </div>
+        ${body}
+        ${ckSignBlock(isNop ? 'ผู้เข้าประกวด' : 'ตัวแทนทีม', 'เจ้าหน้าที่ลงทะเบียน')}
+        <div style="margin-top:14pt; font-size:13pt; text-align:center;">เอกสารฉบับนี้ออกโดยระบบงานลอยกระทงออนไลน์และระบบตัดสินการประกวด อวท.</div>
+    `);
+}
+
+// ----- เชื่อมเข้ากับระบบเมนู/สิทธิ์เดิม -----
+(function () {
+    const prevSwitch = switchAdminMenu;
+    switchAdminMenu = function (menuKey) {
+        if (menuKey !== 'checkin') {
+            ckStopScanner();
+            return prevSwitch(menuKey);
+        }
+        const role = getAdminRole() || 'admin';
+        if (role === 'staff' && !STAFF_MENUS.includes('checkin')) return prevSwitch('criteria');
+        currentAdminMenu = 'checkin';
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-admin-menu') === 'checkin');
+        });
+        const container = document.getElementById('admin-subview-container');
+        if (!container) return;
+        if (container.querySelector('#ck-root')) {
+            ckRenderTabs();
+            ckRenderLists(); // รีเฟรชเฉพาะรายการ ไม่ทำให้กล้องดับ
+        } else {
+            renderAdminMenuCheckin(container);
+        }
+        lucide.createIcons();
+    };
+
+    const prevTab = switchTab;
+    switchTab = function (tabId) {
+        if (tabId !== 'admin') ckStopScanner();
+        return prevTab(tabId);
+    };
+
+    const prevLogout = handleAdminLogout;
+    handleAdminLogout = function () {
+        ckStopScanner();
+        return prevLogout.apply(this, arguments);
+    };
+})();
+
     </script>
 </body>
 
