@@ -525,7 +525,8 @@
                                     <path d="M8 3H5a2 2 0 0 0-2 2v3" />
                                     <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
                                     <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-                                    <path d="M16 21h3a2 2 0 0 0 2-2v-3" /></svg></span>
+                                    <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+                                </svg></span>
                             <span id="river-fs-label">เต็มจอ</span>
                         </button>
                     </div>
@@ -762,7 +763,9 @@
                     <!-- ฟอร์มจองบูท -->
                     <form id="form-apply-booth" onsubmit="submitBoothApplication(event)" class="mt-6 space-y-6 hidden">
                         <input type="hidden" id="booth-edit-id" value="">
-                        <div id="booth-edit-banner" class="hidden p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-sm text-rose-200"></div>
+                        <div id="booth-edit-banner"
+                            class="hidden p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-sm text-rose-200">
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs text-slate-300 mb-1">รหัสประจำตัวผู้จอง <span
@@ -888,7 +891,7 @@
             </section>
 
             <!-- VIEW 3: ค้นหาใบสมัคร -->
-            
+
             <section id="view-search" class="view-section hidden space-y-6">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
                     <h2 class="text-2xl font-bold gold-gradient-text flex items-center gap-2">
@@ -1222,7 +1225,7 @@
                     scope: DRIVE_SCOPE,
                     callback: (resp) => {
                         if (!resp || resp.error) return reject(new Error((resp && (resp
-                                .error_description || resp.error)) ||
+                            .error_description || resp.error)) ||
                             'ล็อกอิน Google ไม่สำเร็จ'));
                         _driveToken = resp.access_token;
                         _driveTokenExp = Date.now() + ((Number(resp.expires_in) || 3600) - 60) *
@@ -1253,12 +1256,12 @@
             form.append('file', blob);
             const res = await fetch(
                 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id&supportsAllDrives=true', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                    },
-                    body: form
-                });
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer ' + token
+                },
+                body: form
+            });
             if (!res.ok) {
                 if (res.status === 401) _driveToken = null;
                 const t = await res.text();
@@ -1310,53 +1313,53 @@
         }
 
         const KRATHONG_STYLES = [{
-                id: 'star_galaxy',
-                name: 'ดาราจักรนพเก้า (Galaxy Star)',
-                badge: 'แนวดวงดาว',
-                color1: '#a855f7',
-                color2: '#38bdf8',
-                glow: '#f472b6'
-            },
-            {
-                id: 'star_zodiac',
-                name: 'กลุ่มดาวจักรราศีทอง (Constellation)',
-                badge: 'แนวดวงดาว',
-                color1: '#fbbf24',
-                color2: '#6366f1',
-                glow: '#fde047'
-            },
-            {
-                id: 'celestial_moon',
-                name: 'จันทราดาราฉาย (Celestial Moon)',
-                badge: 'แนวดวงดาว',
-                color1: '#38bdf8',
-                color2: '#fef08a',
-                glow: '#7dd3fc'
-            },
-            {
-                id: 'lotus_gold',
-                name: 'บัวสุวรรณมาลี (Golden Lotus)',
-                badge: 'กระทงดอกไม้',
-                color1: '#f59e0b',
-                color2: '#10b981',
-                glow: '#fcd34d'
-            },
-            {
-                id: 'crystal_pearl',
-                name: 'มุกดาพรรณราย (Crystal Pearl)',
-                badge: 'กระทงดอกไม้',
-                color1: '#ec4899',
-                color2: '#14b8a6',
-                glow: '#f9a8d4'
-            },
-            {
-                id: 'royal_swan',
-                name: 'หงส์ทองล่องนที (Royal Swan)',
-                badge: 'กระทงโบราณ',
-                color1: '#eab308',
-                color2: '#dc2626',
-                glow: '#fde047'
-            }
+            id: 'star_galaxy',
+            name: 'ดาราจักรนพเก้า (Galaxy Star)',
+            badge: 'แนวดวงดาว',
+            color1: '#a855f7',
+            color2: '#38bdf8',
+            glow: '#f472b6'
+        },
+        {
+            id: 'star_zodiac',
+            name: 'กลุ่มดาวจักรราศีทอง (Constellation)',
+            badge: 'แนวดวงดาว',
+            color1: '#fbbf24',
+            color2: '#6366f1',
+            glow: '#fde047'
+        },
+        {
+            id: 'celestial_moon',
+            name: 'จันทราดาราฉาย (Celestial Moon)',
+            badge: 'แนวดวงดาว',
+            color1: '#38bdf8',
+            color2: '#fef08a',
+            glow: '#7dd3fc'
+        },
+        {
+            id: 'lotus_gold',
+            name: 'บัวสุวรรณมาลี (Golden Lotus)',
+            badge: 'กระทงดอกไม้',
+            color1: '#f59e0b',
+            color2: '#10b981',
+            glow: '#fcd34d'
+        },
+        {
+            id: 'crystal_pearl',
+            name: 'มุกดาพรรณราย (Crystal Pearl)',
+            badge: 'กระทงดอกไม้',
+            color1: '#ec4899',
+            color2: '#14b8a6',
+            glow: '#f9a8d4'
+        },
+        {
+            id: 'royal_swan',
+            name: 'หงส์ทองล่องนที (Royal Swan)',
+            badge: 'กระทงโบราณ',
+            color1: '#eab308',
+            color2: '#dc2626',
+            glow: '#fde047'
+        }
         ];
 
         let appState = {
@@ -1594,7 +1597,7 @@
             if (!sbClient && savedUrl && savedKey && window.supabase) {
                 try {
                     sbClient = window.supabase.createClient(savedUrl, savedKey);
-                } catch (e) {}
+                } catch (e) { }
             }
 
             updateSupabaseStatusBadge();
@@ -1665,15 +1668,15 @@
                 ]);
 
                 const failed = [
-                        ['applications', appRes],
-                        ['criteria', criRes],
-                        ['judges', judRes],
-                        ['scores', scoRes],
-                        ['judge_submissions', subRes],
-                        ['news', newsRes],
-                        ['system_settings', setRes],
-                        ['booth_applications', boothRes]
-                    ]
+                    ['applications', appRes],
+                    ['criteria', criRes],
+                    ['judges', judRes],
+                    ['scores', scoRes],
+                    ['judge_submissions', subRes],
+                    ['news', newsRes],
+                    ['system_settings', setRes],
+                    ['booth_applications', boothRes]
+                ]
                     .filter(([, r]) => r.error);
                 if (failed.length) {
                     failed.forEach(([name, r]) => console.error('Supabase error [' + name + ']:', r.error));
@@ -1877,7 +1880,7 @@
             let s = String(text == null ? '' : text);
             try {
                 s = s.normalize('NFC');
-            } catch (e) {}
+            } catch (e) { }
             s = s.replace(/[\u200B-\u200D\uFEFF]/g, ''); // อักขระล่องหน
             s = s.replace(/\u0E4D\u0E32/g, '\u0E33'); // ํ + า → ำ
             s = s.replace(/\u0E33([\u0E48-\u0E4B])/g, '$1\u0E33'); // น+ำ+้ → น+้+ำ (สายนำ้ → สายน้ำ)
@@ -1940,7 +1943,7 @@
                 document.fonts.load('600 17px "Kanit"', sample),
                 document.fonts.load('400 15px "Kanit"', sample),
                 document.fonts.load('700 40px "Kanit"', sample)
-            ]).catch(() => {}).finally(bump);
+            ]).catch(() => { }).finally(bump);
             if (document.fonts.ready) document.fonts.ready.then(bump);
         }
 
@@ -1986,7 +1989,7 @@
                 const ex = document.exitFullscreen || document.webkitExitFullscreen;
                 if (ex) {
                     const p = ex.call(document);
-                    if (p && p.catch) p.catch(() => {});
+                    if (p && p.catch) p.catch(() => { });
                 }
             }
             if (wrap) wrap.classList.remove('river-fs-fallback');
@@ -2647,7 +2650,7 @@
                 const formEl = document.getElementById(`form-apply-${f}`);
                 const btnEl = document.getElementById(`btn-apply-${f}`);
                 if (!formEl || !btnEl) return;
-                
+
                 if (f === type) {
                     formEl.classList.remove('hidden');
                     btnEl.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-amber-400 text-slate-950';
@@ -3075,6 +3078,8 @@
             setTimeout(() => window.print(), 150);
         }
 
+
+
         function handleSearchApplication(e) {
             if (e && e.preventDefault) e.preventDefault();
             const q = document.getElementById('search-student-id').value.trim();
@@ -3104,51 +3109,91 @@
             }
 
             const boothCards = boothMatches.map(b => `
-                <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30 space-y-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs px-2.5 py-0.5 rounded-md bg-fuchsia-900 text-fuchsia-200">🎪 จองบูทกิจกรรม</span>
-                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${boothStatusBadgeClass(b.status)}">${BOOTH_STATUS_TH[b.status] || escHtml(b.status)}</span>
-                    </div>
-                    <div>
-                        <h4 class="text-base font-bold text-white">${escHtml(b.booth_name || '-')}</h4>
-                        <p class="text-xs text-slate-300">${escHtml(b.full_name)} | รหัส: ${escHtml(b.booker_id)} | ${escHtml(b.department)} | ${escHtml(b.booth_type)}</p>
-                    </div>
-                    ${b.status === 'APPROVED' ? `
-                        <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/40 text-sm text-emerald-200">
-                            📍 สถานที่ตั้งบูทของคุณ: <strong>${escHtml(b.booth_location || 'เจ้าหน้าที่ยังไม่ได้ระบุสถานที่')}</strong>
-                        </div>` : ''}
-                    ${b.status === 'REJECTED' ? `
-                        <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/40 text-sm text-rose-200">
-                            ❌ ไม่ผ่านการตรวจสอบ — เหตุผล: ${escHtml(b.admin_note || 'ไม่ได้ระบุ')}
-                        </div>` : ''}
-                    ${b.status === 'PENDING' ? `<p class="text-xs text-amber-300">⏳ รอเจ้าหน้าที่ตรวจสอบสลิปการโอนเงิน</p>` : ''}
-                    <div class="flex flex-wrap gap-2">
-                        ${b.status === 'REJECTED' ? `<button onclick="startEditBooth(${b.id})" class="px-4 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5"><i data-lucide="pencil" class="w-4 h-4"></i> แก้ไขข้อมูล / ส่งใหม่</button>` : ''}
-                        ${b.slip_url ? `<button onclick="openImgModal('${b.slip_url.startsWith('data:') ? '' : b.slip_url}')" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 font-bold text-xs">ดูสลิป</button>` : ''}
-                        <button onclick="printBoothForm(${b.id})" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:brightness-110 transition flex items-center gap-1.5"><i data-lucide="printer" class="w-4 h-4"></i> พิมพ์ใบจองบูท</button>
-                    </div>
-                </div>
-            `).join('');
+        <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30 space-y-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded-md bg-fuchsia-900 text-fuchsia-200">🎪 จองบูทกิจกรรม</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full ${boothStatusBadgeClass(b.status)}">${BOOTH_STATUS_TH[b.status] || escHtml(b.status)}</span>
+            </div>
+            <div>
+                <h4 class="text-base font-bold text-white">${escHtml(b.booth_name || '-')}</h4>
+                <p class="text-xs text-slate-300">${escHtml(b.full_name)} | รหัส: ${escHtml(b.booker_id)} | ${escHtml(b.department)} | ${escHtml(b.booth_type)}</p>
+            </div>
+            ${b.status === 'APPROVED' ? `
+                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/40 text-sm text-emerald-200">
+                    📍 สถานที่ตั้งบูทของคุณ: <strong>${escHtml(b.booth_location || 'เจ้าหน้าที่ยังไม่ได้ระบุสถานที่')}</strong>
+                </div>` : ''}
+            ${b.status === 'REJECTED' ? `
+                <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/40 text-sm text-rose-200">
+                    ❌ ไม่ผ่านการตรวจสอบ — เหตุผล: ${escHtml(b.admin_note || 'ไม่ได้ระบุ')}
+                </div>` : ''}
+            ${b.status === 'PENDING' ? `<p class="text-xs text-amber-300">⏳ รอเจ้าหน้าที่ตรวจสอบสลิปการโอนเงิน</p>` : ''}
+            <div class="flex flex-wrap gap-2">
+                ${b.status === 'REJECTED' ? `<button onclick="startEditBooth(${b.id})" class="px-4 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5"><i data-lucide="pencil" class="w-4 h-4"></i> แก้ไขข้อมูล / ส่งใหม่</button>` : ''}
+                ${b.slip_url ? `<button onclick="openImgModal('${b.slip_url.startsWith('data:') ? '' : b.slip_url}')" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 font-bold text-xs">ดูสลิป</button>` : ''}
+                <button onclick="printBoothForm(${b.id})" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:brightness-110 transition flex items-center gap-1.5"><i data-lucide="printer" class="w-4 h-4"></i> พิมพ์ใบจองบูท</button>
+            </div>
+        </div>
+    `).join('');
 
             const appCards = matches.map(app => `
-                <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs px-2.5 py-0.5 rounded-md bg-indigo-900 text-indigo-200">${app.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์'}</span>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${app.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-400/20 text-amber-300'}">${app.status}</span>
-                            ${app.contestant_number ? `<span class="text-xs font-bold text-amber-300">${app.contestant_number}</span>` : ''}
-                        </div>
-                        <h4 class="text-base font-bold text-white">${getDisplayName(app)}</h4>
-                        <p class="text-xs text-slate-300">รหัสตัวแทน: ${app.student_id} | ${app.department} (${app.edu_level}/${app.room_number})</p>
+        <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30 space-y-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs px-2.5 py-0.5 rounded-md bg-indigo-900 text-indigo-200">${app.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงประดิษฐ์'}</span>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${app.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' : (app.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-400/20 text-amber-300')}">${escHtml(app.status)}</span>
+                        ${app.contestant_number ? `<span class="text-xs font-bold text-amber-300">${app.contestant_number}</span>` : ''}
                     </div>
-                    <button onclick="printOfficialApplicationForm(${app.id})" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:brightness-110 transition flex items-center gap-1.5 shrink-0">
+                    <h4 class="text-base font-bold text-white">${escHtml(getDisplayName(app))}</h4>
+                    <p class="text-xs text-slate-300">รหัสตัวแทน: ${escHtml(app.student_id)} | ${escHtml(app.department)} (${escHtml(app.edu_level)}/${escHtml(app.room_number)})</p>
+                </div>
+                <div class="flex flex-wrap gap-2 shrink-0">
+                    <button onclick="printOfficialApplicationForm(${app.id})" class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:brightness-110 transition flex items-center gap-1.5">
                         <i data-lucide="printer" class="w-4 h-4"></i> พิมพ์ใบสมัคร (PDF)
                     </button>
+                    ${app.status !== 'APPROVED' ? `
+                    <button onclick="deleteMyApplication(${app.id})" class="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs hover:bg-rose-500/30 transition flex items-center gap-1.5">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> ลบข้อมูล
+                    </button>` : ''}
                 </div>
-            `).join('');
+            </div>
+            ${app.status === 'REJECTED' ? `
+                <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/40 text-sm text-rose-200">
+                    ❌ ใบสมัครนี้ถูกปฏิเสธ — เหตุผล: <strong>${escHtml(app.reject_reason || 'ไม่ได้ระบุ')}</strong>
+                </div>` : ''}
+        </div>
+    `).join('');
 
             box.innerHTML = boothCards + appCards;
             lucide.createIcons();
+        }
+
+        // ลบใบสมัครของตัวเอง (จากหน้าค้นหา) — เฉพาะใบที่ยังไม่อนุมัติ
+        async function deleteMyApplication(id) {
+            const app = appState.applications.find(a => Number(a.id) === Number(id));
+            if (!app) return;
+            if (app.status === 'APPROVED') {
+                showToast('ใบสมัครที่อนุมัติแล้วไม่สามารถลบเองได้ กรุณาติดต่อเจ้าหน้าที่', 'warning');
+                return;
+            }
+            if (!confirm(`ยืนยันลบใบสมัครของ "${getDisplayName(app)}" ?\nเมื่อลบแล้วไม่สามารถกู้คืนได้`)) return;
+
+            if (sbClient) {
+                const { data, error } = await sbClient.from('applications').delete().eq('id', id).select();
+                if (error) {
+                    console.error('delete application error:', error);
+                    showToast('ลบไม่สำเร็จ: ' + error.message, 'error');
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    showToast('ลบไม่สำเร็จ: ฐานข้อมูลไม่อนุญาต (ตรวจสอบ RLS Policy แบบ DELETE ของตาราง applications)', 'error');
+                    return;
+                }
+            }
+
+            appState.applications = appState.applications.filter(a => Number(a.id) !== Number(id));
+            handleSearchApplication();
+            showToast('ลบใบสมัครแล้ว', 'warning');
         }
 
         function renderPublicNews() {
@@ -3359,7 +3404,7 @@
                 try {
                     const parsed = JSON.parse(raw);
                     if (Date.now() < parsed.expiresAt) activeJudgeSession = parsed;
-                } catch (e) {}
+                } catch (e) { }
             }
 
             const loginBox = document.getElementById('judge-login-box');
@@ -3420,28 +3465,28 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800">
                         ${contestants.map(con => {
-                            let total = 0;
-                            const cells = criteriaList.map(cri => {
-                                const sc = appState.scores.find(s => String(s.judge_id) === String(j.id) && String(s.application_id) === String(con.id) && String(s.criteria_id) === String(cri.id));
-                                const val = sc ? Number(sc.score) : 0;
-                                total += val;
-                                return `
+                let total = 0;
+                const cells = criteriaList.map(cri => {
+                    const sc = appState.scores.find(s => String(s.judge_id) === String(j.id) && String(s.application_id) === String(con.id) && String(s.criteria_id) === String(cri.id));
+                    const val = sc ? Number(sc.score) : 0;
+                    total += val;
+                    return `
                                     <td class="p-2.5 text-center">
                                         <input type="number" min="0" max="${cri.max_score}" step="0.5" value="${val || ''}"
                                             oninput="handleLiveScoreInput('${j.id}', '${con.id}', '${cri.id}', ${cri.max_score}, this)"
                                             class="input-night w-20 text-center py-1.5 px-2 rounded-lg font-bold text-amber-300">
                                     </td>
                                 `;
-                            }).join('');
-                            
-                            // แสดงรูปภาพเฉพาะนางนพมาศ (ถ้าเป็นกระทงทีม จะไม่สร้างกล่องรูปภาพ)
-                            const photoHtml = con.contest_type === 'noppamas' ? `
+                }).join('');
+
+                // แสดงรูปภาพเฉพาะนางนพมาศ (ถ้าเป็นกระทงทีม จะไม่สร้างกล่องรูปภาพ)
+                const photoHtml = con.contest_type === 'noppamas' ? `
                                 <div class="w-10 h-10 rounded-xl bg-slate-950 border border-amber-400/40 overflow-hidden shrink-0 flex items-center justify-center">
                                     <img src="${imgSrc(con.photo_url)}" onerror="handleImgError(this)" class="w-full h-full object-contain">
                                 </div>
                             ` : '';
 
-                            return `
+                return `
                                 <tr>
                                     <td class="p-3">
                                         <div class="flex items-center gap-3">
@@ -3457,7 +3502,7 @@
                                     <td class="p-3 text-right font-extrabold text-emerald-400" id="raw-total-${j.id}-${con.id}">${total.toFixed(1)}</td>
                                 </tr>
                             `;
-                        }).join('')}
+            }).join('')}
                     </tbody>
                 </table>
             `;
@@ -3735,7 +3780,7 @@
             const criteriaList = appState.criteria.filter(c => c.contest_type === contestType).sort((a, b) => a
                 .order_index - b.order_index);
             const contestants = appState.applications.filter(a => a.contest_type === contestType && a.status ===
-                    'APPROVED')
+                'APPROVED')
                 .sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
 
             let tableHtml = `
@@ -3749,14 +3794,14 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800">
                         ${contestants.map(con => {
-                            let total = 0;
-                            const cells = criteriaList.map(cri => {
-                                const sc = appState.scores.find(s => String(s.judge_id) === String(judgeId) && String(s.application_id) === String(con.id) && String(s.criteria_id) === String(cri.id));
-                                const val = sc ? Number(sc.score) : 0;
-                                total += val;
-                                return `<td class="p-2.5 text-center font-mono text-slate-300">${val > 0 ? val : '-'}</td>`;
-                            }).join('');
-                            return `
+                let total = 0;
+                const cells = criteriaList.map(cri => {
+                    const sc = appState.scores.find(s => String(s.judge_id) === String(judgeId) && String(s.application_id) === String(con.id) && String(s.criteria_id) === String(cri.id));
+                    const val = sc ? Number(sc.score) : 0;
+                    total += val;
+                    return `<td class="p-2.5 text-center font-mono text-slate-300">${val > 0 ? val : '-'}</td>`;
+                }).join('');
+                return `
                                 <tr class="hover:bg-slate-800/30">
                                     <td class="p-3">
                                         <span class="text-xs font-bold text-amber-400 mr-2">${con.contestant_number || '-'}</span>
@@ -3766,7 +3811,7 @@
                                     <td class="p-3 text-right font-bold text-emerald-400">${total.toFixed(1)}</td>
                                 </tr>
                             `;
-                        }).join('')}
+            }).join('')}
                     </tbody>
                 </table>
             `;
@@ -3826,7 +3871,7 @@
         function renderAdminMenuPublish(container) {
             const isPub = appState.settings.publish_results;
             const isLoyKrathongOpen = appState.settings.loy_krathong_open !== false;
-            
+
             container.innerHTML = `
                 <div class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30">
@@ -3870,7 +3915,7 @@
         async function toggleLoyKrathongOpen() {
             if (typeof appState.settings.loy_krathong_open === 'undefined') appState.settings.loy_krathong_open = true;
             appState.settings.loy_krathong_open = !appState.settings.loy_krathong_open;
-            
+
             if (sbClient) {
                 await sbClient.from('system_settings').upsert([{
                     setting_key: 'loy_krathong_open',
@@ -3887,10 +3932,10 @@
         function checkLoyKrathongStatus() {
             const isOpen = appState.settings.loy_krathong_open !== false;
             const formBox = document.getElementById('krathong-form-box');
-            if(!formBox) return;
-            
+            if (!formBox) return;
+
             let msgBox = document.getElementById('loy-krathong-closed-msg');
-            if(!msgBox) {
+            if (!msgBox) {
                 msgBox = document.createElement('div');
                 msgBox.id = 'loy-krathong-closed-msg';
                 msgBox.className = 'p-8 text-center bg-rose-950/20 border-t border-rose-900/50';
@@ -3898,7 +3943,7 @@
                 formBox.parentElement.appendChild(msgBox);
             }
 
-            if(isOpen) {
+            if (isOpen) {
                 formBox.classList.remove('hidden');
                 msgBox.classList.add('hidden');
             } else {
@@ -4159,15 +4204,15 @@
                             </thead>
                             <tbody>
                                 ${contestants.map(con => {
-                                    let sum = 0;
-                                    const cols = criteriaList.map(cri => {
-                                        const sc = appState.scores.find(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(con.id) && Number(s.criteria_id) === Number(cri.id));
-                                        const v = sc ? Number(sc.score) : 0;
-                                        sum += v;
-                                        return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
-                                    }).join('');
-                                    
-                                    return `
+                    let sum = 0;
+                    const cols = criteriaList.map(cri => {
+                        const sc = appState.scores.find(s => Number(s.judge_id) === Number(judgeId) && Number(s.application_id) === Number(con.id) && Number(s.criteria_id) === Number(cri.id));
+                        const v = sc ? Number(sc.score) : 0;
+                        sum += v;
+                        return `<td style="text-align:center;">${toThaiNum(v)}</td>`;
+                    }).join('');
+
+                    return `
                                         <tr>
                                             <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
                                             <td>${getDisplayNameThai(con)}</td>
@@ -4175,7 +4220,7 @@
                                             <td style="text-align:center; font-weight:bold;">${toThaiNum(sum.toFixed(1))}</td>
                                         </tr>
                                     `;
-                                }).join('')}
+                }).join('')}
                             </tbody>
                         </table>
                         <div style="display:flex; justify-content:flex-end; margin-top:24pt; page-break-inside:avoid;">
@@ -4220,16 +4265,16 @@
                             </thead>
                             <tbody>
                                 ${contestants.map(con => {
-                                    let grandTotal = 0;
-                                    const jCols = judgesForCat.map(j => {
-                                        const jSum = appState.scores
-                                            .filter(s => Number(s.judge_id) === Number(j.id) && Number(s.application_id) === Number(con.id) && catCriIds.includes(Number(s.criteria_id)))
-                                            .reduce((acc, s) => acc + Number(s.score || 0), 0);
-                                        grandTotal += jSum;
-                                        return `<td style="text-align:center;">${toThaiNum(jSum.toFixed(1))}</td>`;
-                                    }).join('');
-                                    
-                                    return `
+                    let grandTotal = 0;
+                    const jCols = judgesForCat.map(j => {
+                        const jSum = appState.scores
+                            .filter(s => Number(s.judge_id) === Number(j.id) && Number(s.application_id) === Number(con.id) && catCriIds.includes(Number(s.criteria_id)))
+                            .reduce((acc, s) => acc + Number(s.score || 0), 0);
+                        grandTotal += jSum;
+                        return `<td style="text-align:center;">${toThaiNum(jSum.toFixed(1))}</td>`;
+                    }).join('');
+
+                    return `
                                         <tr>
                                             <td style="text-align:center; font-weight:bold;">${toThaiNum(con.contestant_number)}</td>
                                             <td>${getDisplayNameThai(con)}</td>
@@ -4237,7 +4282,7 @@
                                             <td style="text-align:center; font-weight:bold;">${toThaiNum(grandTotal.toFixed(1))}</td>
                                         </tr>
                                     `;
-                                }).join('')}
+                }).join('')}
                             </tbody>
                         </table>
                         
@@ -4645,54 +4690,7 @@
             }
         }
 
-        function renderAdminMenuApplications(container) {
-            const isOpen = appState.settings.applications_open !== false;
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30">
-                        <div>
-                            <h3 class="text-xl font-bold gold-gradient-text">สวิตช์เปิด-ปิดระบบรับสมัครเข้าประกวด</h3>
-                            <p class="text-xs text-slate-300 mt-1">สถานะ: <strong class="${isOpen ? 'text-emerald-400' : 'text-rose-400'}">${isOpen ? 'เปิดรับสมัคร' : 'ปิดรับสมัครแล้ว'}</strong></p>
-                        </div>
-                        <button onclick="toggleApplicationsOpen()" class="px-6 py-3 rounded-xl font-bold text-sm transition ${isOpen ? 'bg-rose-500 text-white' : 'bg-emerald-400 text-slate-950'}">
-                            ${isOpen ? '🔒 ปิดรับสมัคร' : '📢 เปิดรับสมัคร'}
-                        </button>
-                    </div>
 
-                    <h3 class="text-xl font-bold gold-gradient-text mt-6">📋 จัดการใบสมัครและรันหมายเลขผู้เข้าประกวด</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs sm:text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700 text-amber-300">
-                                    <th class="py-2.5 px-3">หมายเลข</th>
-                                    <th class="py-2.5 px-3">ประเภท</th>
-                                    <th class="py-2.5 px-3">ชื่อผู้สมัคร / สาขาและระดับชั้น/ห้อง</th>
-                                    <th class="py-2.5 px-3">รหัสนักศึกษา / สังกัด</th>
-                                    <th class="py-2.5 px-3">สถานะ</th>
-                                    <th class="py-2.5 px-3 text-right">การจัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800">
-                                ${appState.applications.length ? appState.applications.map(app => `
-                                    <tr>
-                                        <td class="py-3 px-3 font-extrabold text-amber-300">${app.contestant_number ? `${app.contestant_number}` : '-'}</td>
-                                        <td class="py-3 px-3">${app.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงทีม'}</td>
-                                        <td class="py-3 px-3 font-semibold text-white">${getDisplayName(app)}</td>
-                                        <td class="py-3 px-3 text-slate-300">${app.student_id} • ${app.department} (${app.edu_level}/${app.room_number})</td>
-                                        <td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${app.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-400/20 text-amber-300'}">${app.status}</span></td>
-                                        <td class="py-3 px-3 text-right space-x-1.5">
-                                            <button onclick="approveApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
-                                            <button onclick="rejectApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
-                                            <button onclick="printOfficialApplicationForm(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 font-bold text-xs">🖨️ พิมพ์</button>
-                                        </td>
-                                    </tr>
-                                `).join('') : '<tr><td colspan="6" class="py-4 text-center text-slate-500">ยังไม่มีรายการใบสมัคร</td></tr>'}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
 
 
         // ===== แอดมิน: จัดการใบจองบูท =====
@@ -4703,7 +4701,7 @@
                 '>': '&gt;',
                 '"': '&quot;',
                 "'": '&#39;'
-            } [c]));
+            }[c]));
         }
 
         function renderAdminMenuBooths(container) {
@@ -4725,7 +4723,7 @@
                     <div class="rounded-2xl border border-amber-400/30 bg-slate-900/60 p-4 grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 items-start">
                         <div class="text-center">
                             ${qr ? `<img src="${qr.startsWith('data:') ? qr : imgSrc(qr, 400)}" class="w-36 h-36 object-contain rounded-xl bg-white p-1.5 mx-auto" alt="QR">`
-                                 : `<div class="w-36 h-36 rounded-xl border border-dashed border-slate-600 flex items-center justify-center text-xs text-slate-500 mx-auto">ยังไม่มี QR</div>`}
+                    : `<div class="w-36 h-36 rounded-xl border border-dashed border-slate-600 flex items-center justify-center text-xs text-slate-500 mx-auto">ยังไม่มี QR</div>`}
                         </div>
                         <div class="space-y-2">
                             <h4 class="font-bold text-amber-300 text-sm">QR Code ชำระเงิน (แสดงในหน้าจองบูท)</h4>
@@ -5012,20 +5010,319 @@
             showToast(`อนุมัติผู้เข้าประกวด ${app.contestant_number} สำเร็จ`, 'success');
         }
 
+        // =====================================================================
+        //  PATCH: เมนู "จัดการใบสมัคร" (แอดมิน)
+        //  วิธีใช้:
+        //   1) ลบฟังก์ชันเดิมเหล่านี้ใน index.html ออก 2 ตัว:
+        //        - function renderAdminMenuApplications(container) { ... }
+        //        - async function rejectApplication(id) { ... }
+        //   2) วางโค้ดทั้งหมดในไฟล์นี้ลงแทนที่ (วางตำแหน่งเดิมได้เลย ภายในแท็ก <script> เดียวกัน)
+        //  ฟังก์ชันอื่นๆ ไม่ถูกแก้ไข (approveApplication, printOfficialApplicationForm ฯลฯ ใช้ต่อได้เหมือนเดิม)
+        // =====================================================================
+
+        function appStatusBadgeClass(st) {
+            if (st === 'APPROVED') return 'bg-emerald-500/20 text-emerald-300';
+            if (st === 'REJECTED') return 'bg-rose-500/20 text-rose-300';
+            return 'bg-amber-400/20 text-amber-300';
+        }
+
+        function renderAdminMenuApplications(container) {
+            const isOpen = appState.settings.applications_open !== false;
+            container.innerHTML = `
+        <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30">
+                <div>
+                    <h3 class="text-xl font-bold gold-gradient-text">สวิตช์เปิด-ปิดระบบรับสมัครเข้าประกวด</h3>
+                    <p class="text-xs text-slate-300 mt-1">สถานะ: <strong class="${isOpen ? 'text-emerald-400' : 'text-rose-400'}">${isOpen ? 'เปิดรับสมัคร' : 'ปิดรับสมัครแล้ว'}</strong></p>
+                </div>
+                <button onclick="toggleApplicationsOpen()" class="px-6 py-3 rounded-xl font-bold text-sm transition ${isOpen ? 'bg-rose-500 text-white' : 'bg-emerald-400 text-slate-950'}">
+                    ${isOpen ? '🔒 ปิดรับสมัคร' : '📢 เปิดรับสมัคร'}
+                </button>
+            </div>
+
+            <h3 class="text-xl font-bold gold-gradient-text mt-6">📋 จัดการใบสมัครและรันหมายเลขผู้เข้าประกวด</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700 text-amber-300">
+                            <th class="py-2.5 px-3">หมายเลข</th>
+                            <th class="py-2.5 px-3">ประเภท</th>
+                            <th class="py-2.5 px-3">ชื่อผู้สมัคร / สาขาและระดับชั้น/ห้อง</th>
+                            <th class="py-2.5 px-3">รหัสนักศึกษา / สังกัด</th>
+                            <th class="py-2.5 px-3">สถานะ</th>
+                            <th class="py-2.5 px-3 text-right">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        ${appState.applications.length ? appState.applications.map(app => `
+                            <tr class="align-top">
+                                <td class="py-3 px-3 font-extrabold text-amber-300">${app.contestant_number ? app.contestant_number : '-'}</td>
+                                <td class="py-3 px-3">${app.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงทีม'}</td>
+                                <td class="py-3 px-3 font-semibold text-white">${escHtml(getDisplayName(app))}</td>
+                                <td class="py-3 px-3 text-slate-300">${escHtml(app.student_id)} • ${escHtml(app.department)} (${escHtml(app.edu_level)}/${escHtml(app.room_number)})</td>
+                                <td class="py-3 px-3">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${appStatusBadgeClass(app.status)}">${escHtml(app.status)}</span>
+                                    ${app.status === 'REJECTED' && app.reject_reason ? `<div class="text-[11px] text-rose-300 mt-1">เหตุผล: ${escHtml(app.reject_reason)}</div>` : ''}
+                                </td>
+                                <td class="py-3 px-3 text-right">
+                                    <div class="flex flex-wrap justify-end gap-1.5">
+                                        <button onclick="approveApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
+                                        <button onclick="rejectApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
+                                        <button onclick="openEditApplicationModal(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-bold text-xs">✏️ แก้ไข</button>
+                                        <button onclick="printOfficialApplicationForm(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 font-bold text-xs">🖨️ พิมพ์</button>
+                                        <button onclick="deleteApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 font-bold text-xs">🗑 ลบ</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="6" class="py-4 text-center text-slate-500">ยังไม่มีรายการใบสมัคร</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+        }
+
+        // ปฏิเสธใบสมัคร (ตรวจ error จริง + แจ้งเหตุผล)
         async function rejectApplication(id) {
             const app = appState.applications.find(a => Number(a.id) === Number(id));
             if (!app) return;
-            app.status = 'REJECTED';
-            app.contestant_number = null;
+            const reason = prompt('ระบุเหตุผลที่ปฏิเสธใบสมัคร (ไม่บังคับ):', app.reject_reason || '');
+            if (reason === null) return; // กดยกเลิก
+
+            const upd = {
+                status: 'REJECTED',
+                contestant_number: null,
+                reject_reason: (reason || '').trim()
+            };
+
             if (sbClient) {
-                await sbClient.from('applications').update({
-                    status: 'REJECTED',
-                    contestant_number: null
-                }).eq('id', id);
+                let res = await sbClient.from('applications').update(upd).eq('id', id).select();
+                // ถ้าไม่มีคอลัมน์ reject_reason ให้ลองใหม่โดยไม่ส่งคอลัมน์นี้
+                if (res.error && /reject_reason/i.test(res.error.message || '')) {
+                    const { reject_reason, ...rest } = upd;
+                    res = await sbClient.from('applications').update(rest).eq('id', id).select();
+                }
+                if (res.error) {
+                    console.error('reject error:', res.error);
+                    showToast('ปฏิเสธไม่สำเร็จ: ' + res.error.message, 'error');
+                    return;
+                }
+                if (!res.data || res.data.length === 0) {
+                    showToast('ปฏิเสธไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ตรวจสอบ RLS Policy แบบ UPDATE ของตาราง applications)', 'error');
+                    return;
+                }
             }
+
+            Object.assign(app, upd);
             renderPublicContestants();
             switchAdminMenu('applications');
             showToast('ปฏิเสธใบสมัครแล้ว', 'warning');
+        }
+
+        // ลบใบสมัคร (ลบคะแนนที่เกี่ยวข้องด้วย)
+        async function deleteApplication(id) {
+            const app = appState.applications.find(a => Number(a.id) === Number(id));
+            if (!app) return;
+            if (!confirm(`ยืนยันลบใบสมัคร "${getDisplayName(app)}" ?\nคะแนนที่กรรมการให้ไว้กับใบสมัครนี้จะถูกลบด้วย และไม่สามารถกู้คืนได้`)) return;
+
+            if (sbClient) {
+                // ลบคะแนนที่อ้างอิงก่อน (กัน foreign key ขวาง)
+                const sc = await sbClient.from('scores').delete().eq('application_id', id);
+                if (sc.error) console.warn('delete scores error:', sc.error);
+
+                const { data, error } = await sbClient.from('applications').delete().eq('id', id).select();
+                if (error) {
+                    console.error('delete application error:', error);
+                    showToast('ลบไม่สำเร็จ: ' + error.message, 'error');
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    showToast('ลบไม่สำเร็จ: ฐานข้อมูลไม่อนุญาต (ตรวจสอบ RLS Policy แบบ DELETE ของตาราง applications)', 'error');
+                    return;
+                }
+            }
+
+            appState.applications = appState.applications.filter(a => Number(a.id) !== Number(id));
+            appState.scores = appState.scores.filter(s => Number(s.application_id) !== Number(id));
+            renderPublicContestants();
+            switchAdminMenu('applications');
+            showToast('ลบใบสมัครแล้ว', 'warning');
+        }
+
+        // ---------- แก้ไขใบสมัคร ----------
+        function closeEditApplicationModal() {
+            const m = document.getElementById('admin-edit-app-modal');
+            if (m) m.remove();
+            delete compressedFilesCache['app-edit-photo'];
+        }
+
+        function openEditApplicationModal(id) {
+            const app = appState.applications.find(a => Number(a.id) === Number(id));
+            if (!app) return;
+            closeEditApplicationModal();
+
+            const levels = ['ปวช.1', 'ปวช.2', 'ปวช.3', 'ปวส.1', 'ปวส.2'];
+            const levelOpts = levels.map(l => `<option value="${l}" ${app.edu_level === l ? 'selected' : ''}>${l}</option>`).join('');
+            const isNop = app.contest_type === 'noppamas';
+
+            let specific = '';
+            if (isNop) {
+                const genders = ['หญิง', 'ชาย', 'LGBTQ+'];
+                specific = `
+            <div class="sm:col-span-2">
+                <label class="block text-xs text-slate-300 mb-1">ชื่อ - นามสกุล (รวมคำนำหน้า)</label>
+                <input type="text" id="ea-fullname" required value="${escHtml(app.full_name)}" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">เพศ</label>
+                <select id="ea-gender" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                    ${genders.map(g => `<option value="${g}" ${app.gender === g ? 'selected' : ''}>${g}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">รหัสนักศึกษา</label>
+                <input type="text" id="ea-sid" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" value="${escHtml(app.student_id)}" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">เบอร์โทรศัพท์</label>
+                <input type="text" id="ea-phone" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" value="${escHtml(app.phone || '')}" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs text-slate-300 mb-1">สโลแกน / คำแนะนำตัว</label>
+                <textarea id="ea-slogan" rows="2" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">${escHtml(app.slogan || '')}</textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs text-slate-300 mb-1">รูปถ่าย (เลือกไฟล์ใหม่เพื่อเปลี่ยนรูป)</label>
+                <div class="flex items-center gap-3">
+                    ${app.photo_url ? `<img src="${imgSrc(app.photo_url, 200)}" onerror="this.style.display='none'" class="w-14 h-14 rounded-xl object-contain bg-slate-950 border border-amber-400/40" alt="">` : ''}
+                    <input type="file" id="app-edit-photo" accept="image/*" onchange="previewCompressedImage(this, 'app-edit-photo-preview')"
+                        class="input-night flex-1 px-3 py-1.5 rounded-xl text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                </div>
+                <div id="app-edit-photo-preview" class="mt-2 hidden items-center gap-3"></div>
+            </div>
+        `;
+            } else {
+                const members = Array.isArray(app.team_members) ? app.team_members : [];
+                let rows = '';
+                for (let i = 0; i < 5; i++) {
+                    const m = members[i] || {};
+                    rows += `
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <div class="sm:col-span-2 flex items-center text-xs text-amber-300">สมาชิก ${i + 1}${i === 0 ? ' (หัวหน้า)' : ''}</div>
+                    <input type="text" id="ea-m-name-${i}" value="${escHtml(m.name || '')}" placeholder="ชื่อ-นามสกุล (รวมคำนำหน้า)" class="sm:col-span-6 input-night px-3 py-2 rounded-lg text-xs">
+                    <input type="text" id="ea-m-sid-${i}" value="${escHtml(m.student_id || '')}" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="รหัสนักศึกษา" class="sm:col-span-4 input-night px-3 py-2 rounded-lg text-xs">
+                </div>`;
+                }
+                specific = `
+            <div class="sm:col-span-3 space-y-2">
+                <label class="block text-xs font-semibold text-amber-300">รายชื่อสมาชิกในทีม (สูงสุด 5 คน)</label>
+                ${rows}
+            </div>
+            <div class="sm:col-span-3">
+                <label class="block text-xs text-slate-300 mb-1">แนวคิด / คอนเซปต์การประดิษฐ์กระทง</label>
+                <textarea id="ea-concept" rows="3" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">${escHtml(app.concept || '')}</textarea>
+            </div>
+        `;
+            }
+
+            const modal = document.createElement('div');
+            modal.id = 'admin-edit-app-modal';
+            modal.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+            modal.innerHTML = `
+        <form onsubmit="saveEditApplication(event, ${app.id})" class="glass-card max-w-3xl w-full rounded-3xl p-6 space-y-4 border border-amber-400/40 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold gold-gradient-text">✏️ แก้ไขใบสมัคร ${isNop ? '(นางนพมาศ)' : '(กระทงประดิษฐ์ทีม)'}</h3>
+                <button type="button" onclick="closeEditApplicationModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="${isNop ? '' : 'sm:col-span-1'}">
+                    <label class="block text-xs text-slate-300 mb-1">สาขาวิชา</label>
+                    <input type="text" id="ea-dept" required value="${escHtml(app.department)}" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">ระดับชั้น</label>
+                    <select id="ea-level" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">${levelOpts}</select>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">ห้อง</label>
+                    <input type="text" id="ea-room" required pattern="^[0-9]+$" oninput="this.value=this.value.replace(/[^0-9]/g,'')" value="${escHtml(app.room_number)}" class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                </div>
+                ${specific}
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeEditApplicationModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm">ยกเลิก</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm">💾 บันทึกการแก้ไข</button>
+            </div>
+        </form>
+    `;
+            document.body.appendChild(modal);
+        }
+
+        async function saveEditApplication(e, id) {
+            e.preventDefault();
+            const app = appState.applications.find(a => Number(a.id) === Number(id));
+            if (!app) return;
+
+            const upd = {
+                department: document.getElementById('ea-dept').value.trim(),
+                edu_level: document.getElementById('ea-level').value,
+                room_number: document.getElementById('ea-room').value.trim()
+            };
+
+            showLoader('กำลังบันทึกการแก้ไข...');
+            try {
+                if (app.contest_type === 'noppamas') {
+                    upd.full_name = ensurePrefixInName(app.prefix_name || 'นางสาว', document.getElementById('ea-fullname').value);
+                    upd.gender = document.getElementById('ea-gender').value;
+                    upd.student_id = document.getElementById('ea-sid').value.trim();
+                    upd.phone = document.getElementById('ea-phone').value.trim();
+                    upd.slogan = document.getElementById('ea-slogan').value.trim();
+                    if (compressedFilesCache['app-edit-photo']) {
+                        const url = await uploadCompressedImage('app-edit-photo', 'noppamas');
+                        if (!url) {
+                            showToast('อัปโหลดรูปไม่สำเร็จ', 'error');
+                            return;
+                        }
+                        upd.photo_url = url;
+                    }
+                } else {
+                    const members = [];
+                    for (let i = 0; i < 5; i++) {
+                        const nm = document.getElementById('ea-m-name-' + i).value.trim();
+                        const sid = document.getElementById('ea-m-sid-' + i).value.trim();
+                        if (nm || sid) members.push({ name: nm, student_id: sid });
+                    }
+                    if (members.length === 0) {
+                        showToast('ต้องมีสมาชิกในทีมอย่างน้อย 1 คน', 'error');
+                        return;
+                    }
+                    upd.team_members = members;
+                    upd.full_name = members[0].name;
+                    upd.student_id = members[0].student_id;
+                    upd.concept = document.getElementById('ea-concept').value.trim();
+                }
+
+                if (sbClient) {
+                    const { data, error } = await sbClient.from('applications').update(upd).eq('id', id).select();
+                    if (error) {
+                        console.error('edit application error:', error);
+                        showToast('บันทึกไม่สำเร็จ: ' + error.message, 'error');
+                        return;
+                    }
+                    if (!data || data.length === 0) {
+                        showToast('บันทึกไม่สำเร็จ: ฐานข้อมูลไม่อนุญาต (ตรวจสอบ RLS Policy แบบ UPDATE ของตาราง applications)', 'error');
+                        return;
+                    }
+                }
+
+                Object.assign(app, upd);
+                closeEditApplicationModal();
+                renderPublicContestants();
+                switchAdminMenu('applications');
+                showToast('บันทึกการแก้ไขใบสมัครแล้ว', 'success');
+            } finally {
+                hideLoader();
+            }
         }
 
         function switchTab(tabId) {
