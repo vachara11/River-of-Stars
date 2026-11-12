@@ -5394,6 +5394,382 @@
             switchTab('home');
             lucide.createIcons();
         });
+
+
+
+
+const STAFF_MENUS = ['criteria', 'print', 'news', 'applications', 'booths'];
+const ADMIN_ROLE_LABEL = {
+    admin: 'ผู้ดูแลระบบ (เต็มสิทธิ์)',
+    staff: 'เจ้าหน้าที่ (ดูข้อมูลอย่างเดียว)'
+};
+let editingAdminUserId = null;
+const revealedAdminUserPw = new Set();
+window.__adminUsers = [];
+
+function getAdminRole() {
+    return sessionStorage.getItem('admin_logged_in') === '1' ?
+        (sessionStorage.getItem('admin_role') || 'admin') : null;
+}
+
+// ---------- ล็อกอิน / ออกจากระบบ ----------
+handleAdminLogin = async function (e) {
+    e.preventDefault();
+    const u = document.getElementById('admin-user').value.trim();
+    const p = document.getElementById('admin-pass').value.trim();
+    let role = null,
+        name = 'ผู้ดูแลระบบ';
+
+    if (u === 'aftpsc' && p === 'aft996503') {
+        role = 'admin';
+    } else if (sbClient) {
+        const {
+            data,
+            error
+        } = await sbClient.from('admin_users').select('*').eq('username', u).eq('password', p).limit(1);
+        if (error) console.error('admin_users login error:', error);
+        if (data && data[0]) {
+            role = data[0].role === 'admin' ? 'admin' : 'staff';
+            name = data[0].full_name || u;
+        }
+    }
+
+    if (!role) {
+        showToast('รหัสผ่านไม่ถูกต้อง', 'error');
+        return;
+    }
+    isAdminLoggedIn = true;
+    sessionStorage.setItem('admin_logged_in', '1');
+    sessionStorage.setItem('admin_role', role);
+    sessionStorage.setItem('admin_name', name);
+    currentAdminMenu = role === 'staff' ? 'criteria' : 'overview';
+    renderAdminWorkspace();
+    showToast(`เข้าสู่ระบบสำเร็จ (${ADMIN_ROLE_LABEL[role]})`, 'success');
+};
+
+const _origAdminLogout = handleAdminLogout;
+handleAdminLogout = function () {
+    sessionStorage.removeItem('admin_role');
+    sessionStorage.removeItem('admin_name');
+    currentAdminMenu = 'overview';
+    return _origAdminLogout();
+};
+
+// ---------- ปรับหน้าตาเมนูตามสิทธิ์ ----------
+function applyAdminRoleUI() {
+    const role = getAdminRole() || 'admin';
+    const first = document.querySelector('[data-admin-menu]');
+    const grid = first ? first.parentElement : null;
+    if (!grid) return;
+
+    if (!grid.querySelector('[data-admin-menu="permissions"]')) {
+        const btn = document.createElement('button');
+        btn.setAttribute('data-admin-menu', 'permissions');
+        btn.setAttribute('onclick', "switchAdminMenu('permissions')");
+        btn.className = 'admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center';
+        btn.innerHTML = '<i data-lucide="key-round" class="w-5 h-5"></i><span class="text-xs leading-tight">จัดการสิทธิ์</span>';
+        grid.appendChild(btn);
+        grid.classList.remove('lg:grid-cols-9');
+        grid.classList.add('lg:grid-cols-10');
+    }
+
+    grid.querySelectorAll('[data-admin-menu]').forEach(b => {
+        const key = b.getAttribute('data-admin-menu');
+        const show = role === 'admin' ? true : STAFF_MENUS.includes(key);
+        b.classList.toggle('hidden', !show);
+    });
+
+    // ป้ายแสดงสิทธิ์ที่กำลังใช้งาน
+    const logout = document.querySelector('button[onclick="handleAdminLogout()"]');
+    if (logout) {
+        let badge = document.getElementById('admin-role-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'admin-role-badge';
+            badge.className = 'text-[11px] px-2.5 py-1 rounded-full border';
+            logout.parentElement.insertBefore(badge, logout);
+        }
+        badge.textContent = (sessionStorage.getItem('admin_name') || '') + ' • ' + ADMIN_ROLE_LABEL[role];
+        badge.className = 'text-[11px] px-2.5 py-1 rounded-full border ' +
+            (role === 'admin' ? 'bg-purple-500/15 text-purple-200 border-purple-400/40' :
+                'bg-sky-500/15 text-sky-200 border-sky-400/40');
+    }
+    lucide.createIcons();
+}
+
+const _origRenderAdminWorkspace = renderAdminWorkspace;
+renderAdminWorkspace = function () {
+    if (sessionStorage.getItem('admin_logged_in') === '1') {
+        applyAdminRoleUI();
+        if (getAdminRole() === 'staff' && !STAFF_MENUS.includes(currentAdminMenu)) currentAdminMenu = 'criteria';
+    }
+    return _origRenderAdminWorkspace();
+};
+
+// ---------- ตัดส่วนการจัดการออกสำหรับสิทธิ์เจ้าหน้าที่ ----------
+function applyStaffRestrictions(container) {
+    if (!container) return;
+
+    // (ใช้เฉพาะเมนูจองบูทเท่านั้น — เมนูอื่นเจ้าหน้าที่จัดการได้ปกติ)
+
+    // การ์ด QR ชำระเงินของบูท
+    const qr = container.querySelector('#admin-booth-qr');
+    if (qr) {
+        const card = qr.closest('.rounded-2xl');
+        if (card) card.remove();
+    }
+
+    // ช่องกรอกสถานที่ตั้งบูท + ปุ่ม "บันทึกที่ตั้ง" — เจ้าหน้าที่แก้ไขได้ (ไม่ตัดออก)
+
+    // ตัดคอลัมน์ "จัดการ / การจัดการ" ในทุกตาราง
+    container.querySelectorAll('table').forEach(t => {
+        const ths = Array.from(t.querySelectorAll('thead th'));
+        const idx = ths.findIndex(th => /^(การจัดการ|จัดการ)$/.test(th.textContent.trim()));
+        if (idx < 0) return;
+        const total = ths.length;
+        ths[idx].remove();
+        t.querySelectorAll('tbody tr').forEach(tr => {
+            if (tr.children.length === total) {
+                tr.children[idx].remove();
+            } else if (tr.children[0] && tr.children[0].hasAttribute('colspan')) {
+                tr.children[0].setAttribute('colspan', total - 1);
+            }
+        });
+    });
+}
+
+const _origSwitchAdminMenu = switchAdminMenu;
+switchAdminMenu = function (menuKey) {
+    const role = getAdminRole() || 'admin';
+
+    if (role === 'staff' && !STAFF_MENUS.includes(menuKey)) menuKey = 'criteria';
+    if (role !== 'admin' && menuKey === 'permissions') menuKey = 'criteria';
+
+    if (menuKey === 'permissions') {
+        currentAdminMenu = 'permissions';
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-admin-menu') === 'permissions');
+        });
+        const container = document.getElementById('admin-subview-container');
+        renderAdminMenuPermissions(container);
+        lucide.createIcons();
+        loadAdminUsers().then(() => {
+            if (currentAdminMenu === 'permissions') {
+                renderAdminMenuPermissions(container);
+                lucide.createIcons();
+            }
+        });
+        return;
+    }
+
+    _origSwitchAdminMenu(menuKey);
+    if (role === 'staff' && menuKey === 'booths') {
+        applyStaffRestrictions(document.getElementById('admin-subview-container'));
+        lucide.createIcons();
+    }
+};
+
+// ---------- กันเรียกฟังก์ชันแก้ไขข้อมูลโดยตรงเมื่อเป็นสิทธิ์เจ้าหน้าที่ ----------
+[
+    'updateBoothStatus', 'deleteBooth', 'saveBoothQr'
+].forEach(name => {
+    if (typeof window[name] !== 'function') return;
+    const orig = window[name];
+    window[name] = function (...args) {
+        if (getAdminRole() === 'staff') {
+            showToast('สิทธิ์เจ้าหน้าที่ดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้', 'warning');
+            return;
+        }
+        return orig.apply(this, args);
+    };
+});
+
+// ---------- เมนู "จัดการสิทธิ์" (เฉพาะ admin) ----------
+async function loadAdminUsers() {
+    if (!sbClient) return;
+    const {
+        data,
+        error
+    } = await sbClient.from('admin_users').select('*').order('id', {
+        ascending: true
+    });
+    if (error) {
+        console.error('admin_users select error:', error);
+        showToast('อ่านตาราง admin_users ไม่ได้: ' + error.message + ' (ตรวจสอบว่ารัน admin_users.sql แล้ว)', 'error');
+        return;
+    }
+    window.__adminUsers = data || [];
+}
+
+function renderAdminMenuPermissions(container) {
+    if (!container) return;
+    const list = window.__adminUsers || [];
+    const ed = editingAdminUserId ? list.find(x => Number(x.id) === Number(editingAdminUserId)) : null;
+    if (editingAdminUserId && !ed) editingAdminUserId = null;
+
+    container.innerHTML = `
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-xl font-bold gold-gradient-text">🔑 จัดการสิทธิ์การเข้าใช้งานระบบแอดมิน</h3>
+                <p class="text-xs text-slate-400 mt-1">
+                    <strong class="text-purple-300">ผู้ดูแลระบบ</strong> = ใช้ได้ทุกเมนู |
+                    <strong class="text-sky-300">เจ้าหน้าที่</strong> = เห็นเฉพาะ จัดการเกณฑ์, ศูนย์พิมพ์ A4, ข่าวสาร, จัดการใบสมัคร, จองบูท และไม่มีคอลัมน์/ปุ่มการจัดการ
+                </p>
+            </div>
+            ${ed ? `<div class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs text-amber-200">✏️ กำลังแก้ไขบัญชี: <strong>${escHtml(ed.full_name)}</strong> — เว้นช่องรหัสผ่านว่างไว้ หากไม่ต้องการเปลี่ยนรหัส</div>` : ''}
+            <form onsubmit="handleSaveAdminUser(event)" class="grid grid-cols-1 sm:grid-cols-6 gap-3 bg-slate-900/80 p-4 rounded-2xl border ${ed ? 'border-amber-400/60' : 'border-slate-800'}">
+                <input type="text" id="au-user" required value="${ed ? escHtml(ed.username) : ''}" placeholder="Username" class="input-night px-3 py-2 rounded-xl text-xs">
+                <input type="text" id="au-pass" ${ed ? '' : 'required'} placeholder="${ed ? 'รหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน)' : 'Password'}" class="input-night px-3 py-2 rounded-xl text-xs">
+                <input type="text" id="au-name" required value="${ed ? escHtml(ed.full_name) : ''}" placeholder="ชื่อ-นามสกุล" class="input-night px-3 py-2 rounded-xl text-xs">
+                <select id="au-role" class="input-night px-3 py-2 rounded-xl text-xs">
+                    <option value="staff" ${!ed || ed.role === 'staff' ? 'selected' : ''}>เจ้าหน้าที่ (ดูข้อมูลอย่างเดียว)</option>
+                    <option value="admin" ${ed && ed.role === 'admin' ? 'selected' : ''}>ผู้ดูแลระบบ (เต็มสิทธิ์)</option>
+                </select>
+                <button type="submit" class="py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">${ed ? '💾 บันทึกการแก้ไข' : '+ เพิ่มบัญชี'}</button>
+                ${ed ? `<button type="button" onclick="cancelEditAdminUser()" class="py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">ยกเลิก</button>` : '<span></span>'}
+            </form>
+            ${!sbClient ? `<div class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-200">ยังไม่ได้เชื่อมต่อ Supabase จึงบันทึกบัญชีไม่ได้</div>` : ''}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead><tr class="border-b border-slate-700 text-amber-300">
+                        <th class="py-2 px-3">Username</th><th class="py-2 px-3">รหัสผ่าน</th><th class="py-2 px-3">ชื่อ-นามสกุล</th><th class="py-2 px-3">สิทธิ์</th><th class="py-2 px-3 text-right">จัดการ</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr class="border-b border-slate-800">
+                            <td class="py-2.5 px-3 font-mono text-amber-300">aftpsc</td>
+                            <td class="py-2.5 px-3 text-slate-500">(ตั้งในโค้ด)</td>
+                            <td class="py-2.5 px-3 text-white">ผู้ดูแลระบบหลัก</td>
+                            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-200">ผู้ดูแลระบบ (เต็มสิทธิ์)</span></td>
+                            <td class="py-2.5 px-3 text-right text-slate-500 text-xs">แก้ไข/ลบไม่ได้</td>
+                        </tr>
+                        ${list.map(u => `
+                            <tr class="border-b border-slate-800 ${Number(u.id) === Number(editingAdminUserId) ? 'bg-amber-400/10' : ''}">
+                                <td class="py-2.5 px-3 font-mono text-amber-300">${escHtml(u.username)}</td>
+                                <td class="py-2.5 px-3">
+                                    <span class="font-mono text-slate-200">${revealedAdminUserPw.has(String(u.id)) ? escHtml(u.password) : '••••••••'}</span>
+                                    <button type="button" onclick="toggleAdminUserPw(${u.id})" class="ml-2 text-xs text-amber-300 underline">${revealedAdminUserPw.has(String(u.id)) ? 'ซ่อน' : 'แสดง'}</button>
+                                </td>
+                                <td class="py-2.5 px-3 text-white">${escHtml(u.full_name)}</td>
+                                <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-xs ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-200' : 'bg-sky-500/20 text-sky-200'}">${ADMIN_ROLE_LABEL[u.role] || escHtml(u.role)}</span></td>
+                                <td class="py-2.5 px-3 text-right space-x-3 whitespace-nowrap">
+                                    <button onclick="startEditAdminUser(${u.id})" class="text-amber-300 text-xs font-semibold">✏️ แก้ไข</button>
+                                    <button onclick="deleteAdminUser(${u.id})" class="text-rose-400 text-xs">ลบ</button>
+                                </td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function toggleAdminUserPw(id) {
+    const k = String(id);
+    if (revealedAdminUserPw.has(k)) revealedAdminUserPw.delete(k);
+    else revealedAdminUserPw.add(k);
+    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+}
+
+function startEditAdminUser(id) {
+    editingAdminUserId = Number(id);
+    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+    const u = document.getElementById('au-user');
+    if (u) {
+        u.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+        u.focus();
+    }
+}
+
+function cancelEditAdminUser() {
+    editingAdminUserId = null;
+    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+}
+
+async function handleSaveAdminUser(e) {
+    e.preventDefault();
+    if (getAdminRole() !== 'admin') return;
+    if (!sbClient) {
+        showToast('ยังไม่ได้เชื่อมต่อ Supabase', 'error');
+        return;
+    }
+    const username = document.getElementById('au-user').value.trim();
+    const password = document.getElementById('au-pass').value.trim();
+    const full_name = document.getElementById('au-name').value.trim();
+    const role = document.getElementById('au-role').value === 'admin' ? 'admin' : 'staff';
+    const list = window.__adminUsers || [];
+
+    if (username === 'aftpsc') {
+        showToast('Username นี้เป็นของผู้ดูแลระบบหลัก กรุณาใช้ชื่ออื่น', 'error');
+        return;
+    }
+    const dup = list.find(x => x.username === username && Number(x.id) !== Number(editingAdminUserId));
+    if (dup) {
+        showToast('Username นี้ถูกใช้แล้ว กรุณาใช้ชื่ออื่น', 'error');
+        return;
+    }
+
+    if (editingAdminUserId) {
+        const ex = list.find(x => Number(x.id) === Number(editingAdminUserId));
+        const upd = {
+            username,
+            full_name,
+            role
+        };
+        if (password) upd.password = password;
+        const {
+            data,
+            error
+        } = await sbClient.from('admin_users').update(upd).eq('id', editingAdminUserId).select();
+        if (error || !data || !data.length) {
+            showToast('แก้ไขไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy แบบ UPDATE'), 'error');
+            return;
+        }
+        if (ex) Object.assign(ex, data[0]);
+        editingAdminUserId = null;
+        showToast('บันทึกการแก้ไขบัญชีแล้ว', 'success');
+    } else {
+        if (!password) {
+            showToast('กรุณากรอกรหัสผ่าน', 'error');
+            return;
+        }
+        const {
+            data,
+            error
+        } = await sbClient.from('admin_users').insert([{
+            username,
+            password,
+            full_name,
+            role
+        }]).select();
+        if (error || !data || !data.length) {
+            showToast('เพิ่มบัญชีไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy'), 'error');
+            return;
+        }
+        list.push(data[0]);
+        showToast('เพิ่มบัญชีเรียบร้อย', 'success');
+    }
+    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+}
+
+async function deleteAdminUser(id) {
+    if (getAdminRole() !== 'admin') return;
+    if (!confirm('ยืนยันลบบัญชีนี้?')) return;
+    const {
+        data,
+        error
+    } = await sbClient.from('admin_users').delete().eq('id', id).select();
+    if (error || !data || !data.length) {
+        showToast('ลบไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy แบบ DELETE'), 'error');
+        return;
+    }
+    window.__adminUsers = (window.__adminUsers || []).filter(x => Number(x.id) !== Number(id));
+    if (Number(editingAdminUserId) === Number(id)) editingAdminUserId = null;
+    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+    showToast('ลบบัญชีแล้ว', 'warning');
+}
     </script>
 </body>
 
