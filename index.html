@@ -4888,30 +4888,59 @@
         }
 
         async function updateBoothStatus(id, status) {
-            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
-            if (!b) return;
-            const upd = { status };
-            if (status === 'REJECTED') {
-                const reason = prompt('ระบุเหตุผลที่ไม่ผ่าน (ผู้จองจะเห็นและแก้ไขข้อมูลได้):', b.admin_note || 'สลิปไม่ถูกต้อง / ยอดเงินไม่ตรง');
-                if (reason === null) return;
-                upd.admin_note = reason.trim() || 'ไม่ผ่านการตรวจสอบ';
-            } else {
-                upd.admin_note = '';
-                const locEl = document.getElementById('booth-loc-' + id);
-                if (locEl) upd.booth_location = locEl.value.trim();
-            }
-            if (sbClient) {
-                const { error } = await sbClient.from('booth_applications').update(upd).eq('id', id);
-                if (error) {
-                    showToast('อัปเดตไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
-                    return;
-                }
-            }
-            Object.assign(b, upd);
-            switchAdminMenu('booths');
-            showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ตีกลับใบจองแล้ว ผู้จองสามารถแก้ไขได้', status === 'APPROVED' ?
-                'success' : 'warning');
+    const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+    if (!b) return;
+    const upd = { status };
+    if (status === 'REJECTED') {
+        const reason = prompt('ระบุเหตุผลที่ไม่ผ่าน (ผู้จองจะเห็นและแก้ไขข้อมูลได้):', b.admin_note || 'สลิปไม่ถูกต้อง / ยอดเงินไม่ตรง');
+        if (reason === null) return;
+        upd.admin_note = reason.trim() || 'ไม่ผ่านการตรวจสอบ';
+    } else {
+        upd.admin_note = '';
+        const locEl = document.getElementById('booth-loc-' + id);
+        if (locEl) upd.booth_location = locEl.value.trim();
+    }
+ 
+    if (sbClient) {
+        const { data, error } = await sbClient.from('booth_applications').update(upd).eq('id', id).select();
+        if (error) {
+            console.error('booth update error:', error);
+            showToast('อัปเดตไม่สำเร็จ: ' + error.message, 'error');
+            return;
         }
+        if (!data || data.length === 0) {
+            showToast('อัปเดตไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ต้องเพิ่ม RLS Policy แบบ UPDATE ให้ตาราง booth_applications — ดูไฟล์ fix-booth-rls.sql)', 'error');
+            return;
+        }
+        Object.assign(b, data[0]);
+    } else {
+        Object.assign(b, upd);
+    }
+ 
+    switchAdminMenu('booths');
+    showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ตีกลับใบจองแล้ว ผู้จองสามารถแก้ไขได้',
+        status === 'APPROVED' ? 'success' : 'warning');
+}
+ 
+async function saveBoothLocation(id) {
+    const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+    if (!b) return;
+    const val = document.getElementById('booth-loc-' + id).value.trim();
+    if (sbClient) {
+        const { data, error } = await sbClient.from('booth_applications').update({ booth_location: val }).eq('id', id).select();
+        if (error) {
+            showToast('บันทึกที่ตั้งไม่สำเร็จ: ' + error.message, 'error');
+            return;
+        }
+        if (!data || data.length === 0) {
+            showToast('บันทึกที่ตั้งไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ต้องเพิ่ม RLS Policy แบบ UPDATE)', 'error');
+            return;
+        }
+    }
+    b.booth_location = val;
+    showToast('บันทึกสถานที่ตั้งบูทแล้ว', 'success');
+}
+ 
 
         async function deleteBooth(id) {
             if (!confirm('ยืนยันลบใบจองบูทนี้?')) return;
