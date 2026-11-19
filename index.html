@@ -5202,7 +5202,6 @@ function renderPublicNews() {
             return 'bg-amber-400/20 text-amber-300';
         }
 
-// ฟังก์ชันเรียงลำดับหมายเลขผู้เข้าประกวดใหม่ (1, 2, 3... ไม่ข้ามเลข)
 async function resequenceContestantNumbers(contestType) {
     const label = contestType === 'noppamas' ? 'นางนพมาศ' : 'กระทงประดิษฐ์';
     if (!confirm(`ยืนยันจัดเรียงหมายเลขผู้เข้าประกวด "${label}" ใหม่ตั้งแต่ 1, 2, 3... ตามลำดับ?\n(จะแก้ไขเฉพาะรายการที่อนุมัติแล้ว)`)) return;
@@ -5218,23 +5217,36 @@ async function resequenceContestantNumbers(contestType) {
 
     showLoader(`กำลังจัดเรียงหมายเลข${label}ใหม่...`);
     try {
-        for (let i = 0; i < approvedList.length; i++) {
-            const newNum = i + 1;
-            const app = approvedList[i];
-            if (Number(app.contestant_number) !== newNum) {
-                app.contestant_number = newNum;
-                if (sbClient) {
-                    const { error } = await sbClient
-                        .from('applications')
-                        .update({ contestant_number: newNum })
-                        .eq('id', app.id);
-                    if (error) {
-                        showToast('อัปเดตหมายเลขไม่สำเร็จ: ' + error.message, 'error');
-                        return;
-                    }
-                }
+        if (sbClient) {
+            // ขั้นที่ 1: เคลียร์หมายเลขเดิมเป็น null ชั่วคราว (ป้องกัน Unique Constraint ชนกันระหว่างรันเลขใหม่)
+            for (const app of approvedList) {
+                await sbClient.from('applications').update({ contestant_number: null }).eq('id', app.id);
             }
+
+            // ขั้นที่ 2: บันทึกหมายเลขใหม่ 1, 2, 3... และตรวจสอบว่าฐานข้อมูลยอมรับจริง
+            for (let i = 0; i < approvedList.length; i++) {
+                const newNum = i + 1;
+                const app = approvedList[i];
+                const { data, error } = await sbClient
+                    .from('applications')
+                    .update({ contestant_number: newNum })
+                    .eq('id', app.id)
+                    .select();
+
+                if (error) {
+                    showToast('อัปเดตหมายเลขไม่สำเร็จ: ' + error.message, 'error');
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    showToast('ฐานข้อมูลไม่อนุญาตให้แก้ไขหมายเลข (ตรวจสอบ RLS Policy แบบ UPDATE ของตาราง applications)', 'error');
+                    return;
+                }
+                app.contestant_number = newNum;
+            }
+        } else {
+            approvedList.forEach((app, i) => { app.contestant_number = i + 1; });
         }
+
         renderPublicContestants();
         switchAdminMenu('applications');
         showToast(`จัดเรียงหมายเลข${label}ใหม่ (1 - ${approvedList.length}) เรียบร้อยแล้ว`, 'success');
