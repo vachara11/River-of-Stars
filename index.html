@@ -3209,29 +3209,29 @@
             showToast('ลบใบสมัครแล้ว', 'warning');
         }
 
-        function renderPublicNews() {
-            const grid = document.getElementById('public-news-grid');
-            if (!grid) return;
-            const published = appState.news.filter(n => n.is_published);
-            if (published.length === 0) {
-                grid.innerHTML = `
+function renderPublicNews() {
+    const grid = document.getElementById('public-news-grid');
+    if (!grid) return;
+    const published = appState.news.filter(n => n.is_published);
+    if (published.length === 0) {
+        grid.innerHTML = `
             <div class="col-span-2 text-center text-sm text-slate-400 p-10 glass-card rounded-3xl border border-slate-800">
                 <i data-lucide="newspaper" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
                 <p class="font-medium text-slate-300">ยังไม่มีประกาศข่าวประชาสัมพันธ์ในขณะนี้</p>
             </div>
         `;
-                lucide.createIcons();
-                return;
-            }
+        lucide.createIcons();
+        return;
+    }
 
-            grid.innerHTML = published.map((n, idx) => {
-                const isFeatured = n.is_pinned || idx === 0;
-                return `
+    grid.innerHTML = published.map((n, idx) => {
+        const isFeatured = n.is_pinned || idx === 0;
+        return `
         <article class="${isFeatured ? 'md:col-span-2 bg-gradient-to-br from-slate-900/95 via-indigo-950/60 to-slate-900/95 border-2 border-amber-400/60 shadow-2xl shadow-amber-500/10' : 'glass-card border border-amber-400/25'} rounded-3xl overflow-hidden flex flex-col ${isFeatured ? 'lg:flex-row' : 'sm:flex-row'} transition hover:border-amber-400/80">
             ${n.image_url ? `
-                <div class="${isFeatured ? 'lg:w-96 h-60 lg:h-auto' : 'sm:w-52 h-48 sm:h-auto'} shrink-0 bg-slate-950 relative overflow-hidden group cursor-zoom-in" onclick="openImgModal('${n.image_url.startsWith('data:') ? '' : n.image_url}')">
-                    <img src="${imgSrc(n.image_url, 1000)}" alt="${escHtml(n.title)}" onerror="handleImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-slate-950/75 text-[10px] text-amber-200 border border-amber-400/30">คลิกขยายรูป</span>
+                <div class="${isFeatured ? 'lg:w-[420px] xl:w-[460px]' : 'sm:w-64'} shrink-0 bg-slate-950/90 p-3 flex items-center justify-center relative overflow-hidden group cursor-zoom-in border-b sm:border-b-0 sm:border-r border-slate-800/80" onclick="openImgModal('${n.image_url.startsWith('data:') ? '' : n.image_url}')">
+                    <img src="${imgSrc(n.image_url, 1000)}" alt="${escHtml(n.title)}" onerror="handleImgError(this)" class="w-full h-auto max-h-[520px] object-contain rounded-xl group-hover:scale-[1.02] transition duration-300">
+                    <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-lg bg-slate-950/85 text-[11px] text-amber-200 border border-amber-400/40 shadow">🔍 คลิกขยายรูป</span>
                 </div>` : ''}
             <div class="p-6 flex flex-col justify-between flex-1 gap-4">
                 <div>
@@ -3253,8 +3253,8 @@
             </div>
         </article>
     `}).join('');
-            lucide.createIcons();
-        }
+    lucide.createIcons();
+}
 
         function filterPublicContestants(type) {
             currentContestantFilter = type;
