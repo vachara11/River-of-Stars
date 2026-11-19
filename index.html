@@ -3215,27 +3215,45 @@
             const published = appState.news.filter(n => n.is_published);
             if (published.length === 0) {
                 grid.innerHTML = `
-                    <div class="col-span-2 text-center text-sm text-slate-400 p-10 glass-card rounded-3xl border border-slate-800">
-                        <i data-lucide="newspaper" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
-                        <p class="font-medium text-slate-300">ยังไม่มีประกาศข่าวประชาสัมพันธ์ในขณะนี้</p>
-                        <p class="text-xs text-slate-500 mt-1">สามารถเพิ่มข่าวสารได้จากระบบผู้ดูแลระบบ (Admin) หรือกดปุ่มบันทึกข้อมูลตัวอย่าง</p>
-                    </div>
-                `;
+            <div class="col-span-2 text-center text-sm text-slate-400 p-10 glass-card rounded-3xl border border-slate-800">
+                <i data-lucide="newspaper" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
+                <p class="font-medium text-slate-300">ยังไม่มีประกาศข่าวประชาสัมพันธ์ในขณะนี้</p>
+            </div>
+        `;
                 lucide.createIcons();
                 return;
             }
-            grid.innerHTML = published.map(n => `
-                <article class="glass-card rounded-2xl overflow-hidden flex flex-col sm:flex-row border border-slate-700/80">
-                    ${n.image_url ? `<div class="sm:w-48 h-44 sm:h-auto shrink-0 bg-slate-900"><img src="${imgSrc(n.image_url)}" alt="${n.title}" onerror="handleImgError(this)" class="w-full h-full object-cover"></div>` : ''}
-                    <div class="p-5 flex flex-col justify-between flex-1">
-                        <div>
-                            ${n.is_pinned ? `<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-400/20 text-amber-300 mb-2 inline-block">📌 ปักหมุด</span>` : ''}
-                            <h4 class="font-bold text-base text-amber-200 mb-2">${n.title}</h4>
-                            <p class="text-xs text-slate-300 leading-relaxed">${n.content}</p>
-                        </div>
+
+            grid.innerHTML = published.map((n, idx) => {
+                const isFeatured = n.is_pinned || idx === 0;
+                return `
+        <article class="${isFeatured ? 'md:col-span-2 bg-gradient-to-br from-slate-900/95 via-indigo-950/60 to-slate-900/95 border-2 border-amber-400/60 shadow-2xl shadow-amber-500/10' : 'glass-card border border-amber-400/25'} rounded-3xl overflow-hidden flex flex-col ${isFeatured ? 'lg:flex-row' : 'sm:flex-row'} transition hover:border-amber-400/80">
+            ${n.image_url ? `
+                <div class="${isFeatured ? 'lg:w-96 h-60 lg:h-auto' : 'sm:w-52 h-48 sm:h-auto'} shrink-0 bg-slate-950 relative overflow-hidden group cursor-zoom-in" onclick="openImgModal('${n.image_url.startsWith('data:') ? '' : n.image_url}')">
+                    <img src="${imgSrc(n.image_url, 1000)}" alt="${escHtml(n.title)}" onerror="handleImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-slate-950/75 text-[10px] text-amber-200 border border-amber-400/30">คลิกขยายรูป</span>
+                </div>` : ''}
+            <div class="p-6 flex flex-col justify-between flex-1 gap-4">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-2.5">
+                        ${n.is_pinned ? `<span class="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow">📌 ประกาศสำคัญ (ปักหมุด)</span>` : `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-400/15 text-amber-300 border border-amber-400/30">📣 ข่าวประชาสัมพันธ์</span>`}
                     </div>
-                </article>
-            `).join('');
+                    <h4 class="font-bold ${isFeatured ? 'text-xl sm:text-2xl gold-gradient-text' : 'text-lg text-amber-200'} mb-2 leading-snug">${escHtml(n.title)}</h4>
+                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line">${escHtml(n.content)}</p>
+                </div>
+                ${n.pdf_url ? `
+                    <div class="pt-3 border-t border-slate-700/70 flex flex-wrap items-center gap-2.5">
+                        <a href="${escHtml(n.pdf_url)}" target="_blank" rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/50 text-rose-200 font-bold text-xs transition">
+                            <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
+                            <span>เปิดอ่าน / ดาวน์โหลดเอกสาร PDF ${n.pdf_name ? `(${escHtml(n.pdf_name)})` : ''}</span>
+                        </a>
+                    </div>
+                ` : ''}
+            </div>
+        </article>
+    `}).join('');
+            lucide.createIcons();
         }
 
         function filterPublicContestants(type) {
@@ -4522,60 +4540,98 @@
             const ed = editingNewsId ? appState.news.find(n => Number(n.id) === Number(editingNewsId)) : null;
             if (editingNewsId && !ed) editingNewsId = null;
             const showOldImg = ed && ed.image_url && !newsRemoveImage;
+            const showOldPdf = ed && ed.pdf_url && !newsRemovePdf;
             const list = appState.news || [];
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <h3 class="text-xl font-bold gold-gradient-text">📰 จัดการข่าวประชาสัมพันธ์</h3>
-                    ${ed ? `<div class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs text-amber-200">✏️ กำลังแก้ไขข่าว: <strong>${escHtml(ed.title)}</strong></div>` : ''}
-                    <form onsubmit="handleAddNews(event)" class="space-y-3 bg-slate-900/80 p-4 rounded-2xl border ${ed ? 'border-amber-400/60' : 'border-slate-800'}">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input type="text" id="news-title" required value="${ed ? escHtml(ed.title) : ''}" placeholder="หัวข้อข่าว..." class="input-night px-3.5 py-2 rounded-xl text-xs">
-                            <div>
-                                <input type="file" id="news-image" accept="image/jpeg,image/png,image/webp" onchange="previewCompressedImage(this, 'news-img-preview', 800, 0.78)" class="input-night w-full px-3 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
-                                <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">💡 แนะนำภาพอัตราส่วน <strong class="text-amber-300">16:9</strong> หรือ <strong class="text-amber-300">4:3</strong> — ขนาด <strong class="text-amber-300">1200×675 px</strong> หรือ <strong class="text-amber-300">800×600 px</strong> (ไฟล์ JPG, PNG, WebP) ระบบจะย่อให้กว้างไม่เกิน 800 px อัตโนมัติ</p>
-                            </div>
-                        </div>
-                        ${showOldImg ? `
-                            <div id="news-old-img" class="flex items-center gap-3 p-2 rounded-xl bg-slate-950/60 border border-slate-800">
-                                <img src="${imgSrc(ed.image_url, 300)}" onerror="this.style.display='none'" class="w-24 h-16 object-cover rounded-lg border border-amber-400/40" alt="รูปเดิม">
-                                <div class="text-xs text-slate-300 flex-1">รูปเดิมของข่าว (เลือกไฟล์ใหม่เพื่อเปลี่ยนรูป)</div>
-                                <button type="button" onclick="removeNewsImage()" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold">🗑 ลบรูปเดิม</button>
-                            </div>` : (ed && ed.image_url && newsRemoveImage ? `<p class="text-xs text-rose-300">รูปเดิมจะถูกลบเมื่อกดบันทึก (หรือเลือกไฟล์ใหม่เพื่อแทนที่)</p>` : '')}
-                        <div id="news-img-preview" class="hidden items-center gap-3"></div>
-                        <textarea id="news-content" required rows="3" placeholder="เนื้อหาข่าว..." class="input-night w-full px-3.5 py-2 rounded-xl text-xs">${ed ? escHtml(ed.content) : ''}</textarea>
-                        <div class="flex flex-wrap justify-between items-center gap-3">
-                            <label class="text-xs text-amber-300 flex items-center gap-1.5"><input type="checkbox" id="news-pin" ${ed && ed.is_pinned ? 'checked' : ''}> 📌 ปักหมุดหน้าแรก</label>
-                            <div class="flex gap-2">
-                                ${ed ? `<button type="button" onclick="cancelEditNews()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">ยกเลิก</button>` : ''}
-                                <button type="submit" class="px-5 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">${ed ? '💾 บันทึกการแก้ไข' : '+ เผยแพร่ข่าว'}</button>
-                            </div>
-                        </div>
-                    </form>
 
-                    <div class="space-y-3">
-                        <h4 class="font-bold text-amber-300 text-sm">รายการข่าวทั้งหมด (${list.length} รายการ)</h4>
-                        ${list.length ? list.map(n => `
-                            <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-slate-900/80 border ${Number(n.id) === Number(editingNewsId) ? 'border-amber-400/60' : 'border-slate-800'}">
-                                <div class="sm:w-40 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
-                                    ${n.image_url ? `<img src="${imgSrc(n.image_url, 400)}" onerror="handleImgError(this)" class="w-full h-full object-cover" alt="">` : `<span class="text-xs text-slate-500">ไม่มีรูป</span>`}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                                        ${n.is_pinned ? `<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-400/20 text-amber-300">📌 ปักหมุด</span>` : ''}
-                                        ${n.is_published === false ? `<span class="px-2 py-0.5 rounded text-[11px] bg-slate-700 text-slate-300">ซ่อนอยู่</span>` : ''}
-                                    </div>
-                                    <h5 class="font-bold text-white text-sm">${escHtml(n.title)}</h5>
-                                    <p class="text-xs text-slate-300 mt-1 line-clamp-3 whitespace-pre-line">${escHtml(n.content)}</p>
-                                </div>
-                                <div class="flex sm:flex-col gap-2 shrink-0">
-                                    <button onclick="startEditNews(${n.id})" class="px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">✏️ แก้ไข</button>
-                                    <button onclick="deleteNews(${n.id})" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">🗑 ลบ</button>
-                                </div>
-                            </div>
-                        `).join('') : `<div class="p-6 text-center text-sm text-slate-500 rounded-2xl border border-dashed border-slate-700">ยังไม่มีข่าวประชาสัมพันธ์</div>`}
+            container.innerHTML = `
+        <div class="space-y-6">
+            <h3 class="text-xl font-bold gold-gradient-text">📰 จัดการข่าวประชาสัมพันธ์</h3>
+            ${ed ? `<div class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs text-amber-200">✏️ กำลังแก้ไขข่าว: <strong>${escHtml(ed.title)}</strong></div>` : ''}
+            <form onsubmit="handleAddNews(event)" class="space-y-4 bg-slate-900/80 p-5 rounded-2xl border ${ed ? 'border-amber-400/60' : 'border-slate-800'}">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">หัวข้อข่าวประชาสัมพันธ์ <span class="text-rose-400">*</span></label>
+                    <input type="text" id="news-title" required value="${ed ? escHtml(ed.title) : ''}" placeholder="หัวข้อข่าว..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- ส่วนอัปโหลดรูปภาพ + คำแนะนำขนาด -->
+                    <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                        <label class="block text-xs font-semibold text-amber-300">🖼️ รูปภาพประกอบข่าว (ไม่บังคับ)</label>
+                        <input type="file" id="news-image" accept="image/jpeg,image/png,image/webp" onchange="previewCompressedImage(this, 'news-img-preview', 1200, 0.82)" class="input-night w-full px-3 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                        <div class="p-2.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-[11px] text-amber-100 leading-relaxed">
+                            📐 <strong>ขนาดรูปภาพที่แนะนำสำหรับออกแบบ:</strong><br>
+                            • แนวนอน (แนะนำสำหรับข่าวปักหมุด/แบนเนอร์): <strong>1200 × 675 px</strong> (อัตราส่วน 16:9)<br>
+                            • แนวนอนมาตรฐาน: <strong>800 × 600 px</strong> (อัตราส่วน 4:3) หรือ สี่เหลี่ยมจัตุรัส <strong>1080 × 1080 px</strong><br>
+                            • รองรับไฟล์ JPG, PNG, WebP (ความละเอียดคมชัดไม่เกิน 1200 px)
+                        </div>
+                        <div id="news-img-preview" class="hidden items-center gap-3 pt-1"></div>
+                    </div>
+
+                    <!-- ส่วนอัปโหลดไฟล์ PDF -->
+                    <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                        <label class="block text-xs font-semibold text-rose-300">📄 แนบไฟล์เอกสาร PDF (กำหนดการ / ระเบียบการ)</label>
+                        <input type="file" id="news-pdf" accept="application/pdf" onchange="handleNewsPdfSelect(this)" class="input-night w-full px-3 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-rose-500 file:text-white file:font-semibold">
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            • รองรับเฉพาะไฟล์นามสกุล <strong>.pdf</strong> ขนาดไม่เกิน <strong>15 MB</strong><br>
+                            • ผู้เข้าชมหน้าเว็บสามารถคลิกเปิดอ่านและดาวน์โหลดไฟล์ PDF ได้ทันที
+                        </p>
+                        <div id="news-pdf-preview" class="hidden pt-1"></div>
                     </div>
                 </div>
-            `;
+
+                ${showOldImg ? `
+                    <div id="news-old-img" class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                        <img src="${imgSrc(ed.image_url, 300)}" onerror="this.style.display='none'" class="w-24 h-16 object-cover rounded-lg border border-amber-400/40" alt="รูปเดิม">
+                        <div class="text-xs text-slate-300 flex-1">รูปภาพเดิมของข่าว (เลือกไฟล์ใหม่เพื่อเปลี่ยนรูป)</div>
+                        <button type="button" onclick="removeNewsImage()" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold">🗑 ลบรูปเดิม</button>
+                    </div>` : (ed && ed.image_url && newsRemoveImage ? `<p class="text-xs text-rose-300">รูปเดิมจะถูกลบเมื่อกดบันทึก</p>` : '')}
+
+                ${showOldPdf ? `
+                    <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                        <i data-lucide="file-text" class="w-6 h-6 text-rose-400 shrink-0"></i>
+                        <div class="text-xs text-slate-300 flex-1 truncate">ไฟล์ PDF เดิม: <a href="${escHtml(ed.pdf_url)}" target="_blank" class="text-amber-300 underline">${escHtml(ed.pdf_name || 'เปิดดูไฟล์ PDF')}</a></div>
+                        <button type="button" onclick="removeNewsPdf()" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold">🗑 ลบ PDF เดิม</button>
+                    </div>` : (ed && ed.pdf_url && newsRemovePdf ? `<p class="text-xs text-rose-300">ไฟล์ PDF เดิมจะถูกลบเมื่อกดบันทึก</p>` : '')}
+
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">รายละเอียดเนื้อหาข่าว <span class="text-rose-400">*</span></label>
+                    <textarea id="news-content" required rows="3" placeholder="เนื้อหาข่าว..." class="input-night w-full px-3.5 py-2.5 rounded-xl text-sm">${ed ? escHtml(ed.content) : ''}</textarea>
+                </div>
+
+                <div class="flex flex-wrap justify-between items-center gap-3 pt-1">
+                    <label class="text-xs text-amber-300 flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="news-pin" ${ed && ed.is_pinned ? 'checked' : ''}> 📌 ปักหมุดเป็นประกาศเด่นหน้าแรก</label>
+                    <div class="flex gap-2">
+                        ${ed ? `<button type="button" onclick="cancelEditNews()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">ยกเลิก</button>` : ''}
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">${ed ? '💾 บันทึกการแก้ไข' : '+ เผยแพร่ข่าว'}</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="space-y-3">
+                <h4 class="font-bold text-amber-300 text-sm">รายการข่าวทั้งหมด (${list.length} รายการ)</h4>
+                ${list.length ? list.map(n => `
+                    <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-slate-900/80 border ${Number(n.id) === Number(editingNewsId) ? 'border-amber-400/60' : 'border-slate-800'}">
+                        <div class="sm:w-40 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
+                            ${n.image_url ? `<img src="${imgSrc(n.image_url, 400)}" onerror="handleImgError(this)" class="w-full h-full object-cover" alt="">` : `<span class="text-xs text-slate-500">ไม่มีรูป</span>`}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                ${n.is_pinned ? `<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-400/20 text-amber-300">📌 ปักหมุด</span>` : ''}
+                                ${n.pdf_url ? `<a href="${escHtml(n.pdf_url)}" target="_blank" class="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/40">📄 มีไฟล์ PDF</a>` : ''}
+                            </div>
+                            <h5 class="font-bold text-white text-sm">${escHtml(n.title)}</h5>
+                            <p class="text-xs text-slate-300 mt-1 line-clamp-3 whitespace-pre-line">${escHtml(n.content)}</p>
+                        </div>
+                        <div class="flex sm:flex-col gap-2 shrink-0">
+                            <button onclick="startEditNews(${n.id})" class="px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">✏️ แก้ไข</button>
+                            <button onclick="deleteNews(${n.id})" class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">🗑 ลบ</button>
+                        </div>
+                    </div>
+                `).join('') : `<div class="p-6 text-center text-sm text-slate-500 rounded-2xl border border-dashed border-slate-700">ยังไม่มีข่าวประชาสัมพันธ์</div>`}
+            </div>
+        </div>
+    `;
+            lucide.createIcons();
         }
 
         function startEditNews(id) {
@@ -4600,6 +4656,48 @@
         function removeNewsImage() {
             newsRemoveImage = true;
             // คงค่าที่กรอกไว้ก่อน re-render
+            const keep = {
+                title: document.getElementById('news-title').value,
+                content: document.getElementById('news-content').value,
+                pin: document.getElementById('news-pin').checked
+            };
+            switchAdminMenu('news');
+            document.getElementById('news-title').value = keep.title;
+            document.getElementById('news-content').value = keep.content;
+            document.getElementById('news-pin').checked = keep.pin;
+        }
+
+        // ตัวแปรเก็บไฟล์ PDF ชั่วคราวสำหรับข่าวประชาสัมพันธ์
+        let tempNewsPdfFile = null;
+        let newsRemovePdf = false;
+
+        function handleNewsPdfSelect(input) {
+            const file = input.files && input.files[0];
+            const label = document.getElementById('news-pdf-preview');
+            tempNewsPdfFile = null;
+            if (!file) {
+                if (label) label.classList.add('hidden');
+                return;
+            }
+            if (file.type !== 'application/pdf') {
+                showToast('กรุณาเลือกไฟล์นามสกุล .pdf เท่านั้น', 'error');
+                input.value = '';
+                return;
+            }
+            if (file.size > 15 * 1024 * 1024) {
+                showToast('ไฟล์ PDF ต้องมีขนาดไม่เกิน 15 MB', 'error');
+                input.value = '';
+                return;
+            }
+            tempNewsPdfFile = file;
+            if (label) {
+                label.classList.remove('hidden');
+                label.innerHTML = `<span class="text-emerald-300 text-xs font-semibold">📄 เลือกไฟล์ PDF: ${escHtml(file.name)} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
+            }
+        }
+
+        function removeNewsPdf() {
+            newsRemovePdf = true;
             const keep = {
                 title: document.getElementById('news-title').value,
                 content: document.getElementById('news-content').value,
@@ -4636,28 +4734,59 @@
             const content = document.getElementById('news-content').value.trim();
             const is_pinned = document.getElementById('news-pin').checked;
             const hasNewImg = !!compressedFilesCache['news-image'];
+            const hasNewPdf = !!tempNewsPdfFile;
 
             showLoader(editingNewsId ? 'กำลังบันทึกการแก้ไขข่าว...' : 'กำลังเผยแพร่ข่าว...');
             try {
-                let newUrl = '';
+                let newImgUrl = '';
                 if (hasNewImg) {
-                    newUrl = await uploadCompressedImage('news-image', 'news');
-                    if (!newUrl) {
+                    newImgUrl = await uploadCompressedImage('news-image', 'news');
+                    if (!newImgUrl) {
                         showToast('อัปโหลดรูปข่าวไม่สำเร็จ', 'error');
                         return;
                     }
                 }
 
-                // โหมดแก้ไข
+                let newPdfUrl = '';
+                let newPdfName = '';
+                if (hasNewPdf) {
+                    if (!sbClient) {
+                        showToast('ยังไม่ได้เชื่อมต่อ Supabase จึงอัปโหลดไฟล์ PDF ไม่ได้', 'error');
+                        return;
+                    }
+                    const fileName = `news-pdf/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.pdf`;
+                    const { error: pdfErr } = await sbClient.storage.from('contest-media').upload(fileName, tempNewsPdfFile, {
+                        contentType: 'application/pdf',
+                        cacheControl: '31536000',
+                        upsert: false
+                    });
+                    if (pdfErr) {
+                        showToast('อัปโหลดไฟล์ PDF ไม่สำเร็จ: ' + pdfErr.message, 'error');
+                        return;
+                    }
+                    const { data: pubPdf } = sbClient.storage.from('contest-media').getPublicUrl(fileName);
+                    newPdfUrl = pubPdf ? pubPdf.publicUrl : '';
+                    newPdfName = tempNewsPdfFile.name;
+                }
+
                 const ex = editingNewsId ? appState.news.find(n => Number(n.id) === Number(editingNewsId)) : null;
                 if (ex) {
                     const upd = { title, content, is_pinned };
-                    if (hasNewImg) upd.image_url = newUrl;
+                    if (hasNewImg) upd.image_url = newImgUrl;
                     else if (newsRemoveImage) upd.image_url = '';
+
+                    if (hasNewPdf) {
+                        upd.pdf_url = newPdfUrl;
+                        upd.pdf_name = newPdfName;
+                    } else if (newsRemovePdf) {
+                        upd.pdf_url = '';
+                        upd.pdf_name = '';
+                    }
+
                     if (sbClient) {
                         const { error } = await sbClient.from('news').update(upd).eq('id', ex.id);
                         if (error) {
-                            showToast('แก้ไขข่าวไม่สำเร็จ: ' + error.message + ' (ตรวจสอบ RLS Policy แบบ UPDATE)', 'error');
+                            showToast('แก้ไขข่าวไม่สำเร็จ: ' + error.message, 'error');
                             return;
                         }
                     }
@@ -4665,6 +4794,8 @@
                     appState.news.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0) || Number(b.id) - Number(a.id));
                     editingNewsId = null;
                     newsRemoveImage = false;
+                    newsRemovePdf = false;
+                    tempNewsPdfFile = null;
                     delete compressedFilesCache['news-image'];
                     renderPublicNews();
                     switchAdminMenu('news');
@@ -4675,15 +4806,14 @@
                 const item = {
                     title,
                     content,
-                    image_url: newUrl,
+                    image_url: newImgUrl,
+                    pdf_url: newPdfUrl,
+                    pdf_name: newPdfName,
                     is_pinned,
                     is_published: true
                 };
                 if (sbClient) {
-                    const {
-                        data,
-                        error
-                    } = await sbClient.from('news').insert([item]).select();
+                    const { data, error } = await sbClient.from('news').insert([item]).select();
                     if (error) {
                         showToast('เผยแพร่ข่าวไม่สำเร็จ: ' + error.message, 'error');
                         return;
@@ -4694,6 +4824,7 @@
                 }
                 appState.news.unshift(item);
                 appState.news.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0) || Number(b.id) - Number(a.id));
+                tempNewsPdfFile = null;
                 delete compressedFilesCache['news-image'];
                 renderPublicNews();
                 switchAdminMenu('news');
@@ -4739,9 +4870,12 @@
                     : `<div class="w-36 h-36 rounded-xl border border-dashed border-slate-600 flex items-center justify-center text-xs text-slate-500 mx-auto">ยังไม่มี QR</div>`}
                         </div>
                         <div class="space-y-2">
-                            <h4 class="font-bold text-amber-300 text-sm">QR Code ชำระเงิน (แสดงในหน้าจองบูท)</h4>
-                            <input type="file" id="admin-booth-qr" accept="image/*" onchange="previewAdminQr(this)"
+                           <h4 class="font-bold text-amber-300 text-sm">QR Code ชำระเงิน (แสดงในหน้าจองบูท)</h4>
+                            <input type="file" id="admin-booth-qr" accept="image/jpeg,image/png,image/webp" onchange="previewAdminQr(this)"
                                 class="input-night w-full px-3 py-2 rounded-xl text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-amber-400 file:text-slate-950 file:font-semibold">
+                            <p class="text-[11px] text-amber-200/90 bg-amber-400/10 border border-amber-400/25 rounded-lg px-2.5 py-1.5">
+                                📐 <strong>ขนาดรูปภาพที่แนะนำ:</strong> สี่เหลี่ยมจัตุรัส <strong>800 × 800 px</strong> หรือ <strong>1000 × 1000 px</strong> (อัตราส่วน 1:1) เพื่อให้สแกน QR Code ได้คมชัด
+                            </p>
                             <textarea id="admin-booth-pay-note" rows="2" placeholder="ข้อความประกอบ เช่น ค่าจองบูท 300 บาท / ชื่อบัญชี ..."
                                 class="input-night w-full px-3 py-2 rounded-xl text-xs">${escHtml(appState.settings.booth_pay_note || '')}</textarea>
                             <button onclick="saveBoothQr()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs">บันทึก QR / ข้อความ</button>
@@ -4901,59 +5035,59 @@
         }
 
         async function updateBoothStatus(id, status) {
-    const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
-    if (!b) return;
-    const upd = { status };
-    if (status === 'REJECTED') {
-        const reason = prompt('ระบุเหตุผลที่ไม่ผ่าน (ผู้จองจะเห็นและแก้ไขข้อมูลได้):', b.admin_note || 'สลิปไม่ถูกต้อง / ยอดเงินไม่ตรง');
-        if (reason === null) return;
-        upd.admin_note = reason.trim() || 'ไม่ผ่านการตรวจสอบ';
-    } else {
-        upd.admin_note = '';
-        const locEl = document.getElementById('booth-loc-' + id);
-        if (locEl) upd.booth_location = locEl.value.trim();
-    }
- 
-    if (sbClient) {
-        const { data, error } = await sbClient.from('booth_applications').update(upd).eq('id', id).select();
-        if (error) {
-            console.error('booth update error:', error);
-            showToast('อัปเดตไม่สำเร็จ: ' + error.message, 'error');
-            return;
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (!b) return;
+            const upd = { status };
+            if (status === 'REJECTED') {
+                const reason = prompt('ระบุเหตุผลที่ไม่ผ่าน (ผู้จองจะเห็นและแก้ไขข้อมูลได้):', b.admin_note || 'สลิปไม่ถูกต้อง / ยอดเงินไม่ตรง');
+                if (reason === null) return;
+                upd.admin_note = reason.trim() || 'ไม่ผ่านการตรวจสอบ';
+            } else {
+                upd.admin_note = '';
+                const locEl = document.getElementById('booth-loc-' + id);
+                if (locEl) upd.booth_location = locEl.value.trim();
+            }
+
+            if (sbClient) {
+                const { data, error } = await sbClient.from('booth_applications').update(upd).eq('id', id).select();
+                if (error) {
+                    console.error('booth update error:', error);
+                    showToast('อัปเดตไม่สำเร็จ: ' + error.message, 'error');
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    showToast('อัปเดตไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ต้องเพิ่ม RLS Policy แบบ UPDATE ให้ตาราง booth_applications — ดูไฟล์ fix-booth-rls.sql)', 'error');
+                    return;
+                }
+                Object.assign(b, data[0]);
+            } else {
+                Object.assign(b, upd);
+            }
+
+            switchAdminMenu('booths');
+            showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ตีกลับใบจองแล้ว ผู้จองสามารถแก้ไขได้',
+                status === 'APPROVED' ? 'success' : 'warning');
         }
-        if (!data || data.length === 0) {
-            showToast('อัปเดตไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ต้องเพิ่ม RLS Policy แบบ UPDATE ให้ตาราง booth_applications — ดูไฟล์ fix-booth-rls.sql)', 'error');
-            return;
+
+        async function saveBoothLocation(id) {
+            const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
+            if (!b) return;
+            const val = document.getElementById('booth-loc-' + id).value.trim();
+            if (sbClient) {
+                const { data, error } = await sbClient.from('booth_applications').update({ booth_location: val }).eq('id', id).select();
+                if (error) {
+                    showToast('บันทึกที่ตั้งไม่สำเร็จ: ' + error.message, 'error');
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    showToast('บันทึกที่ตั้งไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ต้องเพิ่ม RLS Policy แบบ UPDATE)', 'error');
+                    return;
+                }
+            }
+            b.booth_location = val;
+            showToast('บันทึกสถานที่ตั้งบูทแล้ว', 'success');
         }
-        Object.assign(b, data[0]);
-    } else {
-        Object.assign(b, upd);
-    }
- 
-    switchAdminMenu('booths');
-    showToast(status === 'APPROVED' ? 'อนุมัติใบจองบูทแล้ว' : 'ตีกลับใบจองแล้ว ผู้จองสามารถแก้ไขได้',
-        status === 'APPROVED' ? 'success' : 'warning');
-}
- 
-async function saveBoothLocation(id) {
-    const b = appState.booth_applications.find(x => Number(x.id) === Number(id));
-    if (!b) return;
-    const val = document.getElementById('booth-loc-' + id).value.trim();
-    if (sbClient) {
-        const { data, error } = await sbClient.from('booth_applications').update({ booth_location: val }).eq('id', id).select();
-        if (error) {
-            showToast('บันทึกที่ตั้งไม่สำเร็จ: ' + error.message, 'error');
-            return;
-        }
-        if (!data || data.length === 0) {
-            showToast('บันทึกที่ตั้งไม่สำเร็จ: ฐานข้อมูลไม่อนุญาตให้แก้ไข (ต้องเพิ่ม RLS Policy แบบ UPDATE)', 'error');
-            return;
-        }
-    }
-    b.booth_location = val;
-    showToast('บันทึกสถานที่ตั้งบูทแล้ว', 'success');
-}
- 
+
 
         async function deleteBooth(id) {
             if (!confirm('ยืนยันลบใบจองบูทนี้?')) return;
@@ -5467,216 +5601,216 @@ async function saveBoothLocation(id) {
 
 
 
-const STAFF_MENUS = ['criteria', 'print', 'news', 'applications', 'booths', 'checkin'];
-const ADMIN_ROLE_LABEL = {
-    admin: 'ผู้ดูแลระบบ (เต็มสิทธิ์)',
-    staff: 'เจ้าหน้าที่ (ลงทะเบียนนางนพมาศได้)'
-};
-let editingAdminUserId = null;
-const revealedAdminUserPw = new Set();
-window.__adminUsers = [];
+        const STAFF_MENUS = ['criteria', 'print', 'news', 'applications', 'booths', 'checkin'];
+        const ADMIN_ROLE_LABEL = {
+            admin: 'ผู้ดูแลระบบ (เต็มสิทธิ์)',
+            staff: 'เจ้าหน้าที่ (ลงทะเบียนนางนพมาศได้)'
+        };
+        let editingAdminUserId = null;
+        const revealedAdminUserPw = new Set();
+        window.__adminUsers = [];
 
-function getAdminRole() {
-    return sessionStorage.getItem('admin_logged_in') === '1' ?
-        (sessionStorage.getItem('admin_role') || 'admin') : null;
-}
-
-// ---------- ล็อกอิน / ออกจากระบบ ----------
-handleAdminLogin = async function (e) {
-    e.preventDefault();
-    const u = document.getElementById('admin-user').value.trim();
-    const p = document.getElementById('admin-pass').value.trim();
-    let role = null,
-        name = 'ผู้ดูแลระบบ';
-
-    if (u === 'aftpsc' && p === 'aft996503') {
-        role = 'admin';
-    } else if (sbClient) {
-        const {
-            data,
-            error
-        } = await sbClient.from('admin_users').select('*').eq('username', u).eq('password', p).limit(1);
-        if (error) console.error('admin_users login error:', error);
-        if (data && data[0]) {
-            role = data[0].role === 'admin' ? 'admin' : 'staff';
-            name = data[0].full_name || u;
+        function getAdminRole() {
+            return sessionStorage.getItem('admin_logged_in') === '1' ?
+                (sessionStorage.getItem('admin_role') || 'admin') : null;
         }
-    }
 
-    if (!role) {
-        showToast('รหัสผ่านไม่ถูกต้อง', 'error');
-        return;
-    }
-    isAdminLoggedIn = true;
-    sessionStorage.setItem('admin_logged_in', '1');
-    sessionStorage.setItem('admin_role', role);
-    sessionStorage.setItem('admin_name', name);
-    currentAdminMenu = role === 'staff' ? 'criteria' : 'overview';
-    renderAdminWorkspace();
-    showToast(`เข้าสู่ระบบสำเร็จ (${ADMIN_ROLE_LABEL[role]})`, 'success');
-};
+        // ---------- ล็อกอิน / ออกจากระบบ ----------
+        handleAdminLogin = async function (e) {
+            e.preventDefault();
+            const u = document.getElementById('admin-user').value.trim();
+            const p = document.getElementById('admin-pass').value.trim();
+            let role = null,
+                name = 'ผู้ดูแลระบบ';
 
-const _origAdminLogout = handleAdminLogout;
-handleAdminLogout = function () {
-    sessionStorage.removeItem('admin_role');
-    sessionStorage.removeItem('admin_name');
-    currentAdminMenu = 'overview';
-    return _origAdminLogout();
-};
-
-// ---------- ปรับหน้าตาเมนูตามสิทธิ์ ----------
-function applyAdminRoleUI() {
-    const role = getAdminRole() || 'admin';
-    const first = document.querySelector('[data-admin-menu]');
-    const grid = first ? first.parentElement : null;
-    if (!grid) return;
-
-    if (!grid.querySelector('[data-admin-menu="permissions"]')) {
-        const btn = document.createElement('button');
-        btn.setAttribute('data-admin-menu', 'permissions');
-        btn.setAttribute('onclick', "switchAdminMenu('permissions')");
-        btn.className = 'admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center';
-        btn.innerHTML = '<i data-lucide="key-round" class="w-5 h-5"></i><span class="text-xs leading-tight">จัดการสิทธิ์</span>';
-        grid.appendChild(btn);
-        grid.classList.remove('lg:grid-cols-10');
-        grid.classList.add('lg:grid-cols-11');
-    }
-
-    grid.querySelectorAll('[data-admin-menu]').forEach(b => {
-        const key = b.getAttribute('data-admin-menu');
-        const show = role === 'admin' ? true : STAFF_MENUS.includes(key);
-        b.classList.toggle('hidden', !show);
-    });
-
-    // ป้ายแสดงสิทธิ์ที่กำลังใช้งาน
-    const logout = document.querySelector('button[onclick="handleAdminLogout()"]');
-    if (logout) {
-        let badge = document.getElementById('admin-role-badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.id = 'admin-role-badge';
-            badge.className = 'text-[11px] px-2.5 py-1 rounded-full border';
-            logout.parentElement.insertBefore(badge, logout);
-        }
-        badge.textContent = (sessionStorage.getItem('admin_name') || '') + ' • ' + ADMIN_ROLE_LABEL[role];
-        badge.className = 'text-[11px] px-2.5 py-1 rounded-full border ' +
-            (role === 'admin' ? 'bg-purple-500/15 text-purple-200 border-purple-400/40' :
-                'bg-sky-500/15 text-sky-200 border-sky-400/40');
-    }
-    lucide.createIcons();
-}
-
-const _origRenderAdminWorkspace = renderAdminWorkspace;
-renderAdminWorkspace = function () {
-    if (sessionStorage.getItem('admin_logged_in') === '1') {
-        applyAdminRoleUI();
-        if (getAdminRole() === 'staff' && !STAFF_MENUS.includes(currentAdminMenu)) currentAdminMenu = 'criteria';
-    }
-    return _origRenderAdminWorkspace();
-};
-
-// ---------- ตัดส่วนการจัดการออกสำหรับสิทธิ์เจ้าหน้าที่ ----------
-function applyStaffRestrictions(container) {
-    if (!container) return;
-
-    // (ใช้เฉพาะเมนูจองบูทเท่านั้น — เมนูอื่นเจ้าหน้าที่จัดการได้ปกติ)
-
-    // การ์ด QR ชำระเงินของบูท
-    const qr = container.querySelector('#admin-booth-qr');
-    if (qr) {
-        const card = qr.closest('.rounded-2xl');
-        if (card) card.remove();
-    }
-
-    // ช่องกรอกสถานที่ตั้งบูท + ปุ่ม "บันทึกที่ตั้ง" — เจ้าหน้าที่แก้ไขได้ (ไม่ตัดออก)
-
-    // ตัดคอลัมน์ "จัดการ / การจัดการ" ในทุกตาราง
-    container.querySelectorAll('table').forEach(t => {
-        const ths = Array.from(t.querySelectorAll('thead th'));
-        const idx = ths.findIndex(th => /^(การจัดการ|จัดการ)$/.test(th.textContent.trim()));
-        if (idx < 0) return;
-        const total = ths.length;
-        ths[idx].remove();
-        t.querySelectorAll('tbody tr').forEach(tr => {
-            if (tr.children.length === total) {
-                tr.children[idx].remove();
-            } else if (tr.children[0] && tr.children[0].hasAttribute('colspan')) {
-                tr.children[0].setAttribute('colspan', total - 1);
+            if (u === 'aftpsc' && p === 'aft996503') {
+                role = 'admin';
+            } else if (sbClient) {
+                const {
+                    data,
+                    error
+                } = await sbClient.from('admin_users').select('*').eq('username', u).eq('password', p).limit(1);
+                if (error) console.error('admin_users login error:', error);
+                if (data && data[0]) {
+                    role = data[0].role === 'admin' ? 'admin' : 'staff';
+                    name = data[0].full_name || u;
+                }
             }
-        });
-    });
-}
 
-const _origSwitchAdminMenu = switchAdminMenu;
-switchAdminMenu = function (menuKey) {
-    const role = getAdminRole() || 'admin';
+            if (!role) {
+                showToast('รหัสผ่านไม่ถูกต้อง', 'error');
+                return;
+            }
+            isAdminLoggedIn = true;
+            sessionStorage.setItem('admin_logged_in', '1');
+            sessionStorage.setItem('admin_role', role);
+            sessionStorage.setItem('admin_name', name);
+            currentAdminMenu = role === 'staff' ? 'criteria' : 'overview';
+            renderAdminWorkspace();
+            showToast(`เข้าสู่ระบบสำเร็จ (${ADMIN_ROLE_LABEL[role]})`, 'success');
+        };
 
-    if (role === 'staff' && !STAFF_MENUS.includes(menuKey)) menuKey = 'criteria';
-    if (role !== 'admin' && menuKey === 'permissions') menuKey = 'criteria';
+        const _origAdminLogout = handleAdminLogout;
+        handleAdminLogout = function () {
+            sessionStorage.removeItem('admin_role');
+            sessionStorage.removeItem('admin_name');
+            currentAdminMenu = 'overview';
+            return _origAdminLogout();
+        };
 
-    if (menuKey === 'permissions') {
-        currentAdminMenu = 'permissions';
-        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-admin-menu') === 'permissions');
-        });
-        const container = document.getElementById('admin-subview-container');
-        renderAdminMenuPermissions(container);
-        lucide.createIcons();
-        loadAdminUsers().then(() => {
-            if (currentAdminMenu === 'permissions') {
+        // ---------- ปรับหน้าตาเมนูตามสิทธิ์ ----------
+        function applyAdminRoleUI() {
+            const role = getAdminRole() || 'admin';
+            const first = document.querySelector('[data-admin-menu]');
+            const grid = first ? first.parentElement : null;
+            if (!grid) return;
+
+            if (!grid.querySelector('[data-admin-menu="permissions"]')) {
+                const btn = document.createElement('button');
+                btn.setAttribute('data-admin-menu', 'permissions');
+                btn.setAttribute('onclick', "switchAdminMenu('permissions')");
+                btn.className = 'admin-tab-btn p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center';
+                btn.innerHTML = '<i data-lucide="key-round" class="w-5 h-5"></i><span class="text-xs leading-tight">จัดการสิทธิ์</span>';
+                grid.appendChild(btn);
+                grid.classList.remove('lg:grid-cols-10');
+                grid.classList.add('lg:grid-cols-11');
+            }
+
+            grid.querySelectorAll('[data-admin-menu]').forEach(b => {
+                const key = b.getAttribute('data-admin-menu');
+                const show = role === 'admin' ? true : STAFF_MENUS.includes(key);
+                b.classList.toggle('hidden', !show);
+            });
+
+            // ป้ายแสดงสิทธิ์ที่กำลังใช้งาน
+            const logout = document.querySelector('button[onclick="handleAdminLogout()"]');
+            if (logout) {
+                let badge = document.getElementById('admin-role-badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.id = 'admin-role-badge';
+                    badge.className = 'text-[11px] px-2.5 py-1 rounded-full border';
+                    logout.parentElement.insertBefore(badge, logout);
+                }
+                badge.textContent = (sessionStorage.getItem('admin_name') || '') + ' • ' + ADMIN_ROLE_LABEL[role];
+                badge.className = 'text-[11px] px-2.5 py-1 rounded-full border ' +
+                    (role === 'admin' ? 'bg-purple-500/15 text-purple-200 border-purple-400/40' :
+                        'bg-sky-500/15 text-sky-200 border-sky-400/40');
+            }
+            lucide.createIcons();
+        }
+
+        const _origRenderAdminWorkspace = renderAdminWorkspace;
+        renderAdminWorkspace = function () {
+            if (sessionStorage.getItem('admin_logged_in') === '1') {
+                applyAdminRoleUI();
+                if (getAdminRole() === 'staff' && !STAFF_MENUS.includes(currentAdminMenu)) currentAdminMenu = 'criteria';
+            }
+            return _origRenderAdminWorkspace();
+        };
+
+        // ---------- ตัดส่วนการจัดการออกสำหรับสิทธิ์เจ้าหน้าที่ ----------
+        function applyStaffRestrictions(container) {
+            if (!container) return;
+
+            // (ใช้เฉพาะเมนูจองบูทเท่านั้น — เมนูอื่นเจ้าหน้าที่จัดการได้ปกติ)
+
+            // การ์ด QR ชำระเงินของบูท
+            const qr = container.querySelector('#admin-booth-qr');
+            if (qr) {
+                const card = qr.closest('.rounded-2xl');
+                if (card) card.remove();
+            }
+
+            // ช่องกรอกสถานที่ตั้งบูท + ปุ่ม "บันทึกที่ตั้ง" — เจ้าหน้าที่แก้ไขได้ (ไม่ตัดออก)
+
+            // ตัดคอลัมน์ "จัดการ / การจัดการ" ในทุกตาราง
+            container.querySelectorAll('table').forEach(t => {
+                const ths = Array.from(t.querySelectorAll('thead th'));
+                const idx = ths.findIndex(th => /^(การจัดการ|จัดการ)$/.test(th.textContent.trim()));
+                if (idx < 0) return;
+                const total = ths.length;
+                ths[idx].remove();
+                t.querySelectorAll('tbody tr').forEach(tr => {
+                    if (tr.children.length === total) {
+                        tr.children[idx].remove();
+                    } else if (tr.children[0] && tr.children[0].hasAttribute('colspan')) {
+                        tr.children[0].setAttribute('colspan', total - 1);
+                    }
+                });
+            });
+        }
+
+        const _origSwitchAdminMenu = switchAdminMenu;
+        switchAdminMenu = function (menuKey) {
+            const role = getAdminRole() || 'admin';
+
+            if (role === 'staff' && !STAFF_MENUS.includes(menuKey)) menuKey = 'criteria';
+            if (role !== 'admin' && menuKey === 'permissions') menuKey = 'criteria';
+
+            if (menuKey === 'permissions') {
+                currentAdminMenu = 'permissions';
+                document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-admin-menu') === 'permissions');
+                });
+                const container = document.getElementById('admin-subview-container');
                 renderAdminMenuPermissions(container);
                 lucide.createIcons();
+                loadAdminUsers().then(() => {
+                    if (currentAdminMenu === 'permissions') {
+                        renderAdminMenuPermissions(container);
+                        lucide.createIcons();
+                    }
+                });
+                return;
             }
+
+            _origSwitchAdminMenu(menuKey);
+            if (role === 'staff' && menuKey === 'booths') {
+                applyStaffRestrictions(document.getElementById('admin-subview-container'));
+                lucide.createIcons();
+            }
+        };
+
+        // ---------- กันเรียกฟังก์ชันแก้ไขข้อมูลโดยตรงเมื่อเป็นสิทธิ์เจ้าหน้าที่ ----------
+        [
+            'updateBoothStatus', 'deleteBooth', 'saveBoothQr'
+        ].forEach(name => {
+            if (typeof window[name] !== 'function') return;
+            const orig = window[name];
+            window[name] = function (...args) {
+                if (getAdminRole() === 'staff') {
+                    showToast('สิทธิ์เจ้าหน้าที่ดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้', 'warning');
+                    return;
+                }
+                return orig.apply(this, args);
+            };
         });
-        return;
-    }
 
-    _origSwitchAdminMenu(menuKey);
-    if (role === 'staff' && menuKey === 'booths') {
-        applyStaffRestrictions(document.getElementById('admin-subview-container'));
-        lucide.createIcons();
-    }
-};
-
-// ---------- กันเรียกฟังก์ชันแก้ไขข้อมูลโดยตรงเมื่อเป็นสิทธิ์เจ้าหน้าที่ ----------
-[
-    'updateBoothStatus', 'deleteBooth', 'saveBoothQr'
-].forEach(name => {
-    if (typeof window[name] !== 'function') return;
-    const orig = window[name];
-    window[name] = function (...args) {
-        if (getAdminRole() === 'staff') {
-            showToast('สิทธิ์เจ้าหน้าที่ดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้', 'warning');
-            return;
+        // ---------- เมนู "จัดการสิทธิ์" (เฉพาะ admin) ----------
+        async function loadAdminUsers() {
+            if (!sbClient) return;
+            const {
+                data,
+                error
+            } = await sbClient.from('admin_users').select('*').order('id', {
+                ascending: true
+            });
+            if (error) {
+                console.error('admin_users select error:', error);
+                showToast('อ่านตาราง admin_users ไม่ได้: ' + error.message + ' (ตรวจสอบว่ารัน admin_users.sql แล้ว)', 'error');
+                return;
+            }
+            window.__adminUsers = data || [];
         }
-        return orig.apply(this, args);
-    };
-});
 
-// ---------- เมนู "จัดการสิทธิ์" (เฉพาะ admin) ----------
-async function loadAdminUsers() {
-    if (!sbClient) return;
-    const {
-        data,
-        error
-    } = await sbClient.from('admin_users').select('*').order('id', {
-        ascending: true
-    });
-    if (error) {
-        console.error('admin_users select error:', error);
-        showToast('อ่านตาราง admin_users ไม่ได้: ' + error.message + ' (ตรวจสอบว่ารัน admin_users.sql แล้ว)', 'error');
-        return;
-    }
-    window.__adminUsers = data || [];
-}
+        function renderAdminMenuPermissions(container) {
+            if (!container) return;
+            const list = window.__adminUsers || [];
+            const ed = editingAdminUserId ? list.find(x => Number(x.id) === Number(editingAdminUserId)) : null;
+            if (editingAdminUserId && !ed) editingAdminUserId = null;
 
-function renderAdminMenuPermissions(container) {
-    if (!container) return;
-    const list = window.__adminUsers || [];
-    const ed = editingAdminUserId ? list.find(x => Number(x.id) === Number(editingAdminUserId)) : null;
-    if (editingAdminUserId && !ed) editingAdminUserId = null;
-
-    container.innerHTML = `
+            container.innerHTML = `
         <div class="space-y-6">
             <div>
                 <h3 class="text-xl font-bold gold-gradient-text">🔑 จัดการสิทธิ์การเข้าใช้งานระบบแอดมิน</h3>
@@ -5730,143 +5864,143 @@ function renderAdminMenuPermissions(container) {
             </div>
         </div>
     `;
-}
-
-function toggleAdminUserPw(id) {
-    const k = String(id);
-    if (revealedAdminUserPw.has(k)) revealedAdminUserPw.delete(k);
-    else revealedAdminUserPw.add(k);
-    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
-}
-
-function startEditAdminUser(id) {
-    editingAdminUserId = Number(id);
-    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
-    const u = document.getElementById('au-user');
-    if (u) {
-        u.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-        u.focus();
-    }
-}
-
-function cancelEditAdminUser() {
-    editingAdminUserId = null;
-    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
-}
-
-async function handleSaveAdminUser(e) {
-    e.preventDefault();
-    if (getAdminRole() !== 'admin') return;
-    if (!sbClient) {
-        showToast('ยังไม่ได้เชื่อมต่อ Supabase', 'error');
-        return;
-    }
-    const username = document.getElementById('au-user').value.trim();
-    const password = document.getElementById('au-pass').value.trim();
-    const full_name = document.getElementById('au-name').value.trim();
-    const role = document.getElementById('au-role').value === 'admin' ? 'admin' : 'staff';
-    const list = window.__adminUsers || [];
-
-    if (username === 'aftpsc') {
-        showToast('Username นี้เป็นของผู้ดูแลระบบหลัก กรุณาใช้ชื่ออื่น', 'error');
-        return;
-    }
-    const dup = list.find(x => x.username === username && Number(x.id) !== Number(editingAdminUserId));
-    if (dup) {
-        showToast('Username นี้ถูกใช้แล้ว กรุณาใช้ชื่ออื่น', 'error');
-        return;
-    }
-
-    if (editingAdminUserId) {
-        const ex = list.find(x => Number(x.id) === Number(editingAdminUserId));
-        const upd = {
-            username,
-            full_name,
-            role
-        };
-        if (password) upd.password = password;
-        const {
-            data,
-            error
-        } = await sbClient.from('admin_users').update(upd).eq('id', editingAdminUserId).select();
-        if (error || !data || !data.length) {
-            showToast('แก้ไขไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy แบบ UPDATE'), 'error');
-            return;
         }
-        if (ex) Object.assign(ex, data[0]);
-        editingAdminUserId = null;
-        showToast('บันทึกการแก้ไขบัญชีแล้ว', 'success');
-    } else {
-        if (!password) {
-            showToast('กรุณากรอกรหัสผ่าน', 'error');
-            return;
+
+        function toggleAdminUserPw(id) {
+            const k = String(id);
+            if (revealedAdminUserPw.has(k)) revealedAdminUserPw.delete(k);
+            else revealedAdminUserPw.add(k);
+            renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
         }
-        const {
-            data,
-            error
-        } = await sbClient.from('admin_users').insert([{
-            username,
-            password,
-            full_name,
-            role
-        }]).select();
-        if (error || !data || !data.length) {
-            showToast('เพิ่มบัญชีไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy'), 'error');
-            return;
+
+        function startEditAdminUser(id) {
+            editingAdminUserId = Number(id);
+            renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+            const u = document.getElementById('au-user');
+            if (u) {
+                u.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                u.focus();
+            }
         }
-        list.push(data[0]);
-        showToast('เพิ่มบัญชีเรียบร้อย', 'success');
-    }
-    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
-}
 
-async function deleteAdminUser(id) {
-    if (getAdminRole() !== 'admin') return;
-    if (!confirm('ยืนยันลบบัญชีนี้?')) return;
-    const {
-        data,
-        error
-    } = await sbClient.from('admin_users').delete().eq('id', id).select();
-    if (error || !data || !data.length) {
-        showToast('ลบไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy แบบ DELETE'), 'error');
-        return;
-    }
-    window.__adminUsers = (window.__adminUsers || []).filter(x => Number(x.id) !== Number(id));
-    if (Number(editingAdminUserId) === Number(id)) editingAdminUserId = null;
-    renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
-    showToast('ลบบัญชีแล้ว', 'warning');
-}
+        function cancelEditAdminUser() {
+            editingAdminUserId = null;
+            renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+        }
+
+        async function handleSaveAdminUser(e) {
+            e.preventDefault();
+            if (getAdminRole() !== 'admin') return;
+            if (!sbClient) {
+                showToast('ยังไม่ได้เชื่อมต่อ Supabase', 'error');
+                return;
+            }
+            const username = document.getElementById('au-user').value.trim();
+            const password = document.getElementById('au-pass').value.trim();
+            const full_name = document.getElementById('au-name').value.trim();
+            const role = document.getElementById('au-role').value === 'admin' ? 'admin' : 'staff';
+            const list = window.__adminUsers || [];
+
+            if (username === 'aftpsc') {
+                showToast('Username นี้เป็นของผู้ดูแลระบบหลัก กรุณาใช้ชื่ออื่น', 'error');
+                return;
+            }
+            const dup = list.find(x => x.username === username && Number(x.id) !== Number(editingAdminUserId));
+            if (dup) {
+                showToast('Username นี้ถูกใช้แล้ว กรุณาใช้ชื่ออื่น', 'error');
+                return;
+            }
+
+            if (editingAdminUserId) {
+                const ex = list.find(x => Number(x.id) === Number(editingAdminUserId));
+                const upd = {
+                    username,
+                    full_name,
+                    role
+                };
+                if (password) upd.password = password;
+                const {
+                    data,
+                    error
+                } = await sbClient.from('admin_users').update(upd).eq('id', editingAdminUserId).select();
+                if (error || !data || !data.length) {
+                    showToast('แก้ไขไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy แบบ UPDATE'), 'error');
+                    return;
+                }
+                if (ex) Object.assign(ex, data[0]);
+                editingAdminUserId = null;
+                showToast('บันทึกการแก้ไขบัญชีแล้ว', 'success');
+            } else {
+                if (!password) {
+                    showToast('กรุณากรอกรหัสผ่าน', 'error');
+                    return;
+                }
+                const {
+                    data,
+                    error
+                } = await sbClient.from('admin_users').insert([{
+                    username,
+                    password,
+                    full_name,
+                    role
+                }]).select();
+                if (error || !data || !data.length) {
+                    showToast('เพิ่มบัญชีไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy'), 'error');
+                    return;
+                }
+                list.push(data[0]);
+                showToast('เพิ่มบัญชีเรียบร้อย', 'success');
+            }
+            renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+        }
+
+        async function deleteAdminUser(id) {
+            if (getAdminRole() !== 'admin') return;
+            if (!confirm('ยืนยันลบบัญชีนี้?')) return;
+            const {
+                data,
+                error
+            } = await sbClient.from('admin_users').delete().eq('id', id).select();
+            if (error || !data || !data.length) {
+                showToast('ลบไม่สำเร็จ: ' + (error ? error.message : 'ตรวจสอบ RLS Policy แบบ DELETE'), 'error');
+                return;
+            }
+            window.__adminUsers = (window.__adminUsers || []).filter(x => Number(x.id) !== Number(id));
+            if (Number(editingAdminUserId) === Number(id)) editingAdminUserId = null;
+            renderAdminMenuPermissions(document.getElementById('admin-subview-container'));
+            showToast('ลบบัญชีแล้ว', 'warning');
+        }
 
 
 
-// =====================================================================
-//  [เพิ่มใหม่] 1) ขอให้ผู้สมัครแก้ไขข้อมูล (แอดมินระบุเหตุผล → ผู้สมัครเห็นเหตุผลและแก้ไขเองได้)
-//  ต้องรันไฟล์ migration.sql ใน Supabase ก่อน (เพิ่มคอลัมน์ edit_requested, edit_reason ฯลฯ)
-// =====================================================================
-const EDIT_REASON_PRESETS = [
-    'ข้อมูลไม่ตรงกับบัตรนักศึกษา',
-    'รหัสนักศึกษาไม่ถูกต้อง',
-    'รูปถ่ายไม่ชัดเจน / ไม่เหมาะสม',
-    'ข้อมูลไม่ครบถ้วน',
-    'รายชื่อสมาชิกทีมไม่ถูกต้อง'
-];
+        // =====================================================================
+        //  [เพิ่มใหม่] 1) ขอให้ผู้สมัครแก้ไขข้อมูล (แอดมินระบุเหตุผล → ผู้สมัครเห็นเหตุผลและแก้ไขเองได้)
+        //  ต้องรันไฟล์ migration.sql ใน Supabase ก่อน (เพิ่มคอลัมน์ edit_requested, edit_reason ฯลฯ)
+        // =====================================================================
+        const EDIT_REASON_PRESETS = [
+            'ข้อมูลไม่ตรงกับบัตรนักศึกษา',
+            'รหัสนักศึกษาไม่ถูกต้อง',
+            'รูปถ่ายไม่ชัดเจน / ไม่เหมาะสม',
+            'ข้อมูลไม่ครบถ้วน',
+            'รายชื่อสมาชิกทีมไม่ถูกต้อง'
+        ];
 
-function closeEditReqModal() {
-    const m = document.getElementById('edit-req-modal');
-    if (m) m.remove();
-}
+        function closeEditReqModal() {
+            const m = document.getElementById('edit-req-modal');
+            if (m) m.remove();
+        }
 
-function requestApplicationEdit(id) {
-    const app = appState.applications.find(a => Number(a.id) === Number(id));
-    if (!app) return;
-    closeEditReqModal();
-    const modal = document.createElement('div');
-    modal.id = 'edit-req-modal';
-    modal.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
-    modal.innerHTML = `
+        function requestApplicationEdit(id) {
+            const app = appState.applications.find(a => Number(a.id) === Number(id));
+            if (!app) return;
+            closeEditReqModal();
+            const modal = document.createElement('div');
+            modal.id = 'edit-req-modal';
+            modal.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+            modal.innerHTML = `
         <form onsubmit="submitEditRequest(event, ${app.id})" class="glass-card max-w-lg w-full rounded-3xl p-6 space-y-4 border border-sky-400/40 max-h-[90vh] overflow-y-auto shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold gold-gradient-text">📝 ขอให้ผู้สมัครแก้ไขข้อมูล</h3>
@@ -5890,498 +6024,498 @@ function requestApplicationEdit(id) {
                 <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-400 text-slate-950 font-bold text-sm">ส่งคำขอให้แก้ไข</button>
             </div>
         </form>`;
-    document.body.appendChild(modal);
-    setTimeout(() => { const t = document.getElementById('er-reason'); if (t) t.focus(); }, 50);
-}
-
-async function updateApplicationFields(id, upd, failMsg) {
-    if (sbClient) {
-        const { data, error } = await sbClient.from('applications').update(upd).eq('id', id).select();
-        if (error) {
-            console.error('update application error:', error);
-            const missing = /edit_requested|edit_reason|edit_requested_at|edit_submitted_at|checked_in|member_checkins/i.test(error.message || '');
-            showToast(failMsg + ': ' + error.message + (missing ? ' (ยังไม่ได้รัน migration.sql เพิ่มคอลัมน์ใน Supabase)' : ''), 'error');
-            return false;
+            document.body.appendChild(modal);
+            setTimeout(() => { const t = document.getElementById('er-reason'); if (t) t.focus(); }, 50);
         }
-        if (!data || data.length === 0) {
-            showToast(failMsg + ': ฐานข้อมูลไม่อนุญาตให้แก้ไข (ตรวจสอบ RLS Policy แบบ UPDATE ของตาราง applications)', 'error');
-            return false;
+
+        async function updateApplicationFields(id, upd, failMsg) {
+            if (sbClient) {
+                const { data, error } = await sbClient.from('applications').update(upd).eq('id', id).select();
+                if (error) {
+                    console.error('update application error:', error);
+                    const missing = /edit_requested|edit_reason|edit_requested_at|edit_submitted_at|checked_in|member_checkins/i.test(error.message || '');
+                    showToast(failMsg + ': ' + error.message + (missing ? ' (ยังไม่ได้รัน migration.sql เพิ่มคอลัมน์ใน Supabase)' : ''), 'error');
+                    return false;
+                }
+                if (!data || data.length === 0) {
+                    showToast(failMsg + ': ฐานข้อมูลไม่อนุญาตให้แก้ไข (ตรวจสอบ RLS Policy แบบ UPDATE ของตาราง applications)', 'error');
+                    return false;
+                }
+            }
+            const app = appState.applications.find(a => Number(a.id) === Number(id));
+            if (app) Object.assign(app, upd);
+            return true;
         }
-    }
-    const app = appState.applications.find(a => Number(a.id) === Number(id));
-    if (app) Object.assign(app, upd);
-    return true;
-}
 
-async function submitEditRequest(e, id) {
-    e.preventDefault();
-    const reason = document.getElementById('er-reason').value.trim();
-    if (!reason) { showToast('กรุณาระบุเหตุผลที่ให้แก้ไข', 'error'); return; }
-    showLoader('กำลังส่งคำขอ...');
-    try {
-        const ok = await updateApplicationFields(id, {
-            edit_requested: true,
-            edit_reason: reason,
-            edit_requested_at: new Date().toISOString(),
-            edit_submitted_at: null
-        }, 'ส่งคำขอไม่สำเร็จ');
-        if (!ok) return;
-        closeEditReqModal();
-        switchAdminMenu('applications');
-        showToast('เปิดให้ผู้สมัครแก้ไขข้อมูลแล้ว', 'success');
-    } finally {
-        hideLoader();
-    }
-}
+        async function submitEditRequest(e, id) {
+            e.preventDefault();
+            const reason = document.getElementById('er-reason').value.trim();
+            if (!reason) { showToast('กรุณาระบุเหตุผลที่ให้แก้ไข', 'error'); return; }
+            showLoader('กำลังส่งคำขอ...');
+            try {
+                const ok = await updateApplicationFields(id, {
+                    edit_requested: true,
+                    edit_reason: reason,
+                    edit_requested_at: new Date().toISOString(),
+                    edit_submitted_at: null
+                }, 'ส่งคำขอไม่สำเร็จ');
+                if (!ok) return;
+                closeEditReqModal();
+                switchAdminMenu('applications');
+                showToast('เปิดให้ผู้สมัครแก้ไขข้อมูลแล้ว', 'success');
+            } finally {
+                hideLoader();
+            }
+        }
 
-async function cancelEditRequest(id) {
-    if (!confirm('ยกเลิกคำขอให้แก้ไข? ผู้สมัครจะไม่สามารถแก้ไขข้อมูลได้อีก')) return;
-    showLoader('กำลังยกเลิก...');
-    try {
-        const ok = await updateApplicationFields(id, { edit_requested: false }, 'ยกเลิกไม่สำเร็จ');
-        if (!ok) return;
-        switchAdminMenu('applications');
-        showToast('ยกเลิกคำขอให้แก้ไขแล้ว', 'warning');
-    } finally {
-        hideLoader();
-    }
-}
+        async function cancelEditRequest(id) {
+            if (!confirm('ยกเลิกคำขอให้แก้ไข? ผู้สมัครจะไม่สามารถแก้ไขข้อมูลได้อีก')) return;
+            showLoader('กำลังยกเลิก...');
+            try {
+                const ok = await updateApplicationFields(id, { edit_requested: false }, 'ยกเลิกไม่สำเร็จ');
+                if (!ok) return;
+                switchAdminMenu('applications');
+                showToast('ยกเลิกคำขอให้แก้ไขแล้ว', 'warning');
+            } finally {
+                hideLoader();
+            }
+        }
 
-// =====================================================================
-//  [เพิ่มใหม่] 2) ลงทะเบียนหน้างานด้วยการสแกนรหัสนักศึกษา (QR / บาร์โค้ด)
-//   - เครื่องสแกน QR (แบบ USB/Bluetooth ที่ทำงานเหมือนคีย์บอร์ด) และกล้องมือถือ
-//   - มีเสียงพูดภาษาไทยแจ้งผล
-//   - ลงทะเบียนกระทง: ลงทะเบียนรายบุคคลของสมาชิกทุกคน แยกเป็นรายทีม (เฉพาะผู้ดูแลระบบ)
-//   - ลงทะเบียนนางนพมาศ: ผู้ดูแลระบบ + เจ้าหน้าที่
-//   - พิมพ์ใบลงทะเบียนแบบทางการ (ตรา อวท. / เลขไทย / TH Sarabun PSK)
-// =====================================================================
-const CK = {
-    tab: null,
-    scanner: null,
-    scanning: false,
-    facing: 'environment',
-    voice: true,
-    last: { raw: '', t: 0 },
-    busy: false,
-    filter: '',
-    log: [],
-    ac: null
-};
+        // =====================================================================
+        //  [เพิ่มใหม่] 2) ลงทะเบียนหน้างานด้วยการสแกนรหัสนักศึกษา (QR / บาร์โค้ด)
+        //   - เครื่องสแกน QR (แบบ USB/Bluetooth ที่ทำงานเหมือนคีย์บอร์ด) และกล้องมือถือ
+        //   - มีเสียงพูดภาษาไทยแจ้งผล
+        //   - ลงทะเบียนกระทง: ลงทะเบียนรายบุคคลของสมาชิกทุกคน แยกเป็นรายทีม (เฉพาะผู้ดูแลระบบ)
+        //   - ลงทะเบียนนางนพมาศ: ผู้ดูแลระบบ + เจ้าหน้าที่
+        //   - พิมพ์ใบลงทะเบียนแบบทางการ (ตรา อวท. / เลขไทย / TH Sarabun PSK)
+        // =====================================================================
+        const CK = {
+            tab: null,
+            scanner: null,
+            scanning: false,
+            facing: 'environment',
+            voice: true,
+            last: { raw: '', t: 0 },
+            busy: false,
+            filter: '',
+            log: [],
+            ac: null
+        };
 
-function ckRole() { return getAdminRole() || 'admin'; }
-function ckAllowedTabs() { return ckRole() === 'admin' ? ['krathong_team', 'noppamas'] : ['noppamas']; }
-function ckTypeLabel(t) { return t === 'noppamas' ? 'นางนพมาศ' : 'กระทง'; }
-function ckActor() { return sessionStorage.getItem('admin_name') || ckRole(); }
-function ckHm(iso) { return iso ? new Date(iso).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : ''; }
+        function ckRole() { return getAdminRole() || 'admin'; }
+        function ckAllowedTabs() { return ckRole() === 'admin' ? ['krathong_team', 'noppamas'] : ['noppamas']; }
+        function ckTypeLabel(t) { return t === 'noppamas' ? 'นางนพมาศ' : 'กระทง'; }
+        function ckActor() { return sessionStorage.getItem('admin_name') || ckRole(); }
+        function ckHm(iso) { return iso ? new Date(iso).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : ''; }
 
-// ----- ข้อมูลสมาชิกทีม / สถานะการลงทะเบียนรายคน -----
-function ckMembers(app) {
-    const ms = Array.isArray(app.team_members) ? app.team_members.filter(m => m && (m.name || m.student_id)) : [];
-    return ms.length ? ms : [{ name: app.full_name, student_id: app.student_id }];
-}
-function ckMKey(m, i) { return m && m.student_id ? String(m.student_id) : 'm' + i; }
-function ckMap(app) {
-    return (app.member_checkins && typeof app.member_checkins === 'object') ? app.member_checkins : {};
-}
-// คืน {at, by} ถ้าสมาชิกคนที่ i ลงทะเบียนแล้ว (รองรับข้อมูลเดิมที่ลงทะเบียนทั้งทีมไว้ก่อนแล้ว)
-function ckMemberRec(app, i) {
-    const ms = ckMembers(app);
-    const m = ms[i];
-    if (!m) return null;
-    const map = ckMap(app);
-    if (map[ckMKey(m, i)]) return map[ckMKey(m, i)];
-    if (app.checked_in && Object.keys(map).length === 0) return { at: app.checked_in_at, by: app.checked_in_by };
-    return null;
-}
-function ckEffectiveMap(app) {
-    const out = {};
-    ckMembers(app).forEach((m, i) => { const r = ckMemberRec(app, i); if (r) out[ckMKey(m, i)] = r; });
-    return out;
-}
-function ckTeamCount(app) {
-    const ms = ckMembers(app);
-    return { done: ms.filter((m, i) => ckMemberRec(app, i)).length, total: ms.length };
-}
-function ckDone(app) {
-    if (app.contest_type === 'noppamas') return !!app.checked_in;
-    const c = ckTeamCount(app);
-    return c.total > 0 && c.done === c.total;
-}
-function ckMemberIdx(app, code) {
-    const i = ckMembers(app).findIndex(m => String(m.student_id) === String(code));
-    return i < 0 ? 0 : i;
-}
+        // ----- ข้อมูลสมาชิกทีม / สถานะการลงทะเบียนรายคน -----
+        function ckMembers(app) {
+            const ms = Array.isArray(app.team_members) ? app.team_members.filter(m => m && (m.name || m.student_id)) : [];
+            return ms.length ? ms : [{ name: app.full_name, student_id: app.student_id }];
+        }
+        function ckMKey(m, i) { return m && m.student_id ? String(m.student_id) : 'm' + i; }
+        function ckMap(app) {
+            return (app.member_checkins && typeof app.member_checkins === 'object') ? app.member_checkins : {};
+        }
+        // คืน {at, by} ถ้าสมาชิกคนที่ i ลงทะเบียนแล้ว (รองรับข้อมูลเดิมที่ลงทะเบียนทั้งทีมไว้ก่อนแล้ว)
+        function ckMemberRec(app, i) {
+            const ms = ckMembers(app);
+            const m = ms[i];
+            if (!m) return null;
+            const map = ckMap(app);
+            if (map[ckMKey(m, i)]) return map[ckMKey(m, i)];
+            if (app.checked_in && Object.keys(map).length === 0) return { at: app.checked_in_at, by: app.checked_in_by };
+            return null;
+        }
+        function ckEffectiveMap(app) {
+            const out = {};
+            ckMembers(app).forEach((m, i) => { const r = ckMemberRec(app, i); if (r) out[ckMKey(m, i)] = r; });
+            return out;
+        }
+        function ckTeamCount(app) {
+            const ms = ckMembers(app);
+            return { done: ms.filter((m, i) => ckMemberRec(app, i)).length, total: ms.length };
+        }
+        function ckDone(app) {
+            if (app.contest_type === 'noppamas') return !!app.checked_in;
+            const c = ckTeamCount(app);
+            return c.total > 0 && c.done === c.total;
+        }
+        function ckMemberIdx(app, code) {
+            const i = ckMembers(app).findIndex(m => String(m.student_id) === String(code));
+            return i < 0 ? 0 : i;
+        }
 
-// ----- เสียง -----
-function ckSpeak(text) {
-    if (!CK.voice || !('speechSynthesis' in window)) return;
-    try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'th-TH';
-        u.rate = 0.95;
-        const v = window.speechSynthesis.getVoices().find(x => /^th/i.test(x.lang));
-        if (v) u.voice = v;
-        window.speechSynthesis.speak(u);
-    } catch (e) { /* ไม่รองรับเสียงพูด */ }
-}
+        // ----- เสียง -----
+        function ckSpeak(text) {
+            if (!CK.voice || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'th-TH';
+                u.rate = 0.95;
+                const v = window.speechSynthesis.getVoices().find(x => /^th/i.test(x.lang));
+                if (v) u.voice = v;
+                window.speechSynthesis.speak(u);
+            } catch (e) { /* ไม่รองรับเสียงพูด */ }
+        }
 
-function ckBeep(ok) {
-    try {
-        const C = window.AudioContext || window.webkitAudioContext;
-        if (!C) return;
-        CK.ac = CK.ac || new C();
-        const o = CK.ac.createOscillator(), g = CK.ac.createGain();
-        o.type = 'sine';
-        o.frequency.value = ok ? 880 : 220;
-        g.gain.value = 0.08;
-        o.connect(g); g.connect(CK.ac.destination);
-        o.start();
-        o.stop(CK.ac.currentTime + (ok ? 0.12 : 0.35));
-    } catch (e) { }
-}
+        function ckBeep(ok) {
+            try {
+                const C = window.AudioContext || window.webkitAudioContext;
+                if (!C) return;
+                CK.ac = CK.ac || new C();
+                const o = CK.ac.createOscillator(), g = CK.ac.createGain();
+                o.type = 'sine';
+                o.frequency.value = ok ? 880 : 220;
+                g.gain.value = 0.08;
+                o.connect(g); g.connect(CK.ac.destination);
+                o.start();
+                o.stop(CK.ac.currentTime + (ok ? 0.12 : 0.35));
+            } catch (e) { }
+        }
 
-function ckTeamSpeak(app) {
-    return `ทีมสาขา${app.department || ''} ${app.edu_level || ''} ห้อง ${app.room_number || ''}`;
-}
+        function ckTeamSpeak(app) {
+            return `ทีมสาขา${app.department || ''} ${app.edu_level || ''} ห้อง ${app.room_number || ''}`;
+        }
 
-// ----- ค้นหาผู้สมัครจากรหัสที่สแกน -----
-function ckExtractCodes(raw) {
-    const s = String(raw || '').trim();
-    const codes = [];
-    if (/^\d+$/.test(s)) codes.push(s);
-    else (s.match(/\d{5,}/g) || []).forEach(c => codes.push(c));
-    if (!codes.length && s) codes.push(s);
-    return codes;
-}
+        // ----- ค้นหาผู้สมัครจากรหัสที่สแกน -----
+        function ckExtractCodes(raw) {
+            const s = String(raw || '').trim();
+            const codes = [];
+            if (/^\d+$/.test(s)) codes.push(s);
+            else (s.match(/\d{5,}/g) || []).forEach(c => codes.push(c));
+            if (!codes.length && s) codes.push(s);
+            return codes;
+        }
 
-function ckMatchApp(a, type, code) {
-    if (a.contest_type !== type) return false;
-    if (String(a.student_id) === code) return true;
-    return Array.isArray(a.team_members) && a.team_members.some(m => String(m.student_id) === code);
-}
+        function ckMatchApp(a, type, code) {
+            if (a.contest_type !== type) return false;
+            if (String(a.student_id) === code) return true;
+            return Array.isArray(a.team_members) && a.team_members.some(m => String(m.student_id) === code);
+        }
 
-function ckFind(type, raw) {
-    const codes = ckExtractCodes(raw);
-    for (const c of codes) {
-        const list = appState.applications.filter(a => ckMatchApp(a, type, c));
-        if (list.length) return { app: list.find(a => a.status === 'APPROVED') || list[0], code: c };
-    }
-    return { app: null, code: codes[0] || String(raw || '') };
-}
+        function ckFind(type, raw) {
+            const codes = ckExtractCodes(raw);
+            for (const c of codes) {
+                const list = appState.applications.filter(a => ckMatchApp(a, type, c));
+                if (list.length) return { app: list.find(a => a.status === 'APPROVED') || list[0], code: c };
+            }
+            return { app: null, code: codes[0] || String(raw || '') };
+        }
 
-function ckShowResult(kind, title, lines, number) {
-    const el = document.getElementById('ck-result');
-    if (!el) return;
-    const theme = {
-        ok: 'bg-emerald-500/15 border-emerald-400/60 text-emerald-100',
-        dup: 'bg-amber-500/15 border-amber-400/60 text-amber-100',
-        warn: 'bg-amber-500/15 border-amber-400/60 text-amber-100',
-        error: 'bg-rose-500/15 border-rose-400/60 text-rose-100',
-        idle: 'bg-slate-900/70 border-slate-700 text-slate-300'
-    }[kind] || '';
-    const icon = { ok: '✅', dup: '⚠️', warn: '⚠️', error: '❌', idle: '📷' }[kind];
-    el.innerHTML = `
+        function ckShowResult(kind, title, lines, number) {
+            const el = document.getElementById('ck-result');
+            if (!el) return;
+            const theme = {
+                ok: 'bg-emerald-500/15 border-emerald-400/60 text-emerald-100',
+                dup: 'bg-amber-500/15 border-amber-400/60 text-amber-100',
+                warn: 'bg-amber-500/15 border-amber-400/60 text-amber-100',
+                error: 'bg-rose-500/15 border-rose-400/60 text-rose-100',
+                idle: 'bg-slate-900/70 border-slate-700 text-slate-300'
+            }[kind] || '';
+            const icon = { ok: '✅', dup: '⚠️', warn: '⚠️', error: '❌', idle: '📷' }[kind];
+            el.innerHTML = `
         <div class="p-5 rounded-2xl border ${theme} text-center space-y-1.5">
             <div class="text-3xl">${icon}</div>
             ${number ? `<div class="text-5xl font-extrabold gold-gradient-text">${escHtml(number)}</div>` : ''}
             <div class="text-base font-bold">${escHtml(title)}</div>
             ${(lines || []).filter(Boolean).map(l => `<div class="text-xs opacity-90">${escHtml(l)}</div>`).join('')}
         </div>`;
-}
-
-function ckFeedback(kind, speech) {
-    ckBeep(kind === 'ok');
-    ckSpeak(speech);
-}
-
-// ตรวจสิทธิ์/สถานะใบสมัครก่อนลงทะเบียน (คืน true ถ้าผ่าน)
-function ckGuard(app) {
-    if (app.contest_type !== 'noppamas' && ckRole() !== 'admin') {
-        const m = 'สิทธิ์เจ้าหน้าที่ลงทะเบียนได้เฉพาะนางนพมาศ';
-        ckShowResult('error', m, []); ckFeedback('error', m);
-        return false;
-    }
-    if (app.status !== 'APPROVED') {
-        ckShowResult('warn', 'ใบสมัครยังไม่ได้รับการอนุมัติ', [getDisplayName(app)]);
-        ckFeedback('warn', 'ใบสมัครยังไม่ได้รับการอนุมัติ');
-        return false;
-    }
-    return true;
-}
-
-// ลงทะเบียนนางนพมาศ (รายบุคคล)
-async function ckRegisterNoppamas(app, source) {
-    if (!ckGuard(app)) return false;
-    if (app.checked_in) {
-        ckShowResult('dup', 'ลงทะเบียนไปแล้ว', [getDisplayName(app), app.checked_in_at ? `เมื่อเวลา ${ckHm(app.checked_in_at)} น.` : ''], app.contestant_number);
-        ckFeedback('dup', `${app.full_name} ลงทะเบียนไปแล้ว`);
-        return false;
-    }
-    const upd = { checked_in: true, checked_in_at: new Date().toISOString(), checked_in_by: ckActor() };
-    const ok = await updateApplicationFields(app.id, upd, 'ลงทะเบียนไม่สำเร็จ');
-    if (!ok) {
-        ckShowResult('error', 'บันทึกการลงทะเบียนไม่สำเร็จ', ['ดูรายละเอียดในข้อความแจ้งเตือน']);
-        ckFeedback('error', 'บันทึกการลงทะเบียนไม่สำเร็จ');
-        return false;
-    }
-    CK.log.unshift({ id: app.id, name: app.full_name, t: upd.checked_in_at });
-    CK.log = CK.log.slice(0, 8);
-    ckShowResult('ok', 'ลงทะเบียนนางนพมาศสำเร็จ', [app.full_name, `รหัส ${app.student_id}`], app.contestant_number);
-    ckFeedback('ok', `ลงทะเบียนนางนพมาศสำเร็จ หมายเลข ${app.contestant_number || ''} ${app.full_name}`);
-    ckRenderLists();
-    return true;
-}
-
-// ลงทะเบียนสมาชิกกระทงรายคน (idxList = ลำดับสมาชิกที่จะลงทะเบียน)
-async function ckRegisterMembers(app, idxList, source) {
-    if (!ckGuard(app)) return false;
-    const ms = ckMembers(app);
-    const todo = idxList.filter(i => ms[i] && !ckMemberRec(app, i));
-    if (!todo.length) {
-        const m = ms[idxList[0]] || {};
-        const rec = ckMemberRec(app, idxList[0]);
-        ckShowResult('dup', 'สมาชิกคนนี้ลงทะเบียนไปแล้ว', [m.name, rec && rec.at ? `เมื่อเวลา ${ckHm(rec.at)} น.` : ''], app.contestant_number);
-        ckFeedback('dup', `${m.name || 'สมาชิก'} ลงทะเบียนไปแล้ว`);
-        return false;
-    }
-    const now = new Date().toISOString();
-    const map = ckEffectiveMap(app);
-    todo.forEach(i => { map[ckMKey(ms[i], i)] = { at: now, by: ckActor() }; });
-    const allDone = ms.every((m, i) => map[ckMKey(m, i)]);
-    const upd = {
-        member_checkins: map,
-        checked_in: allDone,
-        checked_in_at: allDone ? now : (app.checked_in_at || null),
-        checked_in_by: ckActor()
-    };
-    const ok = await updateApplicationFields(app.id, upd, 'ลงทะเบียนไม่สำเร็จ');
-    if (!ok) {
-        ckShowResult('error', 'บันทึกการลงทะเบียนไม่สำเร็จ', ['ดูรายละเอียดในข้อความแจ้งเตือน']);
-        ckFeedback('error', 'บันทึกการลงทะเบียนไม่สำเร็จ');
-        return false;
-    }
-    const c = ckTeamCount(app);
-    const who = todo.length === 1 ? ms[todo[0]].name : `สมาชิก ${todo.length} คน`;
-    CK.log.unshift({ id: app.id, name: who, t: now });
-    CK.log = CK.log.slice(0, 8);
-    ckShowResult('ok', allDone ? 'ลงทะเบียนครบทั้งทีมแล้ว' : 'ลงทะเบียนสมาชิกสำเร็จ',
-        [who, getDisplayName(app), `ลงทะเบียนแล้ว ${c.done} / ${c.total} คน`], app.contestant_number);
-    ckFeedback('ok', `ลงทะเบียนกระทงสำเร็จ ${who} ทีมหมายเลข ${app.contestant_number || ''} ลงทะเบียนแล้ว ${c.done} จาก ${c.total} คน${allDone ? ' ครบทั้งทีมแล้ว' : ''}`);
-    ckRenderLists();
-    return true;
-}
-
-async function ckProcess(raw, source) {
-    raw = String(raw || '').trim();
-    if (!raw || CK.busy) return;
-    const now = Date.now();
-    if (CK.last.raw === raw && now - CK.last.t < 3000) return; // กันสแกนซ้ำรัว ๆ
-    CK.last = { raw, t: now };
-    CK.busy = true;
-    try {
-        const type = CK.tab;
-        if (!ckAllowedTabs().includes(type)) return;
-        const { app, code } = ckFind(type, raw);
-        if (!app) {
-            const other = type === 'noppamas' ? 'krathong_team' : 'noppamas';
-            const hit = ckFind(other, raw).app;
-            if (hit) {
-                const msg = `รหัสนี้สมัครประเภท${ckTypeLabel(other)} ไม่ใช่${ckTypeLabel(type)}`;
-                ckShowResult('warn', msg, [`รหัส ${code}`]);
-                ckFeedback('warn', msg);
-            } else {
-                ckShowResult('error', 'ไม่พบข้อมูลรหัสนี้ในระบบ', [`รหัส ${code}`]);
-                ckFeedback('error', 'ไม่พบข้อมูลรหัสนี้ในระบบ');
-            }
-            return;
         }
-        if (type === 'noppamas') await ckRegisterNoppamas(app, source);
-        else await ckRegisterMembers(app, [ckMemberIdx(app, code)], source);
-    } finally {
-        CK.busy = false;
-    }
-}
 
-function ckSubmitInput(e) {
-    e.preventDefault();
-    const inp = document.getElementById('ck-input');
-    const v = inp.value;
-    inp.value = '';
-    ckProcess(v, 'input');
-    inp.focus();
-}
+        function ckFeedback(kind, speech) {
+            ckBeep(kind === 'ok');
+            ckSpeak(speech);
+        }
 
-function ckGetApp(id) { return appState.applications.find(a => Number(a.id) === Number(id)); }
-async function ckManual(id) { const a = ckGetApp(id); if (a) await ckRegisterNoppamas(a, 'manual'); }
-async function ckManualMember(id, idx) { const a = ckGetApp(id); if (a) await ckRegisterMembers(a, [idx], 'manual'); }
-async function ckManualTeam(id) {
-    const a = ckGetApp(id);
-    if (!a) return;
-    const all = ckMembers(a).map((m, i) => i);
-    if (await ckRegisterMembers(a, all, 'manual')) ckSpeak(`ลงทะเบียนทั้งทีมสำเร็จ หมายเลข ${a.contestant_number || ''}`);
-}
+        // ตรวจสิทธิ์/สถานะใบสมัครก่อนลงทะเบียน (คืน true ถ้าผ่าน)
+        function ckGuard(app) {
+            if (app.contest_type !== 'noppamas' && ckRole() !== 'admin') {
+                const m = 'สิทธิ์เจ้าหน้าที่ลงทะเบียนได้เฉพาะนางนพมาศ';
+                ckShowResult('error', m, []); ckFeedback('error', m);
+                return false;
+            }
+            if (app.status !== 'APPROVED') {
+                ckShowResult('warn', 'ใบสมัครยังไม่ได้รับการอนุมัติ', [getDisplayName(app)]);
+                ckFeedback('warn', 'ใบสมัครยังไม่ได้รับการอนุมัติ');
+                return false;
+            }
+            return true;
+        }
 
-async function ckUnregister(id) {
-    if (ckRole() !== 'admin') return;
-    const app = ckGetApp(id);
-    if (!app || !confirm(`ยกเลิกการลงทะเบียนของ "${getDisplayName(app)}" ?`)) return;
-    const upd = { checked_in: false, checked_in_at: null, checked_in_by: null };
-    if (app.contest_type !== 'noppamas') upd.member_checkins = {};
-    const ok = await updateApplicationFields(id, upd, 'ยกเลิกไม่สำเร็จ');
-    if (ok) { ckRenderLists(); showToast('ยกเลิกการลงทะเบียนแล้ว', 'warning'); }
-}
+        // ลงทะเบียนนางนพมาศ (รายบุคคล)
+        async function ckRegisterNoppamas(app, source) {
+            if (!ckGuard(app)) return false;
+            if (app.checked_in) {
+                ckShowResult('dup', 'ลงทะเบียนไปแล้ว', [getDisplayName(app), app.checked_in_at ? `เมื่อเวลา ${ckHm(app.checked_in_at)} น.` : ''], app.contestant_number);
+                ckFeedback('dup', `${app.full_name} ลงทะเบียนไปแล้ว`);
+                return false;
+            }
+            const upd = { checked_in: true, checked_in_at: new Date().toISOString(), checked_in_by: ckActor() };
+            const ok = await updateApplicationFields(app.id, upd, 'ลงทะเบียนไม่สำเร็จ');
+            if (!ok) {
+                ckShowResult('error', 'บันทึกการลงทะเบียนไม่สำเร็จ', ['ดูรายละเอียดในข้อความแจ้งเตือน']);
+                ckFeedback('error', 'บันทึกการลงทะเบียนไม่สำเร็จ');
+                return false;
+            }
+            CK.log.unshift({ id: app.id, name: app.full_name, t: upd.checked_in_at });
+            CK.log = CK.log.slice(0, 8);
+            ckShowResult('ok', 'ลงทะเบียนนางนพมาศสำเร็จ', [app.full_name, `รหัส ${app.student_id}`], app.contestant_number);
+            ckFeedback('ok', `ลงทะเบียนนางนพมาศสำเร็จ หมายเลข ${app.contestant_number || ''} ${app.full_name}`);
+            ckRenderLists();
+            return true;
+        }
 
-async function ckUnregisterMember(id, idx) {
-    if (ckRole() !== 'admin') return;
-    const app = ckGetApp(id);
-    if (!app) return;
-    const m = ckMembers(app)[idx];
-    if (!m || !confirm(`ยกเลิกการลงทะเบียนของ "${m.name}" ?`)) return;
-    const map = ckEffectiveMap(app);
-    delete map[ckMKey(m, idx)];
-    const ok = await updateApplicationFields(id, { member_checkins: map, checked_in: false, checked_in_at: null }, 'ยกเลิกไม่สำเร็จ');
-    if (ok) { ckRenderLists(); showToast('ยกเลิกการลงทะเบียนแล้ว', 'warning'); }
-}
+        // ลงทะเบียนสมาชิกกระทงรายคน (idxList = ลำดับสมาชิกที่จะลงทะเบียน)
+        async function ckRegisterMembers(app, idxList, source) {
+            if (!ckGuard(app)) return false;
+            const ms = ckMembers(app);
+            const todo = idxList.filter(i => ms[i] && !ckMemberRec(app, i));
+            if (!todo.length) {
+                const m = ms[idxList[0]] || {};
+                const rec = ckMemberRec(app, idxList[0]);
+                ckShowResult('dup', 'สมาชิกคนนี้ลงทะเบียนไปแล้ว', [m.name, rec && rec.at ? `เมื่อเวลา ${ckHm(rec.at)} น.` : ''], app.contestant_number);
+                ckFeedback('dup', `${m.name || 'สมาชิก'} ลงทะเบียนไปแล้ว`);
+                return false;
+            }
+            const now = new Date().toISOString();
+            const map = ckEffectiveMap(app);
+            todo.forEach(i => { map[ckMKey(ms[i], i)] = { at: now, by: ckActor() }; });
+            const allDone = ms.every((m, i) => map[ckMKey(m, i)]);
+            const upd = {
+                member_checkins: map,
+                checked_in: allDone,
+                checked_in_at: allDone ? now : (app.checked_in_at || null),
+                checked_in_by: ckActor()
+            };
+            const ok = await updateApplicationFields(app.id, upd, 'ลงทะเบียนไม่สำเร็จ');
+            if (!ok) {
+                ckShowResult('error', 'บันทึกการลงทะเบียนไม่สำเร็จ', ['ดูรายละเอียดในข้อความแจ้งเตือน']);
+                ckFeedback('error', 'บันทึกการลงทะเบียนไม่สำเร็จ');
+                return false;
+            }
+            const c = ckTeamCount(app);
+            const who = todo.length === 1 ? ms[todo[0]].name : `สมาชิก ${todo.length} คน`;
+            CK.log.unshift({ id: app.id, name: who, t: now });
+            CK.log = CK.log.slice(0, 8);
+            ckShowResult('ok', allDone ? 'ลงทะเบียนครบทั้งทีมแล้ว' : 'ลงทะเบียนสมาชิกสำเร็จ',
+                [who, getDisplayName(app), `ลงทะเบียนแล้ว ${c.done} / ${c.total} คน`], app.contestant_number);
+            ckFeedback('ok', `ลงทะเบียนกระทงสำเร็จ ${who} ทีมหมายเลข ${app.contestant_number || ''} ลงทะเบียนแล้ว ${c.done} จาก ${c.total} คน${allDone ? ' ครบทั้งทีมแล้ว' : ''}`);
+            ckRenderLists();
+            return true;
+        }
 
-// ----- กล้องมือถือ -----
-async function ckStartCamera() {
-    if (CK.scanning) return;
-    if (typeof Html5Qrcode === 'undefined') {
-        showToast('โหลดตัวสแกนกล้องไม่สำเร็จ (ตรวจสอบอินเทอร์เน็ต)', 'error');
-        return;
-    }
-    if (!window.isSecureContext) {
-        showToast('กล้องใช้งานได้เฉพาะเว็บ HTTPS เท่านั้น', 'error');
-        return;
-    }
-    const reader = document.getElementById('ck-reader');
-    if (!reader) return;
-    reader.classList.remove('hidden');
-    try {
-        const F = Html5QrcodeSupportedFormats;
-        CK.scanner = new Html5Qrcode('ck-reader', { formatsToSupport: [F.QR_CODE, F.CODE_128, F.CODE_39], verbose: false });
-        await CK.scanner.start(
-            { facingMode: CK.facing },
-            {
-                fps: 10,
-                qrbox: (w, h) => ({ width: Math.floor(w * 0.8), height: Math.floor(Math.min(w, h) * 0.7) })
-            },
-            txt => ckProcess(txt, 'camera'),
-            () => { }
-        );
-        CK.scanning = true;
-        ckSpeak('เปิดกล้องแล้ว พร้อมสแกน'); // ปลดล็อกเสียงบนมือถือด้วย
-    } catch (err) {
-        console.error('camera error:', err);
-        CK.scanning = false;
-        CK.scanner = null;
-        reader.classList.add('hidden');
-        showToast('เปิดกล้องไม่ได้: ' + (err && err.message ? err.message : err) + ' (ตรวจสอบสิทธิ์การใช้กล้องในเบราว์เซอร์)', 'error');
-    }
-    ckRenderControls();
-}
+        async function ckProcess(raw, source) {
+            raw = String(raw || '').trim();
+            if (!raw || CK.busy) return;
+            const now = Date.now();
+            if (CK.last.raw === raw && now - CK.last.t < 3000) return; // กันสแกนซ้ำรัว ๆ
+            CK.last = { raw, t: now };
+            CK.busy = true;
+            try {
+                const type = CK.tab;
+                if (!ckAllowedTabs().includes(type)) return;
+                const { app, code } = ckFind(type, raw);
+                if (!app) {
+                    const other = type === 'noppamas' ? 'krathong_team' : 'noppamas';
+                    const hit = ckFind(other, raw).app;
+                    if (hit) {
+                        const msg = `รหัสนี้สมัครประเภท${ckTypeLabel(other)} ไม่ใช่${ckTypeLabel(type)}`;
+                        ckShowResult('warn', msg, [`รหัส ${code}`]);
+                        ckFeedback('warn', msg);
+                    } else {
+                        ckShowResult('error', 'ไม่พบข้อมูลรหัสนี้ในระบบ', [`รหัส ${code}`]);
+                        ckFeedback('error', 'ไม่พบข้อมูลรหัสนี้ในระบบ');
+                    }
+                    return;
+                }
+                if (type === 'noppamas') await ckRegisterNoppamas(app, source);
+                else await ckRegisterMembers(app, [ckMemberIdx(app, code)], source);
+            } finally {
+                CK.busy = false;
+            }
+        }
 
-async function ckStopScanner() {
-    const sc = CK.scanner;
-    CK.scanner = null;
-    CK.scanning = false;
-    if (sc) {
-        try { await sc.stop(); } catch (e) { }
-        try { sc.clear(); } catch (e) { }
-    }
-    const reader = document.getElementById('ck-reader');
-    if (reader) reader.classList.add('hidden');
-    ckRenderControls();
-}
+        function ckSubmitInput(e) {
+            e.preventDefault();
+            const inp = document.getElementById('ck-input');
+            const v = inp.value;
+            inp.value = '';
+            ckProcess(v, 'input');
+            inp.focus();
+        }
 
-async function ckSwitchCamera() {
-    CK.facing = CK.facing === 'environment' ? 'user' : 'environment';
-    if (CK.scanning) {
-        await ckStopScanner();
-        await ckStartCamera();
-    } else {
-        ckRenderControls();
-    }
-}
+        function ckGetApp(id) { return appState.applications.find(a => Number(a.id) === Number(id)); }
+        async function ckManual(id) { const a = ckGetApp(id); if (a) await ckRegisterNoppamas(a, 'manual'); }
+        async function ckManualMember(id, idx) { const a = ckGetApp(id); if (a) await ckRegisterMembers(a, [idx], 'manual'); }
+        async function ckManualTeam(id) {
+            const a = ckGetApp(id);
+            if (!a) return;
+            const all = ckMembers(a).map((m, i) => i);
+            if (await ckRegisterMembers(a, all, 'manual')) ckSpeak(`ลงทะเบียนทั้งทีมสำเร็จ หมายเลข ${a.contestant_number || ''}`);
+        }
 
-function ckToggleVoice() {
-    CK.voice = !CK.voice;
-    if (!CK.voice && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-    ckRenderControls();
-    if (CK.voice) ckSpeak('เปิดเสียงพูดแล้ว');
-}
+        async function ckUnregister(id) {
+            if (ckRole() !== 'admin') return;
+            const app = ckGetApp(id);
+            if (!app || !confirm(`ยกเลิกการลงทะเบียนของ "${getDisplayName(app)}" ?`)) return;
+            const upd = { checked_in: false, checked_in_at: null, checked_in_by: null };
+            if (app.contest_type !== 'noppamas') upd.member_checkins = {};
+            const ok = await updateApplicationFields(id, upd, 'ยกเลิกไม่สำเร็จ');
+            if (ok) { ckRenderLists(); showToast('ยกเลิกการลงทะเบียนแล้ว', 'warning'); }
+        }
 
-function ckSetTab(t) {
-    if (!ckAllowedTabs().includes(t)) return;
-    CK.tab = t;
-    CK.filter = '';
-    const f = document.getElementById('ck-filter');
-    if (f) f.value = '';
-    ckRenderTabs();
-    ckRenderLists();
-    ckShowResult('idle', `พร้อมลงทะเบียน${ckTypeLabel(t)}`, [t === 'noppamas' ? 'สแกน QR รหัสนักศึกษา หรือพิมพ์รหัสแล้วกด Enter' : 'สแกนรหัสนักศึกษาของสมาชิกแต่ละคน ระบบจะลงทะเบียนรายบุคคลในทีมของตน']);
-    const inp = document.getElementById('ck-input');
-    if (inp) inp.focus();
-}
+        async function ckUnregisterMember(id, idx) {
+            if (ckRole() !== 'admin') return;
+            const app = ckGetApp(id);
+            if (!app) return;
+            const m = ckMembers(app)[idx];
+            if (!m || !confirm(`ยกเลิกการลงทะเบียนของ "${m.name}" ?`)) return;
+            const map = ckEffectiveMap(app);
+            delete map[ckMKey(m, idx)];
+            const ok = await updateApplicationFields(id, { member_checkins: map, checked_in: false, checked_in_at: null }, 'ยกเลิกไม่สำเร็จ');
+            if (ok) { ckRenderLists(); showToast('ยกเลิกการลงทะเบียนแล้ว', 'warning'); }
+        }
 
-function ckSetFilter(v) {
-    CK.filter = String(v || '').trim().toLowerCase();
-    ckRenderLists();
-}
+        // ----- กล้องมือถือ -----
+        async function ckStartCamera() {
+            if (CK.scanning) return;
+            if (typeof Html5Qrcode === 'undefined') {
+                showToast('โหลดตัวสแกนกล้องไม่สำเร็จ (ตรวจสอบอินเทอร์เน็ต)', 'error');
+                return;
+            }
+            if (!window.isSecureContext) {
+                showToast('กล้องใช้งานได้เฉพาะเว็บ HTTPS เท่านั้น', 'error');
+                return;
+            }
+            const reader = document.getElementById('ck-reader');
+            if (!reader) return;
+            reader.classList.remove('hidden');
+            try {
+                const F = Html5QrcodeSupportedFormats;
+                CK.scanner = new Html5Qrcode('ck-reader', { formatsToSupport: [F.QR_CODE, F.CODE_128, F.CODE_39], verbose: false });
+                await CK.scanner.start(
+                    { facingMode: CK.facing },
+                    {
+                        fps: 10,
+                        qrbox: (w, h) => ({ width: Math.floor(w * 0.8), height: Math.floor(Math.min(w, h) * 0.7) })
+                    },
+                    txt => ckProcess(txt, 'camera'),
+                    () => { }
+                );
+                CK.scanning = true;
+                ckSpeak('เปิดกล้องแล้ว พร้อมสแกน'); // ปลดล็อกเสียงบนมือถือด้วย
+            } catch (err) {
+                console.error('camera error:', err);
+                CK.scanning = false;
+                CK.scanner = null;
+                reader.classList.add('hidden');
+                showToast('เปิดกล้องไม่ได้: ' + (err && err.message ? err.message : err) + ' (ตรวจสอบสิทธิ์การใช้กล้องในเบราว์เซอร์)', 'error');
+            }
+            ckRenderControls();
+        }
 
-// ----- การแสดงผล -----
-function ckRenderTabs() {
-    const el = document.getElementById('ck-tabs');
-    if (!el) return;
-    el.innerHTML = ckAllowedTabs().map(t => `
+        async function ckStopScanner() {
+            const sc = CK.scanner;
+            CK.scanner = null;
+            CK.scanning = false;
+            if (sc) {
+                try { await sc.stop(); } catch (e) { }
+                try { sc.clear(); } catch (e) { }
+            }
+            const reader = document.getElementById('ck-reader');
+            if (reader) reader.classList.add('hidden');
+            ckRenderControls();
+        }
+
+        async function ckSwitchCamera() {
+            CK.facing = CK.facing === 'environment' ? 'user' : 'environment';
+            if (CK.scanning) {
+                await ckStopScanner();
+                await ckStartCamera();
+            } else {
+                ckRenderControls();
+            }
+        }
+
+        function ckToggleVoice() {
+            CK.voice = !CK.voice;
+            if (!CK.voice && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+            ckRenderControls();
+            if (CK.voice) ckSpeak('เปิดเสียงพูดแล้ว');
+        }
+
+        function ckSetTab(t) {
+            if (!ckAllowedTabs().includes(t)) return;
+            CK.tab = t;
+            CK.filter = '';
+            const f = document.getElementById('ck-filter');
+            if (f) f.value = '';
+            ckRenderTabs();
+            ckRenderLists();
+            ckShowResult('idle', `พร้อมลงทะเบียน${ckTypeLabel(t)}`, [t === 'noppamas' ? 'สแกน QR รหัสนักศึกษา หรือพิมพ์รหัสแล้วกด Enter' : 'สแกนรหัสนักศึกษาของสมาชิกแต่ละคน ระบบจะลงทะเบียนรายบุคคลในทีมของตน']);
+            const inp = document.getElementById('ck-input');
+            if (inp) inp.focus();
+        }
+
+        function ckSetFilter(v) {
+            CK.filter = String(v || '').trim().toLowerCase();
+            ckRenderLists();
+        }
+
+        // ----- การแสดงผล -----
+        function ckRenderTabs() {
+            const el = document.getElementById('ck-tabs');
+            if (!el) return;
+            el.innerHTML = ckAllowedTabs().map(t => `
         <button onclick="ckSetTab('${t}')" class="px-5 py-2.5 rounded-xl text-sm font-bold transition ${CK.tab === t ? 'bg-amber-400 text-slate-950' : 'text-slate-300 hover:text-white'}">
             ${t === 'noppamas' ? '👑 ลงทะเบียนนางนพมาศ' : '🪷 ลงทะเบียนกระทง (รายทีม)'}
         </button>`).join('');
-    const note = document.getElementById('ck-role-note');
-    if (note) note.classList.toggle('hidden', ckRole() === 'admin');
-}
+            const note = document.getElementById('ck-role-note');
+            if (note) note.classList.toggle('hidden', ckRole() === 'admin');
+        }
 
-function ckRenderControls() {
-    const el = document.getElementById('ck-controls');
-    if (!el) return;
-    el.innerHTML = `
+        function ckRenderControls() {
+            const el = document.getElementById('ck-controls');
+            if (!el) return;
+            el.innerHTML = `
         ${CK.scanning
-            ? `<button onclick="ckStopScanner()" class="px-4 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-sm">⏹ ปิดกล้อง</button>`
-            : `<button onclick="ckStartCamera()" class="px-4 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-bold text-sm">📷 เปิดกล้องสแกน</button>`}
+                    ? `<button onclick="ckStopScanner()" class="px-4 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-sm">⏹ ปิดกล้อง</button>`
+                    : `<button onclick="ckStartCamera()" class="px-4 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-bold text-sm">📷 เปิดกล้องสแกน</button>`}
         <button onclick="ckSwitchCamera()" class="px-3 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-sm">🔄 ${CK.facing === 'environment' ? 'กล้องหลัง' : 'กล้องหน้า'}</button>
         <button onclick="ckToggleVoice()" class="px-3 py-2.5 rounded-xl text-sm ${CK.voice ? 'bg-amber-400/20 border border-amber-400/50 text-amber-200' : 'bg-slate-800 text-slate-400'}">${CK.voice ? '🔊 เสียงพูด: เปิด' : '🔇 เสียงพูด: ปิด'}</button>`;
-}
+        }
 
-function ckApproved(type) {
-    return appState.applications.filter(a => a.contest_type === type && a.status === 'APPROVED')
-        .sort((a, b) => Number(a.contestant_number || 9999) - Number(b.contestant_number || 9999));
-}
+        function ckApproved(type) {
+            return appState.applications.filter(a => a.contest_type === type && a.status === 'APPROVED')
+                .sort((a, b) => Number(a.contestant_number || 9999) - Number(b.contestant_number || 9999));
+        }
 
-function ckStatusBadge(rec) {
-    return rec
-        ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">✅ ลงทะเบียนแล้ว${rec.at ? ' ' + ckHm(rec.at) : ''}</span>`
-        : `<span class="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">ยังไม่ลงทะเบียน</span>`;
-}
+        function ckStatusBadge(rec) {
+            return rec
+                ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">✅ ลงทะเบียนแล้ว${rec.at ? ' ' + ckHm(rec.at) : ''}</span>`
+                : `<span class="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">ยังไม่ลงทะเบียน</span>`;
+        }
 
-function ckRenderLists() {
-    const type = CK.tab;
-    const isNop = type === 'noppamas';
-    const all = ckApproved(type);
-    const isAdmin = ckRole() === 'admin';
+        function ckRenderLists() {
+            const type = CK.tab;
+            const isNop = type === 'noppamas';
+            const all = ckApproved(type);
+            const isAdmin = ckRole() === 'admin';
 
-    // สถิติ
-    let done, total, extra = '';
-    if (isNop) {
-        done = all.filter(a => a.checked_in).length; total = all.length;
-    } else {
-        done = all.reduce((s, a) => s + ckTeamCount(a).done, 0);
-        total = all.reduce((s, a) => s + ckTeamCount(a).total, 0);
-        extra = ` • ครบทีมแล้ว ${all.filter(ckDone).length} / ${all.length} ทีม`;
-    }
-    const pct = total ? Math.round(done * 100 / total) : 0;
-    const stats = document.getElementById('ck-stats');
-    if (stats) stats.innerHTML = `
+            // สถิติ
+            let done, total, extra = '';
+            if (isNop) {
+                done = all.filter(a => a.checked_in).length; total = all.length;
+            } else {
+                done = all.reduce((s, a) => s + ckTeamCount(a).done, 0);
+                total = all.reduce((s, a) => s + ckTeamCount(a).total, 0);
+                extra = ` • ครบทีมแล้ว ${all.filter(ckDone).length} / ${all.length} ทีม`;
+            }
+            const pct = total ? Math.round(done * 100 / total) : 0;
+            const stats = document.getElementById('ck-stats');
+            if (stats) stats.innerHTML = `
         <div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-400/30">
             <div class="flex flex-wrap items-center justify-between gap-1 text-sm mb-2">
                 <span class="text-slate-200">ลงทะเบียน${ckTypeLabel(type)}แล้ว <span class="text-slate-400 text-xs">${isNop ? 'คน' : 'คน (รายบุคคล)'}${extra}</span></span>
@@ -6391,31 +6525,31 @@ function ckRenderLists() {
             <p class="text-[11px] text-slate-400 mt-2">แสดงเฉพาะผู้ที่ได้รับอนุมัติใบสมัครแล้ว</p>
         </div>`;
 
-    // ล่าสุด
-    const log = document.getElementById('ck-log');
-    if (log) {
-        const items = CK.log.map(l => ({ l, a: ckGetApp(l.id) })).filter(x => x.a && x.a.contest_type === type);
-        log.innerHTML = items.length ? `
+            // ล่าสุด
+            const log = document.getElementById('ck-log');
+            if (log) {
+                const items = CK.log.map(l => ({ l, a: ckGetApp(l.id) })).filter(x => x.a && x.a.contest_type === type);
+                log.innerHTML = items.length ? `
             <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-700">
                 <h4 class="text-xs font-bold text-amber-300 mb-2">ลงทะเบียนล่าสุด</h4>
                 <ul class="space-y-1 text-xs text-slate-200">
                     ${items.map(({ l, a }) => `<li class="flex justify-between gap-2"><span>${escHtml(a.contestant_number || '-')} • ${escHtml(l.name || getDisplayName(a))}</span><span class="text-slate-400">${ckHm(l.t)}</span></li>`).join('')}
                 </ul>
             </div>` : '';
-    }
+            }
 
-    // ตาราง
-    const q = CK.filter;
-    const rows = all.filter(a => !q || [a.full_name, a.student_id, a.department, String(a.contestant_number || ''),
-        ...(Array.isArray(a.team_members) ? a.team_members.flatMap(m => [m.name, m.student_id]) : [])]
-        .some(v => String(v || '').toLowerCase().includes(q)));
+            // ตาราง
+            const q = CK.filter;
+            const rows = all.filter(a => !q || [a.full_name, a.student_id, a.department, String(a.contestant_number || ''),
+            ...(Array.isArray(a.team_members) ? a.team_members.flatMap(m => [m.name, m.student_id]) : [])]
+                .some(v => String(v || '').toLowerCase().includes(q)));
 
-    const printBtn = id => `<button onclick="ckPrintSlip(${id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 text-xs font-bold">🖨️ ใบลงทะเบียน</button>`;
-    let body = '';
-    if (!rows.length) {
-        body = '<tr><td colspan="5" class="py-4 text-center text-slate-500">ไม่พบรายการ</td></tr>';
-    } else if (isNop) {
-        body = rows.map(a => `
+            const printBtn = id => `<button onclick="ckPrintSlip(${id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 text-xs font-bold">🖨️ ใบลงทะเบียน</button>`;
+            let body = '';
+            if (!rows.length) {
+                body = '<tr><td colspan="5" class="py-4 text-center text-slate-500">ไม่พบรายการ</td></tr>';
+            } else if (isNop) {
+                body = rows.map(a => `
             <tr>
                 <td class="py-2.5 px-3 font-extrabold text-amber-300">${escHtml(a.contestant_number || '-')}</td>
                 <td class="py-2.5 px-3 text-white">${escHtml(a.full_name)}</td>
@@ -6423,15 +6557,15 @@ function ckRenderLists() {
                 <td class="py-2.5 px-3">${ckStatusBadge(a.checked_in ? { at: a.checked_in_at } : null)}</td>
                 <td class="py-2.5 px-3 text-right"><div class="flex flex-wrap justify-end gap-1.5">
                     ${a.checked_in
-                ? (isAdmin ? `<button onclick="ckUnregister(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 text-xs font-bold">ยกเลิก</button>` : '')
-                : `<button onclick="ckManual(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold">ลงทะเบียน</button>`}
+                        ? (isAdmin ? `<button onclick="ckUnregister(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 text-xs font-bold">ยกเลิก</button>` : '')
+                        : `<button onclick="ckManual(${a.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold">ลงทะเบียน</button>`}
                     ${printBtn(a.id)}
                 </div></td>
             </tr>`).join('');
-    } else {
-        body = rows.map(a => {
-            const c = ckTeamCount(a);
-            const head = `
+            } else {
+                body = rows.map(a => {
+                    const c = ckTeamCount(a);
+                    const head = `
             <tr class="bg-slate-800/70">
                 <td class="py-2.5 px-3 font-extrabold text-amber-300">${escHtml(a.contestant_number || '-')}</td>
                 <td class="py-2.5 px-3 text-white font-bold" colspan="2">🪷 ทีม ${escHtml(getDisplayName(a))}</td>
@@ -6441,24 +6575,24 @@ function ckRenderLists() {
                     ${printBtn(a.id)}
                 </div></td>
             </tr>`;
-            const mem = ckMembers(a).map((m, i) => {
-                const rec = ckMemberRec(a, i);
-                return `
+                    const mem = ckMembers(a).map((m, i) => {
+                        const rec = ckMemberRec(a, i);
+                        return `
             <tr>
                 <td class="py-2 px-3 text-slate-500 text-right">${i + 1}</td>
                 <td class="py-2 px-3 text-slate-100">${escHtml(m.name || '-')}${i === 0 ? ' <span class="text-[10px] text-amber-300">(หัวหน้า)</span>' : ''}</td>
                 <td class="py-2 px-3 text-slate-300">${escHtml(m.student_id || '-')}</td>
                 <td class="py-2 px-3">${ckStatusBadge(rec)}</td>
                 <td class="py-2 px-3 text-right">${rec
-                        ? (isAdmin ? `<button onclick="ckUnregisterMember(${a.id}, ${i})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 text-xs font-bold">ยกเลิก</button>` : '')
-                        : `<button onclick="ckManualMember(${a.id}, ${i})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/90 text-slate-950 text-xs font-bold">ลงทะเบียน</button>`}</td>
+                                ? (isAdmin ? `<button onclick="ckUnregisterMember(${a.id}, ${i})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 text-xs font-bold">ยกเลิก</button>` : '')
+                                : `<button onclick="ckManualMember(${a.id}, ${i})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/90 text-slate-950 text-xs font-bold">ลงทะเบียน</button>`}</td>
             </tr>`;
-            }).join('');
-            return head + mem;
-        }).join('');
-    }
-    const tbl = document.getElementById('ck-table');
-    if (tbl) tbl.innerHTML = `
+                    }).join('');
+                    return head + mem;
+                }).join('');
+            }
+            const tbl = document.getElementById('ck-table');
+            if (tbl) tbl.innerHTML = `
         <table class="w-full text-left text-xs sm:text-sm">
             <thead><tr class="border-b border-slate-700 text-amber-300">
                 <th class="py-2 px-3">${isNop ? 'หมายเลข' : 'ทีม / ลำดับ'}</th><th class="py-2 px-3">${isNop ? 'ชื่อ - นามสกุล' : 'ชื่อ - นามสกุล / สมาชิก'}</th>
@@ -6466,12 +6600,12 @@ function ckRenderLists() {
             </tr></thead>
             <tbody class="divide-y divide-slate-800">${body}</tbody>
         </table>`;
-}
+        }
 
-function renderAdminMenuCheckin(container) {
-    const tabs = ckAllowedTabs();
-    if (!tabs.includes(CK.tab)) CK.tab = tabs[0];
-    container.innerHTML = `
+        function renderAdminMenuCheckin(container) {
+            const tabs = ckAllowedTabs();
+            if (!tabs.includes(CK.tab)) CK.tab = tabs[0];
+            container.innerHTML = `
     <div id="ck-root" class="space-y-6">
         <div>
             <h3 class="text-xl font-bold gold-gradient-text">📷 ลงทะเบียนหน้างาน (สแกนรหัสนักศึกษา)</h3>
@@ -6521,31 +6655,31 @@ function renderAdminMenuCheckin(container) {
             <div id="ck-table" class="overflow-x-auto"></div>
         </div>
     </div>`;
-    ckRenderTabs();
-    ckRenderControls();
-    ckRenderLists();
-    ckShowResult('idle', `พร้อมลงทะเบียน${ckTypeLabel(CK.tab)}`, [CK.tab === 'noppamas' ? 'สแกน QR รหัสนักศึกษา หรือพิมพ์รหัสแล้วกด Enter' : 'สแกนรหัสนักศึกษาของสมาชิกแต่ละคน ระบบจะลงทะเบียนรายบุคคลในทีมของตน']);
-}
+            ckRenderTabs();
+            ckRenderControls();
+            ckRenderLists();
+            ckShowResult('idle', `พร้อมลงทะเบียน${ckTypeLabel(CK.tab)}`, [CK.tab === 'noppamas' ? 'สแกน QR รหัสนักศึกษา หรือพิมพ์รหัสแล้วกด Enter' : 'สแกนรหัสนักศึกษาของสมาชิกแต่ละคน ระบบจะลงทะเบียนรายบุคคลในทีมของตน']);
+        }
 
-// =====================================================================
-//  พิมพ์ใบลงทะเบียน (ทางการ) — ตรา อวท. / เลขไทยทั้งหมด / TH Sarabun PSK
-// =====================================================================
-const CK_TH_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-const CK_FONT = "'TH Sarabun PSK','THSarabunPSK','TH SarabunPSK','TH Sarabun New','Sarabun',serif";
+        // =====================================================================
+        //  พิมพ์ใบลงทะเบียน (ทางการ) — ตรา อวท. / เลขไทยทั้งหมด / TH Sarabun PSK
+        // =====================================================================
+        const CK_TH_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        const CK_FONT = "'TH Sarabun PSK','THSarabunPSK','TH SarabunPSK','TH Sarabun New','Sarabun',serif";
 
-// ข้อความทุกส่วนที่พิมพ์ผ่านฟังก์ชันนี้ จะถูกแปลงเป็นเลขไทยและ escape HTML
-function T(v) { return escHtml(toThaiNum(v == null ? '' : v)); }
-function ckThDate(d) { d = new Date(d || Date.now()); return `${toThaiNum(d.getDate())} ${CK_TH_MONTHS[d.getMonth()]} พ.ศ. ${toThaiNum(d.getFullYear() + 543)}`; }
-function ckThTime(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return toThaiNum(String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0')) + ' น.';
-}
-function ckAcademicYear() { const d = new Date(); return toThaiNum(d.getFullYear() + 543 - (d.getMonth() < 4 ? 1 : 0)); }
-function ckContestName(type) { return type === 'noppamas' ? 'การประกวดนางนพมาศ' : 'การประกวดกระทงประดิษฐ์ (ประเภททีม)'; }
+        // ข้อความทุกส่วนที่พิมพ์ผ่านฟังก์ชันนี้ จะถูกแปลงเป็นเลขไทยและ escape HTML
+        function T(v) { return escHtml(toThaiNum(v == null ? '' : v)); }
+        function ckThDate(d) { d = new Date(d || Date.now()); return `${toThaiNum(d.getDate())} ${CK_TH_MONTHS[d.getMonth()]} พ.ศ. ${toThaiNum(d.getFullYear() + 543)}`; }
+        function ckThTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return toThaiNum(String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0')) + ' น.';
+        }
+        function ckAcademicYear() { const d = new Date(); return toThaiNum(d.getFullYear() + 543 - (d.getMonth() < 4 ? 1 : 0)); }
+        function ckContestName(type) { return type === 'noppamas' ? 'การประกวดนางนพมาศ' : 'การประกวดกระทงประดิษฐ์ (ประเภททีม)'; }
 
-function ckPrintHeader(title) {
-    return `
+        function ckPrintHeader(title) {
+            return `
         <div style="text-align:center;">
             ${getAoVorThorLogoSvg()}
             <div style="font-size:20pt; font-weight:bold; line-height:1.15;">องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</div>
@@ -6554,45 +6688,45 @@ function ckPrintHeader(title) {
             <div style="font-size:16pt; line-height:1.25;">งานประเพณีลอยกระทง ประจำปีการศึกษา ${ckAcademicYear()}</div>
             <div style="border-bottom:1.5pt solid #000; margin:5pt 0 6pt;"></div>
         </div>`;
-}
+        }
 
-function ckSignBlock(left, right) {
-    const box = label => `
+        function ckSignBlock(left, right) {
+            const box = label => `
         <div style="width:46%; text-align:center; line-height:1.5;">
             <div>ลงชื่อ........................................................${label}</div>
             <div>(........................................................)</div>
             <div>วันที่ ........ เดือน ...................... พ.ศ. ${ckAcademicYear()}</div>
         </div>`;
-    return `<div style="display:flex; justify-content:space-between; margin-top:22pt; page-break-inside:avoid;">${box(left)}${box(right)}</div>`;
-}
+            return `<div style="display:flex; justify-content:space-between; margin-top:22pt; page-break-inside:avoid;">${box(left)}${box(right)}</div>`;
+        }
 
-function ckPrintHtml(inner) {
-    setPrintOrientation('portrait');
-    const area = document.getElementById('print-area');
-    area.innerHTML = `<div class="print-page" style="font-family:${CK_FONT}; font-size:16pt; line-height:1.3; color:#000;">${inner}</div>`;
-    const imgs = Array.from(area.querySelectorAll('img'));
-    const loaded = Promise.all(imgs.map(im => im.complete ? null : new Promise(r => { im.onload = im.onerror = r; })));
-    Promise.race([loaded, new Promise(r => setTimeout(r, 2500))]).then(() => setTimeout(() => window.print(), 120));
-}
+        function ckPrintHtml(inner) {
+            setPrintOrientation('portrait');
+            const area = document.getElementById('print-area');
+            area.innerHTML = `<div class="print-page" style="font-family:${CK_FONT}; font-size:16pt; line-height:1.3; color:#000;">${inner}</div>`;
+            const imgs = Array.from(area.querySelectorAll('img'));
+            const loaded = Promise.all(imgs.map(im => im.complete ? null : new Promise(r => { im.onload = im.onerror = r; })));
+            Promise.race([loaded, new Promise(r => setTimeout(r, 2500))]).then(() => setTimeout(() => window.print(), 120));
+        }
 
-const CK_ROW = 'page-break-inside:avoid;';
-const CK_TD = 'padding:3pt 5pt;';
+        const CK_ROW = 'page-break-inside:avoid;';
+        const CK_TD = 'padding:3pt 5pt;';
 
-function ckPrintList() {
-    const type = CK.tab;
-    if (!ckAllowedTabs().includes(type)) return;
-    const scope = (document.getElementById('ck-print-scope') || {}).value || 'all';
-    let apps = ckApproved(type);
-    if (scope === 'done') apps = apps.filter(a => type === 'noppamas' ? a.checked_in : ckTeamCount(a).done > 0);
-    if (scope === 'pending') apps = apps.filter(a => !ckDone(a));
-    if (!apps.length) { showToast('ไม่มีรายการให้พิมพ์ในเงื่อนไขที่เลือก', 'warning'); return; }
+        function ckPrintList() {
+            const type = CK.tab;
+            if (!ckAllowedTabs().includes(type)) return;
+            const scope = (document.getElementById('ck-print-scope') || {}).value || 'all';
+            let apps = ckApproved(type);
+            if (scope === 'done') apps = apps.filter(a => type === 'noppamas' ? a.checked_in : ckTeamCount(a).done > 0);
+            if (scope === 'pending') apps = apps.filter(a => !ckDone(a));
+            if (!apps.length) { showToast('ไม่มีรายการให้พิมพ์ในเงื่อนไขที่เลือก', 'warning'); return; }
 
-    const scopeTxt = { all: 'ทั้งหมด', done: 'เฉพาะผู้ที่ลงทะเบียนแล้ว', pending: 'เฉพาะผู้ที่ยังไม่ลงทะเบียน' }[scope];
-    let table = '', summary = '';
+            const scopeTxt = { all: 'ทั้งหมด', done: 'เฉพาะผู้ที่ลงทะเบียนแล้ว', pending: 'เฉพาะผู้ที่ยังไม่ลงทะเบียน' }[scope];
+            let table = '', summary = '';
 
-    if (type === 'noppamas') {
-        const done = apps.filter(a => a.checked_in).length;
-        table = `
+            if (type === 'noppamas') {
+                const done = apps.filter(a => a.checked_in).length;
+                table = `
         <table class="print-table" style="width:100%;">
             <thead><tr>
                 <th style="width:7%;">ลำดับ</th><th style="width:9%;">หมายเลข</th><th style="width:27%;">ชื่อ - นามสกุล</th>
@@ -6610,26 +6744,28 @@ function ckPrintList() {
                 <td></td></tr>`).join('')}
             </tbody>
         </table>`;
-        summary = `รวมผู้เข้าประกวดทั้งสิ้น ${T(apps.length)} คน ลงทะเบียนแล้ว ${T(done)} คน ยังไม่ลงทะเบียน ${T(apps.length - done)} คน`;
-    } else {
-        let people = 0, doneP = 0;
-        const body = apps.map(a => {
-            const ms = ckMembers(a);
-            people += ms.length;
-            const c = ckTeamCount(a); doneP += c.done;
-            return `
+                summary = `รวมผู้เข้าประกวดทั้งสิ้น ${T(apps.length)} คน ลงทะเบียนแล้ว ${T(done)} คน ยังไม่ลงทะเบียน ${T(apps.length - done)} คน`;
+            } else {
+                let people = 0, doneP = 0;
+                const body = apps.map(a => {
+                    const ms = ckMembers(a);
+                    people += ms.length;
+                    const c = ckTeamCount(a); doneP += c.done;
+                    return `
             <tr style="${CK_ROW}"><td colspan="5" style="background:#f3f4f6 !important; font-weight:bold;">
                 ทีมหมายเลข ${T(a.contestant_number || '-')} สาขาวิชา${T(a.department)} ระดับชั้น ${T(a.edu_level)} ห้อง ${T(a.room_number)}
                 (ลงทะเบียนแล้ว ${T(c.done)}/${T(c.total)} คน)</td></tr>
-            ${ms.map((m, i) => { const r = ckMemberRec(a, i); return `
+            ${ms.map((m, i) => {
+                        const r = ckMemberRec(a, i); return `
             <tr style="${CK_ROW} height:24pt;">
                 <td style="text-align:center;">${T(i + 1)}</td>
                 <td>${T(m.name || '')}${i === 0 ? ' (หัวหน้าทีม)' : ''}</td>
                 <td style="text-align:center;">${T(m.student_id || '')}</td>
                 <td style="text-align:center;">${r && r.at ? T(ckThTime(r.at)).replace(' น.', '') : ''}</td>
-                <td></td></tr>`; }).join('')}`;
-        }).join('');
-        table = `
+                <td></td></tr>`;
+                    }).join('')}`;
+                }).join('');
+                table = `
         <table class="print-table" style="width:100%;">
             <thead><tr>
                 <th style="width:8%;">ลำดับ</th><th style="width:42%;">ชื่อ - นามสกุล</th><th style="width:18%;">รหัสนักศึกษา</th>
@@ -6637,10 +6773,10 @@ function ckPrintList() {
             </tr></thead>
             <tbody>${body}</tbody>
         </table>`;
-        summary = `รวมทั้งสิ้น ${T(apps.length)} ทีม ผู้เข้าร่วม ${T(people)} คน ลงทะเบียนแล้ว ${T(doneP)} คน ยังไม่ลงทะเบียน ${T(people - doneP)} คน`;
-    }
+                summary = `รวมทั้งสิ้น ${T(apps.length)} ทีม ผู้เข้าร่วม ${T(people)} คน ลงทะเบียนแล้ว ${T(doneP)} คน ยังไม่ลงทะเบียน ${T(people - doneP)} คน`;
+            }
 
-    ckPrintHtml(`
+            ckPrintHtml(`
         ${ckPrintHeader(`บัญชีรายชื่อผู้ลงทะเบียนเข้าร่วม${ckContestName(type)}`)}
         <div style="display:flex; justify-content:space-between; font-size:15pt; margin-bottom:4pt;">
             <span>ขอบเขตรายชื่อ: ${scopeTxt}</span>
@@ -6650,25 +6786,25 @@ function ckPrintList() {
         <div style="margin-top:8pt; font-weight:bold;">${summary}</div>
         ${ckSignBlock('เจ้าหน้าที่ลงทะเบียน', 'ผู้ตรวจสอบ')}
     `);
-}
+        }
 
-function ckPrintSlip(id) {
-    const a = ckGetApp(id);
-    if (!a) return;
-    if (a.contest_type !== 'noppamas' && ckRole() !== 'admin') {
-        showToast('สิทธิ์เจ้าหน้าที่พิมพ์ได้เฉพาะนางนพมาศ', 'warning');
-        return;
-    }
-    const isNop = a.contest_type === 'noppamas';
-    const docNo = `${T(String(a.id).slice(-4).padStart(4, '0'))}/${ckAcademicYear()}`;
-    let when = '', body = '';
+        function ckPrintSlip(id) {
+            const a = ckGetApp(id);
+            if (!a) return;
+            if (a.contest_type !== 'noppamas' && ckRole() !== 'admin') {
+                showToast('สิทธิ์เจ้าหน้าที่พิมพ์ได้เฉพาะนางนพมาศ', 'warning');
+                return;
+            }
+            const isNop = a.contest_type === 'noppamas';
+            const docNo = `${T(String(a.id).slice(-4).padStart(4, '0'))}/${ckAcademicYear()}`;
+            let when = '', body = '';
 
-    if (isNop) {
-        const at = a.checked_in ? a.checked_in_at : null;
-        when = at
-            ? `เมื่อวันที่ ${ckThDate(at)} เวลา ${ckThTime(at)}`
-            : 'เมื่อวันที่ ........ เดือน ...................... พ.ศ. ........ เวลา ........ น.';
-        body = `
+            if (isNop) {
+                const at = a.checked_in ? a.checked_in_at : null;
+                when = at
+                    ? `เมื่อวันที่ ${ckThDate(at)} เวลา ${ckThTime(at)}`
+                    : 'เมื่อวันที่ ........ เดือน ...................... พ.ศ. ........ เวลา ........ น.';
+                body = `
         <div style="text-indent:36pt; text-align:justify; margin-top:10pt;">
             ขอรับรองว่า <strong>${T(a.full_name)}</strong> รหัสนักศึกษา <strong>${T(a.student_id)}</strong>
             ระดับชั้น <strong>${T(a.edu_level)}</strong> ห้อง <strong>${T(a.room_number)}</strong>
@@ -6677,10 +6813,10 @@ function ckPrintSlip(id) {
             โดยมีหมายเลขประจำตัวผู้เข้าประกวด <strong>${T(a.contestant_number || '-')}</strong>
         </div>
         <div style="text-indent:36pt; margin-top:6pt;">สถานะการลงทะเบียน: <strong>${a.checked_in ? 'ลงทะเบียนแล้ว' : 'ยังไม่ลงทะเบียน'}</strong></div>`;
-    } else {
-        const ms = ckMembers(a);
-        const c = ckTeamCount(a);
-        body = `
+            } else {
+                const ms = ckMembers(a);
+                const c = ckTeamCount(a);
+                body = `
         <div style="text-indent:36pt; text-align:justify; margin-top:10pt;">
             ขอรับรองว่าทีมกระทงประดิษฐ์ สาขาวิชา<strong>${T(a.department)}</strong> ระดับชั้น <strong>${T(a.edu_level)}</strong>
             ห้อง <strong>${T(a.room_number)}</strong> หมายเลขประจำทีม <strong>${T(a.contestant_number || '-')}</strong>
@@ -6693,18 +6829,20 @@ function ckPrintSlip(id) {
                 <th style="width:15%;">วัน-เวลาลงทะเบียน</th><th style="width:20%;">ลายมือชื่อ</th>
             </tr></thead>
             <tbody>
-            ${ms.map((m, i) => { const r = ckMemberRec(a, i); return `
+            ${ms.map((m, i) => {
+                    const r = ckMemberRec(a, i); return `
                 <tr style="${CK_ROW} height:28pt;">
                     <td style="text-align:center;">${T(i + 1)}</td>
                     <td>${T(m.name || '')}${i === 0 ? ' (หัวหน้าทีม)' : ''}</td>
                     <td style="text-align:center;">${T(m.student_id || '')}</td>
                     <td style="text-align:center; font-size:13pt;">${r && r.at ? `${T(ckThDate(r.at))}<br>${T(ckThTime(r.at))}` : ''}</td>
-                    <td></td></tr>`; }).join('')}
+                    <td></td></tr>`;
+                }).join('')}
             </tbody>
         </table>`;
-    }
+            }
 
-    ckPrintHtml(`
+            ckPrintHtml(`
         ${ckPrintHeader(`ใบลงทะเบียนเข้าร่วม${ckContestName(a.contest_type)}`)}
         <div style="display:flex; justify-content:space-between; font-size:15pt;">
             <span>เลขที่ใบลงทะเบียน ${docNo}</span>
@@ -6714,45 +6852,209 @@ function ckPrintSlip(id) {
         ${ckSignBlock(isNop ? 'ผู้เข้าประกวด' : 'ตัวแทนทีม', 'เจ้าหน้าที่ลงทะเบียน')}
         <div style="margin-top:14pt; font-size:13pt; text-align:center;">เอกสารฉบับนี้ออกโดยระบบงานลอยกระทงออนไลน์และระบบตัดสินการประกวด อวท.</div>
     `);
-}
-
-// ----- เชื่อมเข้ากับระบบเมนู/สิทธิ์เดิม -----
-(function () {
-    const prevSwitch = switchAdminMenu;
-    switchAdminMenu = function (menuKey) {
-        if (menuKey !== 'checkin') {
-            ckStopScanner();
-            return prevSwitch(menuKey);
         }
-        const role = getAdminRole() || 'admin';
-        if (role === 'staff' && !STAFF_MENUS.includes('checkin')) return prevSwitch('criteria');
-        currentAdminMenu = 'checkin';
-        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-admin-menu') === 'checkin');
+
+        // ----- เชื่อมเข้ากับระบบเมนู/สิทธิ์เดิม -----
+        (function () {
+            const prevSwitch = switchAdminMenu;
+            switchAdminMenu = function (menuKey) {
+                if (menuKey !== 'checkin') {
+                    ckStopScanner();
+                    return prevSwitch(menuKey);
+                }
+                const role = getAdminRole() || 'admin';
+                if (role === 'staff' && !STAFF_MENUS.includes('checkin')) return prevSwitch('criteria');
+                currentAdminMenu = 'checkin';
+                document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-admin-menu') === 'checkin');
+                });
+                const container = document.getElementById('admin-subview-container');
+                if (!container) return;
+                if (container.querySelector('#ck-root')) {
+                    ckRenderTabs();
+                    ckRenderLists(); // รีเฟรชเฉพาะรายการ ไม่ทำให้กล้องดับ
+                } else {
+                    renderAdminMenuCheckin(container);
+                }
+                lucide.createIcons();
+            };
+
+            const prevTab = switchTab;
+            switchTab = function (tabId) {
+                if (tabId !== 'admin') ckStopScanner();
+                return prevTab(tabId);
+            };
+
+            const prevLogout = handleAdminLogout;
+            handleAdminLogout = function () {
+                ckStopScanner();
+                return prevLogout.apply(this, arguments);
+            };
+        })();
+
+        let _knownSubmittedKeys = new Set();
+        let _scoreNotifyInitialized = false;
+
+        function getPendingScoreApprovals() {
+            return (appState.judge_submissions || []).filter(s => s.status === 'SUBMITTED');
+        }
+
+        function playAdminAlertBeep() {
+            try {
+                const C = window.AudioContext || window.webkitAudioContext;
+                if (!C) return;
+                const ctx = new C();
+                [587.33, 880].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.value = 0.1;
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.14);
+                });
+            } catch (e) { }
+        }
+
+        function updateAdminScoreNotificationUI(triggerAlert = false) {
+            const pending = getPendingScoreApprovals();
+            const count = pending.length;
+
+            // 1) อัปเดต Badge ตัวเลขบนปุ่มเมนู "อนุมัติคะแนน"
+            const approveBtn = document.querySelector('[data-admin-menu="approve_scores"]');
+            if (approveBtn) {
+                approveBtn.classList.add('relative');
+                let badge = approveBtn.querySelector('.score-notify-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'score-notify-badge absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-extrabold flex items-center justify-center shadow-lg animate-bounce border-2 border-slate-950';
+                        approveBtn.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+
+            // 2) อัปเดต Badge บนปุ่ม Navbar "แอดมิน"
+            document.querySelectorAll('[data-nav="admin"], [data-drawer="admin"]').forEach(navBtn => {
+                navBtn.classList.add('relative');
+                let nBadge = navBtn.querySelector('.nav-score-badge');
+                if (count > 0 && isAdminLoggedIn) {
+                    if (!nBadge) {
+                        nBadge = document.createElement('span');
+                        nBadge.className = 'nav-score-badge ml-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-bold animate-pulse';
+                        navBtn.appendChild(nBadge);
+                    }
+                    nBadge.textContent = count;
+                } else if (nBadge) {
+                    nBadge.remove();
+                }
+            });
+
+            // 3) แสดงแบนเนอร์แจ้งเตือนด้านบนในหน้า Admin Workspace
+            const adminWork = document.getElementById('admin-workspace');
+            if (adminWork && isAdminLoggedIn) {
+                let banner = document.getElementById('admin-score-alert-banner');
+                if (count > 0) {
+                    const detailList = pending.map(s => {
+                        const j = appState.judges.find(x => Number(x.id) === Number(s.judge_id));
+                        const jName = j ? j.full_name : `กรรมการ #${s.judge_id}`;
+                        const catName = s.contest_type === 'noppamas' ? 'นางนพมาศ' : 'กระทงประดิษฐ์';
+                        return `${jName} (${catName})`;
+                    }).join(', ');
+
+                    if (!banner) {
+                        banner = document.createElement('div');
+                        banner.id = 'admin-score-alert-banner';
+                        adminWork.insertBefore(banner, adminWork.firstChild);
+                    }
+                    banner.className = 'p-4 rounded-2xl bg-gradient-to-r from-rose-950/90 via-amber-950/80 to-rose-950/90 border-2 border-amber-400/80 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+                    banner.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shrink-0 animate-pulse">🔔</span>
+                    <div>
+                        <p class="text-sm font-bold text-amber-300">มีรายการส่งคะแนนจากกรรมการรอการอนุมัติ (${count} รายการ)</p>
+                        <p class="text-xs text-slate-200 mt-0.5">รอตรวจสอบ: <strong>${escHtml(detailList)}</strong></p>
+                    </div>
+                </div>
+                <button onclick="switchAdminMenu('approve_scores')" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shrink-0 shadow">
+                    ไปหน้าอนุมัติคะแนนทันที →
+                </button>
+            `;
+                } else if (banner) {
+                    banner.remove();
+                }
+            }
+
+            // 4) ตรวจจับรายการส่งคะแนนใหม่ที่เพิ่งเข้ามา เพื่อแจ้งเตือนแอดมินทันที
+            const currentKeys = new Set(pending.map(s => `${s.judge_id}_${s.contest_type}`));
+            if (_scoreNotifyInitialized && isAdminLoggedIn) {
+                pending.forEach(s => {
+                    const k = `${s.judge_id}_${s.contest_type}`;
+                    if (!_knownSubmittedKeys.has(k) || triggerAlert) {
+                        const j = appState.judges.find(x => Number(x.id) === Number(s.judge_id));
+                        const jName = j ? j.full_name : 'กรรมการ';
+                        const catName = s.contest_type === 'noppamas' ? 'นางนพมาศ' : 'กระทงประดิษฐ์';
+                        showToast(`🔔 ${jName} ส่งคะแนนหมวด "${catName}" แล้ว กรุณากดอนุมัติคะแนน!`, 'warning');
+                        playAdminAlertBeep();
+                    }
+                });
+            }
+            _knownSubmittedKeys = currentKeys;
+            _scoreNotifyInitialized = true;
+        }
+
+        // เชื่อมต่อ Supabase Realtime + Polling สำหรับอัปเดตสถานะการส่งคะแนนของกรรมการแบบทันที
+        function initJudgeSubmissionRealtime() {
+            if (!sbClient) return;
+            sbClient
+                .channel('admin-judge-submissions-watch')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'judge_submissions' }, async () => {
+                    const { data } = await sbClient.from('judge_submissions').select('*');
+                    if (data) {
+                        appState.judge_submissions = data;
+                        updateAdminScoreNotificationUI(false);
+                        if (isAdminLoggedIn && currentAdminMenu === 'approve_scores') {
+                            switchAdminMenu('approve_scores');
+                        }
+                    }
+                })
+                .subscribe();
+
+            // สำรองกรณีไม่ได้เปิด Realtime บนตาราง: เช็กทุก 15 วินาทีเมื่อเปิดหน้าแอดมิน
+            setInterval(async () => {
+                if (!sbClient || !isAdminLoggedIn || document.visibilityState !== 'visible') return;
+                const { data } = await sbClient.from('judge_submissions').select('*');
+                if (data) {
+                    appState.judge_submissions = data;
+                    updateAdminScoreNotificationUI(false);
+                }
+            }, 15000);
+        }
+
+        // ผูกการทำงานเข้ากับ Lifecycle เดิมของระบบ
+        const _origRefreshAllViews = refreshAllViews;
+        refreshAllViews = function () {
+            _origRefreshAllViews();
+            updateAdminScoreNotificationUI(false);
+        };
+
+        const _origSwitchAdminMenu2 = switchAdminMenu;
+        switchAdminMenu = function (menuKey) {
+            _origSwitchAdminMenu2(menuKey);
+            updateAdminScoreNotificationUI(false);
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                initJudgeSubmissionRealtime();
+                updateAdminScoreNotificationUI(false);
+            }, 800);
         });
-        const container = document.getElementById('admin-subview-container');
-        if (!container) return;
-        if (container.querySelector('#ck-root')) {
-            ckRenderTabs();
-            ckRenderLists(); // รีเฟรชเฉพาะรายการ ไม่ทำให้กล้องดับ
-        } else {
-            renderAdminMenuCheckin(container);
-        }
-        lucide.createIcons();
-    };
-
-    const prevTab = switchTab;
-    switchTab = function (tabId) {
-        if (tabId !== 'admin') ckStopScanner();
-        return prevTab(tabId);
-    };
-
-    const prevLogout = handleAdminLogout;
-    handleAdminLogout = function () {
-        ckStopScanner();
-        return prevLogout.apply(this, arguments);
-    };
-})();
 
     </script>
 </body>
