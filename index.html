@@ -3332,32 +3332,32 @@ function renderPublicNews() {
                 'krathong_team', '🪷 เกณฑ์การประกวดกระทงประดิษฐ์ (ทีม)');
         }
 
-        function computeCategoryRankings(contestType) {
-            const contestants = appState.applications
-                .filter(a => a.contest_type === contestType && a.status === 'APPROVED')
-                .sort((a, b) => (a.contestant_number || 99) - (b.contestant_number || 99));
+       function computeCategoryRankings(contestType) {
+    const contestants = appState.applications
+        .filter(a => a.contest_type === contestType && a.status === 'APPROVED')
+        .sort((a, b) => (Number(a.contestant_number) || 999) - (Number(b.contestant_number) || 999));
 
-            const catCriteriaIds = appState.criteria.filter(c => c.contest_type === contestType).map(c => Number(c.id));
+    const catCriteriaIds = appState.criteria.filter(c => c.contest_type === contestType).map(c => Number(c.id));
 
-            const rows = contestants.map(c => {
-                const rawTotal = appState.scores
-                    .filter(sc => Number(sc.application_id) === Number(c.id) && catCriteriaIds.includes(Number(
-                        sc.criteria_id)))
-                    .reduce((sum, s) => sum + Number(s.score || 0), 0);
-                return {
-                    ...c,
-                    displayName: getDisplayName(c),
-                    displayNameThai: getDisplayNameThai(c),
-                    rawTotal: Number(rawTotal.toFixed(2))
-                };
-            });
+    const rows = contestants.map(c => {
+        const rawTotal = appState.scores
+            .filter(sc => Number(sc.application_id) === Number(c.id) && catCriteriaIds.includes(Number(sc.criteria_id)))
+            .reduce((sum, s) => sum + Number(s.score || 0), 0);
+        return {
+            ...c,
+            displayName: getDisplayName(c),
+            displayNameThai: getDisplayNameThai(c),
+            rawTotal: Number(rawTotal.toFixed(2))
+        };
+    });
 
-            rows.sort((a, b) => b.rawTotal - a.rawTotal);
-            return rows.map((r, i) => ({
-                ...r,
-                rank: i + 1
-            }));
-        }
+    // เรียงคะแนนมากไปน้อย หากคะแนนเท่ากันให้เรียงตามหมายเลขผู้เข้าประกวด (1, 2, 3...)
+    rows.sort((a, b) => b.rawTotal - a.rawTotal || (Number(a.contestant_number) || 999) - (Number(b.contestant_number) || 999));
+    return rows.map((r, i) => ({
+        ...r,
+        rank: i + 1
+    }));
+}
 
         function renderPublicResults() {
             const wrap = document.getElementById('public-results-wrapper');
@@ -5202,9 +5202,121 @@ function renderPublicNews() {
             return 'bg-amber-400/20 text-amber-300';
         }
 
-        function renderAdminMenuApplications(container) {
-            const isOpen = appState.settings.applications_open !== false;
-            container.innerHTML = `
+// ฟังก์ชันเรียงลำดับหมายเลขผู้เข้าประกวดใหม่ (1, 2, 3... ไม่ข้ามเลข)
+async function resequenceContestantNumbers(contestType) {
+    const label = contestType === 'noppamas' ? 'นางนพมาศ' : 'กระทงประดิษฐ์';
+    if (!confirm(`ยืนยันจัดเรียงหมายเลขผู้เข้าประกวด "${label}" ใหม่ตั้งแต่ 1, 2, 3... ตามลำดับ?\n(จะแก้ไขเฉพาะรายการที่อนุมัติแล้ว)`)) return;
+
+    const approvedList = appState.applications
+        .filter(a => a.contest_type === contestType && a.status === 'APPROVED')
+        .sort((a, b) => (Number(a.contestant_number) || 9999) - (Number(b.contestant_number) || 9999) || Number(a.id) - Number(b.id));
+
+    if (approvedList.length === 0) {
+        showToast('ไม่มีรายการที่อนุมัติแล้วในหมวดนี้', 'warning');
+        return;
+    }
+
+    showLoader(`กำลังจัดเรียงหมายเลข${label}ใหม่...`);
+    try {
+        for (let i = 0; i < approvedList.length; i++) {
+            const newNum = i + 1;
+            const app = approvedList[i];
+            if (Number(app.contestant_number) !== newNum) {
+                app.contestant_number = newNum;
+                if (sbClient) {
+                    const { error } = await sbClient
+                        .from('applications')
+                        .update({ contestant_number: newNum })
+                        .eq('id', app.id);
+                    if (error) {
+                        showToast('อัปเดตหมายเลขไม่สำเร็จ: ' + error.message, 'error');
+                        return;
+                    }
+                }
+            }
+        }
+        renderPublicContestants();
+        switchAdminMenu('applications');
+        showToast(`จัดเรียงหมายเลข${label}ใหม่ (1 - ${approvedList.length}) เรียบร้อยแล้ว`, 'success');
+    } finally {
+        hideLoader();
+    }
+}
+
+// ฟังก์ชันสร้างตารางแยกตามประเภท (นางนพมาศ / กระทงประดิษฐ์)
+function buildApplicationCategoryTable(contestType, titleText) {
+    const list = appState.applications
+        .filter(a => a.contest_type === contestType)
+        .sort((a, b) => {
+            // เรียงรายการที่อนุมัติแล้วตามหมายเลขขึ้นก่อน ตามด้วยรายการรออนุมัติ/ปฏิเสธ
+            const numA = (a.status === 'APPROVED' && a.contestant_number) ? Number(a.contestant_number) : 9999;
+            const numB = (b.status === 'APPROVED' && b.contestant_number) ? Number(b.contestant_number) : 9999;
+            return numA - numB || Number(a.id) - Number(b.id);
+        });
+
+    const approvedCount = list.filter(a => a.status === 'APPROVED').length;
+
+    return `
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                    <h4 class="text-lg font-bold text-amber-300">${titleText}</h4>
+                    <p class="text-xs text-slate-400">ทั้งหมด ${list.length} รายการ (อนุมัติและรันหมายเลขแล้ว ${approvedCount} รายการ)</p>
+                </div>
+                <button onclick="resequenceContestantNumbers('${contestType}')"
+                    class="px-4 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-200 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
+                    <i data-lucide="list-ordered" class="w-4 h-4"></i> จัดเรียงหมายเลขใหม่ (1, 2, 3...)
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700 text-amber-300">
+                            <th class="py-2.5 px-3 w-20">หมายเลข</th>
+                            <th class="py-2.5 px-3">${contestType === 'noppamas' ? 'ชื่อผู้สมัคร' : 'สาขาและระดับชั้น/ห้อง'}</th>
+                            <th class="py-2.5 px-3">รหัสนักศึกษา / สังกัด</th>
+                            <th class="py-2.5 px-3">สถานะ</th>
+                            <th class="py-2.5 px-3 text-right">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        ${list.length ? list.map(app => `
+                            <tr class="align-top hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-3 font-extrabold text-base text-amber-300">${app.contestant_number ? app.contestant_number : '-'}</td>
+                                <td class="py-3 px-3 font-semibold text-white">${escHtml(getDisplayName(app))}</td>
+                                <td class="py-3 px-3 text-slate-300">${escHtml(app.student_id)} • ${escHtml(app.department)} (${escHtml(app.edu_level)}/${escHtml(app.room_number)})</td>
+                                <td class="py-3 px-3">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${appStatusBadgeClass(app.status)}">${escHtml(app.status)}</span>
+                                    ${app.status === 'REJECTED' && app.reject_reason ? `<div class="text-[11px] text-rose-300 mt-1">เหตุผล: ${escHtml(app.reject_reason)}</div>` : ''}
+                                    ${app.edit_requested
+                                        ? `<div class="text-[11px] text-sky-300 mt-1">✏️ รอผู้สมัครแก้ไข — เหตุผล: ${escHtml(app.edit_reason || '-')}</div>`
+                                        : (app.edit_submitted_at ? `<div class="text-[11px] text-emerald-300 mt-1">✅ ผู้สมัครแก้ไขข้อมูลแล้ว</div>` : '')}
+                                    ${app.checked_in ? `<div class="text-[11px] text-emerald-300 mt-1">📍 ลงทะเบียนหน้างานแล้ว</div>` : ''}
+                                </td>
+                                <td class="py-3 px-3 text-right">
+                                    <div class="flex flex-wrap justify-end gap-1.5">
+                                        <button onclick="approveApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
+                                        <button onclick="rejectApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
+                                        <button onclick="openEditApplicationModal(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-bold text-xs">✏️ แก้ไข</button>
+                                        ${app.edit_requested
+                                            ? `<button onclick="cancelEditRequest(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-sky-400/40 text-sky-300 font-bold text-xs">ยกเลิกคำขอแก้ไข</button>`
+                                            : `<button onclick="requestApplicationEdit(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-200 font-bold text-xs">📝 ให้ผู้สมัครแก้ไข</button>`}
+                                        <button onclick="printOfficialApplicationForm(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 font-bold text-xs">🖨️ พิมพ์</button>
+                                        <button onclick="deleteApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 font-bold text-xs">🗑 ลบ</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="5" class="py-4 text-center text-slate-500">ยังไม่มีรายการใบสมัครในหมวดหมู่นี้</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function renderAdminMenuApplications(container) {
+    const isOpen = appState.settings.applications_open !== false;
+    container.innerHTML = `
         <div class="space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-400/30">
                 <div>
@@ -5216,54 +5328,12 @@ function renderPublicNews() {
                 </button>
             </div>
 
-            <h3 class="text-xl font-bold gold-gradient-text mt-6">📋 จัดการใบสมัครและรันหมายเลขผู้เข้าประกวด</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs sm:text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-700 text-amber-300">
-                            <th class="py-2.5 px-3">หมายเลข</th>
-                            <th class="py-2.5 px-3">ประเภท</th>
-                            <th class="py-2.5 px-3">ชื่อผู้สมัคร / สาขาและระดับชั้น/ห้อง</th>
-                            <th class="py-2.5 px-3">รหัสนักศึกษา / สังกัด</th>
-                            <th class="py-2.5 px-3">สถานะ</th>
-                            <th class="py-2.5 px-3 text-right">การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800">
-                        ${appState.applications.length ? appState.applications.map(app => `
-                            <tr class="align-top">
-                                <td class="py-3 px-3 font-extrabold text-amber-300">${app.contestant_number ? app.contestant_number : '-'}</td>
-                                <td class="py-3 px-3">${app.contest_type === 'noppamas' ? '👑 นางนพมาศ' : '🪷 กระทงทีม'}</td>
-                                <td class="py-3 px-3 font-semibold text-white">${escHtml(getDisplayName(app))}</td>
-                                <td class="py-3 px-3 text-slate-300">${escHtml(app.student_id)} • ${escHtml(app.department)} (${escHtml(app.edu_level)}/${escHtml(app.room_number)})</td>
-                                <td class="py-3 px-3">
-                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${appStatusBadgeClass(app.status)}">${escHtml(app.status)}</span>
-                                    ${app.status === 'REJECTED' && app.reject_reason ? `<div class="text-[11px] text-rose-300 mt-1">เหตุผล: ${escHtml(app.reject_reason)}</div>` : ''}
-                                    ${app.edit_requested
-                    ? `<div class="text-[11px] text-sky-300 mt-1">✏️ รอผู้สมัครแก้ไข — เหตุผล: ${escHtml(app.edit_reason || '-')}</div>`
-                    : (app.edit_submitted_at ? `<div class="text-[11px] text-emerald-300 mt-1">✅ ผู้สมัครแก้ไขข้อมูลแล้ว</div>` : '')}
-                                    ${app.checked_in ? `<div class="text-[11px] text-emerald-300 mt-1">📍 ลงทะเบียนหน้างานแล้ว</div>` : ''}
-                                </td>
-                                <td class="py-3 px-3 text-right">
-                                    <div class="flex flex-wrap justify-end gap-1.5">
-                                        <button onclick="approveApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs">อนุมัติ</button>
-                                        <button onclick="rejectApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold text-xs">ปฏิเสธ</button>
-                                        <button onclick="openEditApplicationModal(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-bold text-xs">✏️ แก้ไข</button>
-                                        ${app.edit_requested
-                    ? `<button onclick="cancelEditRequest(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-sky-400/40 text-sky-300 font-bold text-xs">ยกเลิกคำขอแก้ไข</button>`
-                    : `<button onclick="requestApplicationEdit(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-200 font-bold text-xs">📝 ให้ผู้สมัครแก้ไข</button>`}
-                                        <button onclick="printOfficialApplicationForm(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 font-bold text-xs">🖨️ พิมพ์</button>
-                                        <button onclick="deleteApplication(${app.id})" class="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 font-bold text-xs">🗑 ลบ</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('') : '<tr><td colspan="6" class="py-4 text-center text-slate-500">ยังไม่มีรายการใบสมัคร</td></tr>'}
-                    </tbody>
-                </table>
-            </div>
+            <h3 class="text-xl font-bold gold-gradient-text mt-6">📋 จัดการใบสมัครและรันหมายเลขผู้เข้าประกวด (แยกตามประเภท)</h3>
+            ${buildApplicationCategoryTable('noppamas', '👑 รายชื่อผู้เข้าประกวดนางนพมาศ (ประเภทบุคคล)')}
+            ${buildApplicationCategoryTable('krathong_team', '🪷 รายชื่อผู้เข้าประกวดกระทงประดิษฐ์ (ประเภททีม)')}
         </div>
     `;
-        }
+}
 
         // ปฏิเสธใบสมัคร (ตรวจ error จริง + แจ้งเหตุผล)
         async function rejectApplication(id) {
